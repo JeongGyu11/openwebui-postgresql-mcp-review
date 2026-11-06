@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* Description : 페이징을 위한 쿼리
+* - MariaDB에서는 ROW_NUMBER() OVER()를 사용할 수 없어서 변수를 사용하여 페이징 처리
+* - MySQL 8.0.2 이상부터 ROW_NUMBER() OVER()를 사용할 수 있음
+* - PostgreSQL에서는 ROW_NUMBER() OVER()를 사용할 수 있음
+-->
+<mapper namespace="COMMON">
+
+    <sql id="pagingPreSQL">
+        SELECT *
+        FROM (
+            SELECT
+                @rownum := @rownum + 1 AS ROW_NUM,
+                #{pageNo} AS PAGE_NO,
+                #{pageSize} AS PAGE_SIZE,
+                AA.*
+            FROM (
+    </sql>
+
+    <sql id="pagingPostSQL">
+                LIMIT 18446744073709551615
+            ) AA
+            CROSS JOIN (SELECT @rownum := 0) BB
+        ) SUB
+        WHERE ROW_NUM BETWEEN ((#{pageNo} - 1) * #{pageSize} + 1) AND (#{pageNo} * #{pageSize})
+    </sql>
+
+</mapper>

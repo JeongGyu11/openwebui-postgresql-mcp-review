@@ -1,0 +1,12 @@
+[
+  "connections encrypted on server",
+  "anonymous refresh rejected",
+  "unknown file rejected",
+  "snapshot unchanged before attachment",
+  "attachment request refreshes changed data",
+  "response contains no credentials",
+  "unchanged DB does not rewrite CSV",
+  "collection attachment refreshes both DB tables",
+  "missing connection fails instead of serving stale attachment",
+  "sample data restored"
+]

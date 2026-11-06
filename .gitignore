@@ -324,3 +324,9 @@ cypress/videos
 cypress/screenshots
 .vscode/settings.json
 .cptr
+
+# Local analysis outputs and runtime credentials
+/outputs/
+*.local.json
+postgresql-attachment-connections.json
+settings.local.json

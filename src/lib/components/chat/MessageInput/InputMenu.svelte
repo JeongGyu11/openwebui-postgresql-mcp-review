@@ -4,6 +4,8 @@
 
 	import { config, user, tools as _tools, mobile, knowledge, visibleControls } from '$lib/stores';
 	import { getKnowledgeBases } from '$lib/apis/knowledge';
+	import { WEBUI_API_BASE_URL } from '$lib/constants';
+	import { toast } from 'svelte-sonner';
 
 	import { createPicker } from '$lib/utils/google-drive-picker';
 
@@ -92,9 +94,38 @@
 		}
 	};
 
-	const onSelect = (item) => {
+	export let refreshingDatabase = false;
+	let refreshError = '';
+	const onSelect = async (item) => {
+		if (refreshingDatabase) return;
 		if (files.find((f) => f.id === item.id)) {
 			return;
+		}
+		if (item.type === 'collection' || item.meta?.source === 'postgresql') {
+			refreshingDatabase = true;
+			refreshError = '';
+			const notification = toast.loading('DB 최신 데이터 확인 중…');
+			try {
+				const response = await fetch(`${WEBUI_API_BASE_URL}/knowledge/database/refresh-attachment`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.token}` },
+					body: JSON.stringify(item.type === 'collection' ? { knowledge_id: item.id } : { file_id: item.id })
+				});
+				const result = await response.json();
+				if (!response.ok) throw new Error(result.detail || 'DB 최신 데이터를 가져오지 못했습니다.');
+				if (item.type !== 'collection' && result.files.length) {
+					const latest = result.files[0].file;
+					item = { ...item, ...latest, name: latest.meta?.name || latest.filename };
+				}
+				if (result.files.length) toast.success('최신 DB 데이터를 확인했습니다.');
+			} catch (error) {
+				refreshError = error instanceof Error ? error.message : 'DB 최신 데이터를 가져오지 못했습니다.';
+				toast.error(`${refreshError} 자료를 첨부하지 않았습니다.`);
+				return;
+			} finally {
+				toast.dismiss(notification);
+				refreshingDatabase = false;
+			}
 		}
 		files = [
 			...files,
@@ -668,6 +699,8 @@
 						</div>
 					</button>
 
+					{#if refreshingDatabase}<p role="status" class="px-3 py-2 text-sm">DB 최신 데이터 확인 중… 완료 후 첨부됩니다.</p>{/if}
+					{#if refreshError}<p role="alert" class="px-3 py-2 text-sm text-red-600">{refreshError} 첨부되지 않았습니다. 다시 선택해 주세요.</p>{/if}
 					<Knowledge {onSelect} />
 				</div>
 			{:else if tab === 'notes'}

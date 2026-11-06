@@ -1,0 +1,792 @@
+Original file: 3_DDL.ddl
+
+
+-- 공통코드
+CREATE TABLE `CMN_CD` (
+	`CD_GROUP_VAL`      VARCHAR(40)   NOT NULL COMMENT '코드그룹값', -- 코드그룹값
+	`CD_VAL`            VARCHAR(32)   NOT NULL COMMENT '코드값', -- 코드값
+	`CD_NM`             VARCHAR(1000) NULL     COMMENT '코드명', -- 코드명
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`MAPNG_INSTI_CD`    VARCHAR(32)   NULL     COMMENT '매핑기관코드', -- 매핑기관코드
+	`MAPNG_CD_VAL`      VARCHAR(40)   NULL     COMMENT '매핑코드값', -- 매핑코드값
+	`CD_REF_1_VAL`      VARCHAR(1000) NULL     COMMENT '코드참조1값', -- 코드참조1값
+	`CD_REF_2_VAL`      VARCHAR(1000) NULL     COMMENT '코드참조2값', -- 코드참조2값
+	`CD_REF_3_VAL`      VARCHAR(1000) NULL     COMMENT '코드참조3값', -- 코드참조3값
+	`UP_CD_GROUP_VAL`   VARCHAR(40)   NULL     COMMENT '상위코드그룹값', -- 상위코드그룹값
+	`UP_CD_VAL`         VARCHAR(32)   NULL     COMMENT '상위코드값', -- 상위코드값
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '공통코드';
+
+-- 공통코드
+ALTER TABLE `CMN_CD`
+	ADD CONSTRAINT `PK_CMN_CD` -- 공통코드 기본키
+	PRIMARY KEY (
+	`CD_GROUP_VAL`, -- 코드그룹값
+	`CD_VAL`        -- 코드값
+	);
+
+-- 공통코드그룹
+CREATE TABLE `CMN_CD_GROUP` (
+	`CD_GROUP_VAL`      VARCHAR(40)   NOT NULL COMMENT '코드그룹값', -- 코드그룹값
+	`CD_GROUP_NM`       VARCHAR(300)  NULL     COMMENT '코드그룹명', -- 코드그룹명
+	`CD_LEN_VAL`        DECIMAL(10)   NULL     COMMENT '코드길이값', -- 코드길이값
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`FSB_CD_YN`         VARCHAR(1)    NULL     COMMENT '중앙회코드여부', -- 중앙회코드여부
+	`FSB_CD_VAL`        VARCHAR(30)   NULL     COMMENT '중앙회코드값', -- 중앙회코드값
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '공통코드그룹';
+
+-- 공통코드그룹
+ALTER TABLE `CMN_CD_GROUP`
+	ADD CONSTRAINT `PK_CMN_CD_GROUP` -- 공통코드그룹 기본키
+	PRIMARY KEY (
+	`CD_GROUP_VAL` -- 코드그룹값
+	);
+
+-- 휴일기본
+CREATE TABLE `HOLDY_BAS` (
+	`HOLDY_YMD`         VARCHAR(8)    NOT NULL COMMENT '휴일년월일', -- 휴일년월일
+	`HOLDY_CD`          VARCHAR(32)   NULL     COMMENT '휴일코드', -- 휴일코드
+	`HOLDY_DTL_CTNT`    VARCHAR(4000) NULL     COMMENT '휴일상세내용', -- 휴일상세내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '휴일기본';
+
+-- 휴일기본
+ALTER TABLE `HOLDY_BAS`
+	ADD CONSTRAINT `PK_HOLDY_BAS` -- 휴일기본 기본키
+	PRIMARY KEY (
+	`HOLDY_YMD` -- 휴일년월일
+	);
+
+-- 시스템설정변수내역
+CREATE TABLE `SYS_STUP_VAR_TXN` (
+	`STUP_VAR_KEY`      VARCHAR(300)  NOT NULL COMMENT '설정변수키', -- 설정변수키
+	`STUP_VAR_VAL`      VARCHAR(4000) NULL     COMMENT '설정변수값', -- 설정변수값
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '시스템설정변수내역';
+
+-- 시스템설정변수내역
+ALTER TABLE `SYS_STUP_VAR_TXN`
+	ADD CONSTRAINT `PK_SYS_STUP_VAR_TXN` -- PK_시스템설정변수내역
+	PRIMARY KEY (
+	`STUP_VAR_KEY` -- 설정변수키
+	);
+
+-- 어드민게시판내역
+CREATE TABLE `ADM_BULBD_TXN` (
+	`BULBD_ID`          VARCHAR(18)   NOT NULL COMMENT '게시판아이디', -- 게시판아이디
+	`BLPS_SEQNO`        INT(11)       NOT NULL COMMENT '게시글일련번호', -- 게시글일련번호
+	`BLPS_TITL`         VARCHAR(1000) NULL     COMMENT '게시글제목', -- 게시글제목
+	`BLPS_CTNT`         MEDIUMTEXT    NULL     COMMENT '게시글내용', -- 게시글내용
+	`INQRY_NUM`         DECIMAL(10)   NULL     COMMENT '조회수', -- 조회수
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민게시판내역';
+
+-- 어드민게시판내역
+ALTER TABLE `ADM_BULBD_TXN`
+	ADD CONSTRAINT `PK_ADM_BULBD_TXN` -- 어드민게시판내역 기본키
+	PRIMARY KEY (
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`  -- 게시글일련번호
+	);
+
+ALTER TABLE `ADM_BULBD_TXN`
+	MODIFY COLUMN `BLPS_SEQNO` INT(11) NOT NULL AUTO_INCREMENT COMMENT '게시글일련번호';
+
+-- 어드민게시글댓글내역
+CREATE TABLE `ADM_BLPS_BLRP_TXN` (
+	`BULBD_ID`          VARCHAR(18)   NOT NULL COMMENT '게시판아이디', -- 게시판아이디
+	`BLPS_SEQNO`        INT(11)       NOT NULL COMMENT '게시글일련번호', -- 게시글일련번호
+	`BLRP_SEQNO`        DECIMAL(10)   NOT NULL COMMENT '댓글일련번호', -- 댓글일련번호
+	`BLRP_CTNT`         VARCHAR(4000) NULL     COMMENT '댓글내용', -- 댓글내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민게시글댓글내역';
+
+-- 어드민게시글댓글내역
+ALTER TABLE `ADM_BLPS_BLRP_TXN`
+	ADD CONSTRAINT `PK_ADM_BLPS_BLRP_TXN` -- 어드민게시글댓글내역 기본키
+	PRIMARY KEY (
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`, -- 게시글일련번호
+	`BLRP_SEQNO`  -- 댓글일련번호
+	);
+
+-- 파일업로드데이터내역
+CREATE TABLE `FILE_ULD_DATA_TXN` (
+	`ULD_SEQNO`         INT(11)       NOT NULL COMMENT '업로드일련번호', -- 업로드일련번호
+	`DATA_SEQNO`        INT(11)       NOT NULL COMMENT '데이터일련번호', -- 데이터일련번호
+	`DATA_CTNT`         MEDIUMTEXT    NULL     COMMENT '데이터내용', -- 데이터내용
+	`NOMAL_YN`          VARCHAR(1)    NULL     COMMENT '정상여부', -- 정상여부
+	`ERR_CTNT`          VARCHAR(4000) NULL     COMMENT '오류내용', -- 오류내용
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '파일업로드데이터내역';
+
+-- 파일업로드데이터내역
+ALTER TABLE `FILE_ULD_DATA_TXN`
+	ADD CONSTRAINT `PK_FILE_ULD_DATA_TXN` -- 파일업로드데이터내역 기본키
+	PRIMARY KEY (
+	`ULD_SEQNO`,  -- 업로드일련번호
+	`DATA_SEQNO`  -- 데이터일련번호
+	);
+
+ALTER TABLE `FILE_ULD_DATA_TXN`
+	MODIFY COLUMN `DATA_SEQNO` INT(11) NOT NULL AUTO_INCREMENT COMMENT '데이터일련번호';
+
+-- 어드민게시판기본
+CREATE TABLE `ADM_BULBD_BAS` (
+	`BULBD_ID`          VARCHAR(18)   NOT NULL COMMENT '게시판아이디', -- 게시판아이디
+	`BULBD_NM`          VARCHAR(300)  NULL     COMMENT '게시판명', -- 게시판명
+	`ADM_ATH_YN`        VARCHAR(1)    NULL     COMMENT '관리자권한여부', -- 관리자권한여부
+	`MAIN_REPST_YN`     VARCHAR(1)    NULL     COMMENT '메인표시여부', -- 메인표시여부
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민게시판기본';
+
+-- 어드민게시판기본
+ALTER TABLE `ADM_BULBD_BAS`
+	ADD CONSTRAINT `PK_ADM_BULBD_BAS` -- 어드민게시판기본 기본키
+	PRIMARY KEY (
+	`BULBD_ID` -- 게시판아이디
+	);
+
+-- 파일업로드기본
+CREATE TABLE `FILE_ULD_BAS` (
+	`ULD_SEQNO`         INT(11)       NOT NULL COMMENT '업로드일련번호', -- 업로드일련번호
+	`ULD_DV_CD`         VARCHAR(32)   NULL     COMMENT '업로드구분코드', -- 업로드구분코드
+	`DATA_TRT_STUS_CD`  VARCHAR(32)   NULL     COMMENT '데이터처리상태코드', -- 데이터처리상태코드
+	`STORG_PATH_NM`     VARCHAR(1000) NULL     COMMENT '저장경로명', -- 저장경로명
+	`FILE_NM`           VARCHAR(300)  NULL     COMMENT '파일명', -- 파일명
+	`ULD_CSCNT`         DECIMAL(10)   NULL     COMMENT '업로드건수', -- 업로드건수
+	`NOMAL_CSCNT`       DECIMAL(10)   NULL     COMMENT '정상건수', -- 정상건수
+	`ERR_CSCNT`         DECIMAL(10)   NULL     COMMENT '오류건수', -- 오류건수
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '파일업로드기본';
+
+-- 파일업로드기본
+ALTER TABLE `FILE_ULD_BAS`
+	ADD CONSTRAINT `PK_FILE_ULD_BAS` -- 파일업로드기본 기본키
+	PRIMARY KEY (
+	`ULD_SEQNO` -- 업로드일련번호
+	);
+
+ALTER TABLE `FILE_ULD_BAS`
+	MODIFY COLUMN `ULD_SEQNO` INT(11) NOT NULL AUTO_INCREMENT COMMENT '업로드일련번호';
+
+-- 어드민게시글첨부내역
+CREATE TABLE `ADM_BLPS_APNDX_TXN` (
+	`BULBD_ID`          VARCHAR(18)   NOT NULL COMMENT '게시판아이디', -- 게시판아이디
+	`BLPS_SEQNO`        INT(11)       NOT NULL COMMENT '게시글일련번호', -- 게시글일련번호
+	`APNDX_SEQNO`       DECIMAL(10)   NOT NULL COMMENT '첨부일련번호', -- 첨부일련번호
+	`STORG_PATH_NM`     VARCHAR(1000) NULL     COMMENT '저장경로명', -- 저장경로명
+	`FILE_NM`           VARCHAR(300)  NULL     COMMENT '파일명', -- 파일명
+	`ORCPY_FILE_NM`     VARCHAR(300)  NULL     COMMENT '원본파일명', -- 원본파일명
+	`FILE_SIZE`         DECIMAL(10)   NULL     COMMENT '파일사이즈', -- 파일사이즈
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민게시글첨부내역';
+
+-- 어드민게시글첨부내역
+ALTER TABLE `ADM_BLPS_APNDX_TXN`
+	ADD CONSTRAINT `PK_ADM_BLPS_APNDX_TXN` -- 어드민게시글첨부내역 기본키
+	PRIMARY KEY (
+	`BULBD_ID`,    -- 게시판아이디
+	`BLPS_SEQNO`,  -- 게시글일련번호
+	`APNDX_SEQNO`  -- 첨부일련번호
+	);
+
+-- 어드민사용자즐겨찾기상세
+CREATE TABLE `ADM_USER_FVRT_DTL` (
+	`USER_ID`           VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`FVRT_CTNT`         MEDIUMTEXT  NULL     COMMENT '즐겨찾기내용', -- 즐겨찾기내용
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민사용자즐겨찾기상세';
+
+-- 어드민사용자즐겨찾기상세
+ALTER TABLE `ADM_USER_FVRT_DTL`
+	ADD CONSTRAINT `PK_ADM_USER_FVRT_DTL` -- 어드민사용자즐겨찾기상세 기본키
+	PRIMARY KEY (
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자기본이력
+CREATE TABLE `ADM_USER_BAS_HST` (
+	`USER_ID`           VARCHAR(18)   NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`DESIG_IP`          VARCHAR(20)   NULL     COMMENT '지정IP주소', -- 지정IP주소
+	`USER_PWD`          VARCHAR(200)  NULL     COMMENT '사용자비밀번호', -- 사용자비밀번호
+	`ADM_USER_STUS_CD`  VARCHAR(32)   NULL     COMMENT '어드민사용자상태코드', -- 어드민사용자상태코드
+	`USER_NM`           VARCHAR(1000) NULL     COMMENT '사용자명', -- 사용자명
+	`CP_NO`             VARCHAR(20)   NULL     COMMENT '휴대전화번호', -- 휴대전화번호
+	`EMAIL`             VARCHAR(100)  NULL     COMMENT '이메일', -- 이메일
+	`BROFC_CD`          VARCHAR(2)    NULL     COMMENT '지점코드', -- 지점코드
+	`LAST_PWD_CHNG_DT`  VARCHAR(8)    NULL     COMMENT '최종비밀번호변경일자', -- 최종비밀번호변경일자
+	`PWD_ERR_NOTMS`     DECIMAL(10)   NULL     COMMENT '비밀번호오류횟수', -- 비밀번호오류횟수
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민사용자기본이력';
+
+-- 어드민화면거래기본이력
+CREATE TABLE `ADM_SCREN_TRAN_BAS_HST` (
+	`SCREN_TRAN_ID`     VARCHAR(18)   NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`SCREN_TRAN_DV_CD`  VARCHAR(32)   NULL     COMMENT '화면거래구분코드', -- 화면거래구분코드
+	`ADM_BZWK_LCLS_CD`  VARCHAR(32)   NULL     COMMENT '어드민업무대분류코드', -- 어드민업무대분류코드
+	`ADM_BZWK_MCLS_CD`  VARCHAR(32)   NULL     COMMENT '어드민업무중분류코드', -- 어드민업무중분류코드
+	`UP_SCREN_TRAN_ID`  VARCHAR(18)   NULL     COMMENT '상위화면거래아이디', -- 상위화면거래아이디
+	`SCREN_TRAN_NM`     VARCHAR(300)  NULL     COMMENT '화면거래명', -- 화면거래명
+	`URL_ADDR`          VARCHAR(1000) NULL     COMMENT 'URL주소', -- URL주소
+	`SCREN_TRAN_LVEL`   DECIMAL(10)   NULL     COMMENT '화면거래레벨', -- 화면거래레벨
+	`MENU_REPST_YN`     VARCHAR(1)    NULL     COMMENT '메뉴표시여부', -- 메뉴표시여부
+	`WHOL_ALLOW_YN`     VARCHAR(1)    NULL     COMMENT '전체허용여부', -- 전체허용여부
+	`SSTV_INFO_YN`      VARCHAR(1)    NULL     COMMENT '민감정보여부', -- 민감정보여부
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민화면거래기본이력';
+
+-- 어드민그룹사용자관계이력
+CREATE TABLE `ADM_GROUP_USER_REL_HST` (
+	`GROUP_ID`          VARCHAR(18) NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`USER_ID`           VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹사용자관계이력';
+
+-- 어드민화면거래기본
+CREATE TABLE `ADM_SCREN_TRAN_BAS` (
+	`SCREN_TRAN_ID`     VARCHAR(18)   NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`SCREN_TRAN_DV_CD`  VARCHAR(32)   NULL     COMMENT '화면거래구분코드', -- 화면거래구분코드
+	`ADM_BZWK_LCLS_CD`  VARCHAR(32)   NULL     COMMENT '어드민업무대분류코드', -- 어드민업무대분류코드
+	`ADM_BZWK_MCLS_CD`  VARCHAR(32)   NULL     COMMENT '어드민업무중분류코드', -- 어드민업무중분류코드
+	`UP_SCREN_TRAN_ID`  VARCHAR(18)   NULL     COMMENT '상위화면거래아이디', -- 상위화면거래아이디
+	`SCREN_TRAN_NM`     VARCHAR(300)  NULL     COMMENT '화면거래명', -- 화면거래명
+	`URL_ADDR`          VARCHAR(1000) NULL     COMMENT 'URL주소', -- URL주소
+	`SCREN_TRAN_LVEL`   DECIMAL(10)   NULL     COMMENT '화면거래레벨', -- 화면거래레벨
+	`MENU_REPST_YN`     VARCHAR(1)    NULL     COMMENT '메뉴표시여부', -- 메뉴표시여부
+	`WHOL_ALLOW_YN`     VARCHAR(1)    NULL     COMMENT '전체허용여부', -- 전체허용여부
+	`SSTV_INFO_YN`      VARCHAR(1)    NULL     COMMENT '민감정보여부', -- 민감정보여부
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민화면거래기본';
+
+-- 어드민화면거래기본
+ALTER TABLE `ADM_SCREN_TRAN_BAS`
+	ADD CONSTRAINT `PK_ADM_SCREN_TRAN_BAS` -- 어드민화면거래기본 기본키
+	PRIMARY KEY (
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	);
+
+-- 어드민그룹기본
+CREATE TABLE `ADM_GROUP_BAS` (
+	`GROUP_ID`          VARCHAR(18)   NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`GROUP_DV_CD`       VARCHAR(32)   NULL     COMMENT '그룹구분코드', -- 그룹구분코드
+	`GROUP_NM`          VARCHAR(300)  NULL     COMMENT '그룹명', -- 그룹명
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹기본';
+
+-- 어드민그룹기본
+ALTER TABLE `ADM_GROUP_BAS`
+	ADD CONSTRAINT `PK_ADM_GROUP_BAS` -- 어드민그룹기본 기본키
+	PRIMARY KEY (
+	`GROUP_ID` -- 그룹아이디
+	);
+
+-- 어드민사용자비밀번호변경내역
+CREATE TABLE `ADM_USER_PWD_CHNG_TXN` (
+	`USER_ID`   VARCHAR(18)  NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`USER_PWD`  VARCHAR(200) NULL     COMMENT '사용자비밀번호', -- 사용자비밀번호
+	`CHNG_TMSP` TIMESTAMP    NULL     COMMENT '변경타임스탬프' -- 변경타임스탬프
+)
+COMMENT '어드민사용자비밀번호변경내역';
+
+-- 어드민그룹기본이력
+CREATE TABLE `ADM_GROUP_BAS_HST` (
+	`GROUP_ID`          VARCHAR(18)   NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`GROUP_DV_CD`       VARCHAR(32)   NULL     COMMENT '그룹구분코드', -- 그룹구분코드
+	`GROUP_NM`          VARCHAR(300)  NULL     COMMENT '그룹명', -- 그룹명
+	`REPST_ORDR`        DECIMAL(10)   NULL     COMMENT '표시순서', -- 표시순서
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹기본이력';
+
+-- 어드민그룹권한
+CREATE TABLE `ADM_GROUP_ATH` (
+	`GROUP_ID`          VARCHAR(18) NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`SCREN_TRAN_ID`     VARCHAR(18) NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹권한';
+
+-- 어드민그룹권한
+ALTER TABLE `ADM_GROUP_ATH`
+	ADD CONSTRAINT `PK_ADM_GROUP_ATH` -- 어드민그룹권한 기본키
+	PRIMARY KEY (
+	`GROUP_ID`,      -- 그룹아이디
+	`SCREN_TRAN_ID`  -- 화면거래아이디
+	);
+
+-- 어드민그룹사용자관계
+CREATE TABLE `ADM_GROUP_USER_REL` (
+	`GROUP_ID`          VARCHAR(18) NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`USER_ID`           VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹사용자관계';
+
+-- 어드민그룹사용자관계
+ALTER TABLE `ADM_GROUP_USER_REL`
+	ADD CONSTRAINT `PK_ADM_GROUP_USER_REL` -- 어드민그룹사용자관계 기본키
+	PRIMARY KEY (
+	`GROUP_ID`, -- 그룹아이디
+	`USER_ID`   -- 사용자아이디
+	);
+
+-- 어드민사용자기본
+CREATE TABLE `ADM_USER_BAS` (
+	`USER_ID`           VARCHAR(18)   NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`DESIG_IP`          VARCHAR(20)   NULL     COMMENT '지정IP주소', -- 지정IP주소
+	`USER_PWD`          VARCHAR(200)  NULL     COMMENT '사용자비밀번호', -- 사용자비밀번호
+	`ADM_USER_STUS_CD`  VARCHAR(32)   NULL     COMMENT '어드민사용자상태코드', -- 어드민사용자상태코드
+	`USER_NM`           VARCHAR(1000) NULL     COMMENT '사용자명', -- 사용자명
+	`CP_NO`             VARCHAR(20)   NULL     COMMENT '휴대전화번호', -- 휴대전화번호
+	`EMAIL`             VARCHAR(100)  NULL     COMMENT '이메일', -- 이메일
+	`BROFC_CD`          VARCHAR(2)    NULL     COMMENT '지점코드', -- 지점코드
+	`LAST_PWD_CHNG_DT`  VARCHAR(8)    NULL     COMMENT '최종비밀번호변경일자', -- 최종비밀번호변경일자
+	`PWD_ERR_NOTMS`     DECIMAL(10)   NULL     COMMENT '비밀번호오류횟수', -- 비밀번호오류횟수
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민사용자기본';
+
+-- 어드민사용자기본
+ALTER TABLE `ADM_USER_BAS`
+	ADD CONSTRAINT `PK_ADM_USER_BAS` -- 어드민사용자기본 기본키
+	PRIMARY KEY (
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자거래내역
+CREATE TABLE `ADM_TRAN_TXN` (
+	`USER_ID`         VARCHAR(18)   NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`INQRY_DT`        VARCHAR(8)    NOT NULL COMMENT '조회일자', -- 조회일자
+	`SCREN_TRAN_ID`   VARCHAR(18)   NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`TRAN_OCCUR_TMSP` TIMESTAMP     NOT NULL COMMENT '거래발생타임스탬프', -- 거래발생타임스탬프
+	`CONN_IP`         VARCHAR(20)   NULL     COMMENT '접속IP주소', -- 접속IP주소
+	`URL_ADDR`        VARCHAR(1000) NULL     COMMENT 'URL주소', -- URL주소
+	`SSTV_INFO_YN`    VARCHAR(1)    NULL     COMMENT '민감정보여부' -- 민감정보여부
+)
+COMMENT '어드민사용자거래내역';
+
+-- 어드민그룹권한이력
+CREATE TABLE `ADM_GROUP_ATH_HST` (
+	`GROUP_ID`          VARCHAR(18) NOT NULL COMMENT '그룹아이디', -- 그룹아이디
+	`SCREN_TRAN_ID`     VARCHAR(18) NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민그룹권한이력';
+
+-- 어드민사용자로그인내역
+CREATE TABLE `ADM_LGIN_TXN` (
+	`USER_ID`          VARCHAR(18) NULL COMMENT '사용자아이디', -- 사용자아이디
+	`LGIN_TMSP`        TIMESTAMP   NULL COMMENT '로그인타임스탬프', -- 로그인타임스탬프
+	`ADM_LGIN_RSLT_CD` VARCHAR(32) NULL COMMENT '어드민로그인결과코드', -- 어드민로그인결과코드
+	`CONN_IP`          VARCHAR(20) NULL COMMENT '접속IP주소' -- 접속IP주소
+)
+COMMENT '어드민사용자로그인내역';
+
+-- 어드민사용자로그인내역 인덱스
+CREATE INDEX `IX_ADM_LGIN_TXN_01`
+	ON `ADM_LGIN_TXN`( -- 어드민사용자로그인내역
+		`USER_ID` ASC,          -- 사용자아이디
+		`ADM_LGIN_RSLT_CD` ASC  -- 어드민로그인결과코드
+	);
+
+-- 어드민사용자상태변경내역
+CREATE TABLE `ADM_USER_STUS_CHNG_TXN` (
+	`USER_ID`          VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`BEF_USER_STUS_CD` VARCHAR(32) NULL     COMMENT '이전사용자상태코드', -- 이전사용자상태코드
+	`ADM_USER_STUS_CD` VARCHAR(32) NULL     COMMENT '어드민사용자상태코드', -- 어드민사용자상태코드
+	`CHNG_USER_ID`     VARCHAR(18) NULL     COMMENT '변경사용자아이디', -- 변경사용자아이디
+	`CHNG_TMSP`        TIMESTAMP   NULL     COMMENT '변경타임스탬프' -- 변경타임스탬프
+)
+COMMENT '어드민사용자상태변경내역';
+
+-- 어드민사용자권한이력
+CREATE TABLE `ADM_USER_ATH_HST` (
+	`USER_ID`           VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`SCREN_TRAN_ID`     VARCHAR(18) NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민사용자권한이력';
+
+-- 어드민사용자권한
+CREATE TABLE `ADM_USER_ATH` (
+	`USER_ID`           VARCHAR(18) NOT NULL COMMENT '사용자아이디', -- 사용자아이디
+	`SCREN_TRAN_ID`     VARCHAR(18) NOT NULL COMMENT '화면거래아이디', -- 화면거래아이디
+	`USE_YN`            VARCHAR(1)  NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18) NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP   NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18) NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP   NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '어드민사용자권한';
+
+-- 어드민사용자권한
+ALTER TABLE `ADM_USER_ATH`
+	ADD CONSTRAINT `PK_ADM_USER_ATH` -- 어드민사용자권한 기본키
+	PRIMARY KEY (
+	`USER_ID`,       -- 사용자아이디
+	`SCREN_TRAN_ID`  -- 화면거래아이디
+	);
+
+-- 배치실행내역
+CREATE TABLE `BTCH_EXE_TXN` (
+	`BTCH_EXE_SEQNO`   INT(11)       NOT NULL COMMENT '배치실행일련번호', -- 배치실행일련번호
+	`BTCH_JOB_ID`      VARCHAR(10)   NOT NULL COMMENT '배치작업ID', -- 배치작업ID
+	`BTCH_PRMT_VAL`    VARCHAR(300)  NULL     COMMENT '배치파라미터값', -- 배치파라미터값
+	`USER_ID`          VARCHAR(18)   NULL     COMMENT '사용자아이디', -- 사용자아이디
+	`TAGET_TRT_CSCNT`  DECIMAL(10)   NULL     COMMENT '대상처리건수', -- 대상처리건수
+	`BTCH_EXE_STUS_CD` VARCHAR(32)   NULL     COMMENT '배치실행상태코드', -- 배치실행상태코드
+	`BTCH_START_DTM`   VARCHAR(14)   NULL     COMMENT '배치시작일시', -- 배치시작일시
+	`BTCH_FIN_DTM`     VARCHAR(14)   NULL     COMMENT '배치완료일시', -- 배치완료일시
+	`SUCSS_YN`         VARCHAR(1)    NULL     COMMENT '성공여부', -- 성공여부
+	`BTCH_ERR_CTNT`    VARCHAR(4000) NULL     COMMENT '배치오류내용' -- 배치오류내용
+)
+COMMENT '배치실행내역';
+
+-- 배치실행내역
+ALTER TABLE `BTCH_EXE_TXN`
+	ADD CONSTRAINT `PK_BTCH_EXE_TXN` -- 배치실행내역 기본키
+	PRIMARY KEY (
+	`BTCH_EXE_SEQNO` -- 배치실행일련번호
+	);
+
+ALTER TABLE `BTCH_EXE_TXN`
+	MODIFY COLUMN `BTCH_EXE_SEQNO` INT(11) NOT NULL AUTO_INCREMENT COMMENT '배치실행일련번호';
+
+-- 배치기본
+CREATE TABLE `BTCH_BAS` (
+	`BTCH_JOB_ID`       VARCHAR(10)   NOT NULL COMMENT '배치작업ID', -- 배치작업ID
+	`BTCH_JOB_NM`       VARCHAR(100)  NULL     COMMENT '배치작업명', -- 배치작업명
+	`BTCH_CYCL_CD`      VARCHAR(32)   NULL     COMMENT '배치주기코드', -- 배치주기코드
+	`BTCH_EXE_PGM_NM`   VARCHAR(300)  NULL     COMMENT '배치실행프로그램명', -- 배치실행프로그램명
+	`BTCH_EXE_PRMT`     VARCHAR(300)  NULL     COMMENT '배치실행파라미터', -- 배치실행파라미터
+	`RE_EXE_POSBL_YN`   VARCHAR(1)    NULL     COMMENT '재실행가능여부', -- 재실행가능여부
+	`BTCH_EXE_DESIG_DD` VARCHAR(2)    NULL     COMMENT '배치실행지정일', -- 배치실행지정일
+	`BTCH_JOB_TTM`      VARCHAR(4)    NULL     COMMENT '배치작업시간', -- 배치작업시간
+	`CRON_EXRS`         VARCHAR(50)   NULL     COMMENT 'CRON표현', -- CRON표현
+	`AUTO_EXE_YN`       VARCHAR(1)    NULL     COMMENT '자동실행여부', -- 자동실행여부
+	`APLY_START_DT`     VARCHAR(8)    NULL     COMMENT '적용시작일자', -- 적용시작일자
+	`APLY_END_DT`       VARCHAR(8)    NULL     COMMENT '적용종료일자', -- 적용종료일자
+	`DESC_CTNT`         VARCHAR(4000) NULL     COMMENT '설명내용', -- 설명내용
+	`USE_YN`            VARCHAR(1)    NULL     COMMENT '사용여부', -- 사용여부
+	`FRST_REGI_USER_ID` VARCHAR(18)   NULL     COMMENT '최초등록사용자아이디', -- 최초등록사용자아이디
+	`FRST_REGI_TMSP`    TIMESTAMP     NULL     COMMENT '최초등록타임스탬프', -- 최초등록타임스탬프
+	`LAST_CHNG_USER_ID` VARCHAR(18)   NULL     COMMENT '최종변경사용자아이디', -- 최종변경사용자아이디
+	`LAST_CHNG_TMSP`    TIMESTAMP     NULL     COMMENT '최종변경타임스탬프' -- 최종변경타임스탬프
+)
+COMMENT '배치기본';
+
+-- 배치기본
+ALTER TABLE `BTCH_BAS`
+	ADD CONSTRAINT `PK_BTCH_BAS` -- 배치기본 기본키
+	PRIMARY KEY (
+	`BTCH_JOB_ID` -- 배치작업ID
+	);
+
+-- 공통코드
+ALTER TABLE `CMN_CD`
+	ADD CONSTRAINT `FK_CMN_CD_GROUP_TO_CMN_CD` -- 공통코드그룹 -> 공통코드
+	FOREIGN KEY (
+	`CD_GROUP_VAL` -- 코드그룹값
+	)
+	REFERENCES `CMN_CD_GROUP` ( -- 공통코드그룹
+	`CD_GROUP_VAL` -- 코드그룹값
+	);
+
+-- 어드민게시판내역
+ALTER TABLE `ADM_BULBD_TXN`
+	ADD CONSTRAINT `FK_ADM_BLBD_BS_TO_ADM_TXN` -- 어드민게시판기본 -> 어드민게시판내역
+	FOREIGN KEY (
+	`BULBD_ID` -- 게시판아이디
+	)
+	REFERENCES `ADM_BULBD_BAS` ( -- 어드민게시판기본
+	`BULBD_ID` -- 게시판아이디
+	);
+
+-- 어드민게시글댓글내역
+ALTER TABLE `ADM_BLPS_BLRP_TXN`
+	ADD CONSTRAINT `FK_ADM_TXN_TO_ADM_TXN` -- 어드민게시판내역 -> 어드민게시글댓글내역
+	FOREIGN KEY (
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`  -- 게시글일련번호
+	)
+	REFERENCES `ADM_BULBD_TXN` ( -- 어드민게시판내역
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`  -- 게시글일련번호
+	);
+
+-- 파일업로드데이터내역
+ALTER TABLE `FILE_ULD_DATA_TXN`
+	ADD CONSTRAINT `FK_FL_ULD_BS_TO_FL_DT_TXN` -- 파일업로드기본 -> 파일업로드데이터내역
+	FOREIGN KEY (
+	`ULD_SEQNO` -- 업로드일련번호
+	)
+	REFERENCES `FILE_ULD_BAS` ( -- 파일업로드기본
+	`ULD_SEQNO` -- 업로드일련번호
+	);
+
+-- 어드민게시글첨부내역
+ALTER TABLE `ADM_BLPS_APNDX_TXN`
+	ADD CONSTRAINT `FK_ADM_TXN_TO_ADM_TXN2` -- 어드민게시판내역 -> 어드민게시글첨부내역
+	FOREIGN KEY (
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`  -- 게시글일련번호
+	)
+	REFERENCES `ADM_BULBD_TXN` ( -- 어드민게시판내역
+	`BULBD_ID`,   -- 게시판아이디
+	`BLPS_SEQNO`  -- 게시글일련번호
+	);
+
+-- 어드민사용자즐겨찾기상세
+ALTER TABLE `ADM_USER_FVRT_DTL`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_FVRT_DTL` -- 어드민사용자기본 -> 어드민사용자즐겨찾기상세
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민화면거래기본
+ALTER TABLE `ADM_SCREN_TRAN_BAS`
+	ADD CONSTRAINT `FK_ADM_SCRN_BS_TO_ADM_BS` -- 어드민화면거래기본 -> 어드민화면거래기본
+	FOREIGN KEY (
+	`UP_SCREN_TRAN_ID` -- 상위화면거래아이디
+	)
+	REFERENCES `ADM_SCREN_TRAN_BAS` ( -- 어드민화면거래기본
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	);
+
+-- 어드민사용자비밀번호변경내역
+ALTER TABLE `ADM_USER_PWD_CHNG_TXN`
+	ADD CONSTRAINT `FK_ADM_USR_BS_TO_ADM_TXN3` -- 어드민사용자기본 -> 어드민사용자비밀번호변경내역
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민그룹권한
+ALTER TABLE `ADM_GROUP_ATH`
+	ADD CONSTRAINT `FK_ADM_GRP_BS_TO_ADM_ATH` -- 어드민그룹기본 -> 어드민그룹권한
+	FOREIGN KEY (
+	`GROUP_ID` -- 그룹아이디
+	)
+	REFERENCES `ADM_GROUP_BAS` ( -- 어드민그룹기본
+	`GROUP_ID` -- 그룹아이디
+	);
+
+-- 어드민그룹권한
+ALTER TABLE `ADM_GROUP_ATH`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_GRP_ATH` -- 어드민화면거래기본 -> 어드민그룹권한
+	FOREIGN KEY (
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	)
+	REFERENCES `ADM_SCREN_TRAN_BAS` ( -- 어드민화면거래기본
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	);
+
+-- 어드민그룹사용자관계
+ALTER TABLE `ADM_GROUP_USER_REL`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_USR_RL` -- 어드민그룹기본 -> 어드민그룹사용자관계
+	FOREIGN KEY (
+	`GROUP_ID` -- 그룹아이디
+	)
+	REFERENCES `ADM_GROUP_BAS` ( -- 어드민그룹기본
+	`GROUP_ID` -- 그룹아이디
+	);
+
+-- 어드민그룹사용자관계
+ALTER TABLE `ADM_GROUP_USER_REL`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_USR_RL2` -- 어드민사용자기본 -> 어드민그룹사용자관계
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자거래내역
+ALTER TABLE `ADM_TRAN_TXN`
+	ADD CONSTRAINT `FK_ADM_USR_BS_TO_ADM_TXN` -- 어드민사용자기본 -> 어드민사용자거래내역
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자거래내역
+ALTER TABLE `ADM_TRAN_TXN`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_TRN_TXN` -- 어드민화면거래기본 -> 어드민사용자거래내역
+	FOREIGN KEY (
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	)
+	REFERENCES `ADM_SCREN_TRAN_BAS` ( -- 어드민화면거래기본
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	);
+
+-- 어드민사용자로그인내역
+ALTER TABLE `ADM_LGIN_TXN`
+	ADD CONSTRAINT `FK_ADM_USR_BS_TO_ADM_TXN2` -- 어드민사용자기본 -> 어드민사용자로그인내역
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자상태변경내역
+ALTER TABLE `ADM_USER_STUS_CHNG_TXN`
+	ADD CONSTRAINT `FK_ADM_USR_BS_TO_ADM_TXN4` -- 어드민사용자기본 -> 어드민사용자상태변경내역
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 어드민사용자권한
+ALTER TABLE `ADM_USER_ATH`
+	ADD CONSTRAINT `FK_ADM_BS_TO_ADM_USR_ATH` -- 어드민화면거래기본 -> 어드민사용자권한
+	FOREIGN KEY (
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	)
+	REFERENCES `ADM_SCREN_TRAN_BAS` ( -- 어드민화면거래기본
+	`SCREN_TRAN_ID` -- 화면거래아이디
+	);
+
+-- 어드민사용자권한
+ALTER TABLE `ADM_USER_ATH`
+	ADD CONSTRAINT `FK_ADM_USR_BS_TO_ADM_ATH` -- 어드민사용자기본 -> 어드민사용자권한
+	FOREIGN KEY (
+	`USER_ID` -- 사용자아이디
+	)
+	REFERENCES `ADM_USER_BAS` ( -- 어드민사용자기본
+	`USER_ID` -- 사용자아이디
+	);
+
+-- 배치실행내역
+ALTER TABLE `BTCH_EXE_TXN`
+	ADD CONSTRAINT `FK_BTCH_BAS_TO_BTCH_EXE_TXN` -- 배치기본 -> 배치실행내역
+	FOREIGN KEY (
+	`BTCH_JOB_ID` -- 배치작업ID
+	)
+	REFERENCES `BTCH_BAS` ( -- 배치기본
+	`BTCH_JOB_ID` -- 배치작업ID
+	);

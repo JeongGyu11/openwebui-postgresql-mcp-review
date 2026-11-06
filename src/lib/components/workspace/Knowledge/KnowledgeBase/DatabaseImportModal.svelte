@@ -66,7 +66,7 @@
 			<h2 class="text-lg font-semibold">PostgreSQL 테이블 연동</h2>
 			<button type="button" aria-label="DB 연동 닫기" disabled={busy} on:click={close} class="rounded-lg px-3 py-1 disabled:opacity-50">닫기</button>
 		</div>
-		<p class="mb-4 text-sm text-gray-500">테이블을 선택해 현재 데이터를 지식기반 문서로 가져옵니다. 같은 테이블은 다시 가져오면 갱신되며 자동 동기화되지는 않습니다.</p>
+		<p class="mb-4 text-sm text-gray-500">테이블을 선택해 CSV로 저장하고 표로 확인합니다. 같은 테이블은 다시 가져오면 갱신되며 자동 동기화되지는 않습니다.</p>
 		<form on:submit|preventDefault={() => run('tables')}>
 			<fieldset disabled={busy} class="space-y-3 disabled:opacity-60">
 				<div class="grid grid-cols-3 gap-3">
@@ -78,7 +78,7 @@
 					<label class="text-sm">사용자<input class={inputClass} bind:value={username} on:input={reset} required autocomplete="off" /></label>
 					<label class="text-sm">비밀번호<input class={inputClass} type="password" bind:value={password} on:input={reset} required autocomplete="off" /></label>
 				</div>
-				<p class="text-xs text-gray-500">조회 전용 계정을 권장합니다. 비밀번호는 연결 요청에만 사용하며 저장하지 않습니다.</p>
+				<p class="text-xs text-gray-500">조회 전용 계정을 권장합니다. 첨부 시 최신 데이터를 가져오기 위해 연결 정보는 서버에 암호화해 보관합니다. 채팅이나 파일에는 비밀번호를 포함하지 않습니다.</p>
 				<button type="submit" class="rounded-lg bg-gray-900 px-4 py-2 text-sm text-white dark:bg-gray-100 dark:text-gray-900">{busy ? '처리 중…' : '연결 및 테이블 조회'}</button>
 			</fieldset>
 		</form>

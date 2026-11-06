@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE">Finance All Solutions</title>
+
+  <th:block layout:include="~{/layout/fragment/html-head.html :: HtmlHead}"></th:block>
+</head>
+
+<body class="bg-gradient-primary">
+<th:block layout:fragment="Header"></th:block>
+
+<div class="container">
+
+			  <!-- 여기부터 컨텐츠 -->
+			  <th:block layout:fragment="Content"></th:block>
+			  <!-- 여기까지 컨텐츠 -->
+
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script th:inline="javascript" th:src="@{/static/vendor/jquery/jquery.min.js}"></script>
+<script th:inline="javascript" th:src="@{/static/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+
+<!-- Core plugin JavaScript-->
+<script th:inline="javascript" th:src="@{/static/vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+<!-- Custom scripts for all pages-->
+<script th:inline="javascript" th:src="@{/static/js/sb-admin-2.min.js}"></script>
+
+<th:block layout:fragment="Footer"></th:block>
+</body>
+
+</html>

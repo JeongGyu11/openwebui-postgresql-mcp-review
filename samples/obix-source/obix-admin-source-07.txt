@@ -1,0 +1,4678 @@
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 권한관리> 사용자 관리> 사용자 관리
+ * 화면명 : 사용자 설정
+ * 설명 : Admin 사용자 신규 등록 및 변경 기능 제공
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+ *********************************************************************/
+var g_strUserId = `${userId}`;
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$(".align-middle select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+
+	// jQuery.validator 초기화
+	validation.initFormValidate(document.popupReqForm);
+
+});
+
+function init(){
+	if(util.isNul(g_strUserId)){
+		$("#popUserId").attr("readonly", false);
+		$("#popLoginGroup").hide();
+	}
+	
+	// 사용자 그룹ROLE 목록 조회
+	ASYAU40104();
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+ *********************************************************************/
+/**
+ * 사용자 설정정보 조회
+ */
+function ASYAU40101(){
+	if (!g_strUserId) {
+		return;
+	}
+ 
+	var jsonData = new Object();
+	jsonData.userId = g_strUserId; // 사용자아이디
+
+	httpAjax('ASYAU40101.json', jsonData, function(data){
+		// 사용자목록 출력
+		fncUserInfo(data.result);
+	});
+}
+
+/**
+ * 사용자 설정정보 저장
+ */
+function ASYAU40102(){
+	// validation 체크
+	if (!validation.checkFormValidate(document.popupReqForm)) {
+		return false;
+	}
+
+	var param = util.formToObject(document.popupReqForm);
+
+	if(typeof(param.groupIdList) == typeof("")){
+		param["groupList[0].groupId"] = param.groupIdList;
+		param["groupList[0].userId"] = param.userId;
+	}else{
+		$.each(param.groupIdList, function(i, item){
+			if(item == ""){
+				return;
+			}
+			param["groupList["+i+"].groupId"] = item;
+			param["groupList["+i+"].userId"] = param.userId;
+		});
+	}
+
+	biz.security.httpAjax('ASYAU40102.json', param, function(data){
+		popup.closeLayerPopup(true);
+	});
+}
+
+/**
+ * 사용자 비밀번호 초기화
+ */
+function ASYAU40103(){
+	var jsonData = new Object();
+	jsonData.userId = g_strUserId; // 사용자아이디
+
+	httpAjax('ASYAU40103.json', jsonData, function(data){
+		// 사용자목록 출력
+		console.log(data);
+		
+		ASYAU40101(g_strUserId);
+	});
+}
+
+/**
+ * 사용자 그룹ROLE 목록 조회
+ */
+function ASYAU40104(){
+	var jsonData = new Object();
+	jsonData.userId = g_strUserId; // 사용자아이디
+
+	httpAjax('ASYAU40104.json', jsonData, function(data){
+		// 사용자 그룹ROLE 목록 조회
+		fncGroupInfo(data.result);
+	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+ *********************************************************************/
+/**
+ * 사용자 정보 출력
+ */
+function fncUserInfo(obj){
+	console.log(obj);
+	
+	$("#popUserId").val(obj.userId); // 사용자아이디
+	$("#popUserNm").val(util.nvl(obj.userNm, "")); // 사용자명
+	
+	$("#popCpNo").val(obj.cpNo); // 전화번호
+	$("#popEmail").val(obj.email); // 이메일
+	
+	$("#popLastChngTmsp").val((obj.lginTmsp ? format.formatTimeStamp(new Date(obj.lginTmsp)) : '')); // 최종로그인 시간
+	$("#popLastPwdChngDt").val(format.getDateTypeFormat(obj.lastPwdChngDt)); // 비밀번호변경일자
+	$("#popPwdErrNotms").val(util.nvl(obj.pwdErrNotms, "0")); // 비밀번호오류횟수
+	
+	$("#popAdmUserStusCd").val(util.nvl(obj.admUserStusCd, "")); // 사용자상태
+	$("#popDesigIp").val(util.nvl(obj.desigIp, "")); // IP주소
+	
+	$("#popGroupInfo").val(obj.groupId); // 그룹아이디
+}
+ 
+/**
+ * 사용자 그룹ROLE 목록 조회
+ */
+function fncGroupInfo(obj){
+	console.log(obj);
+	var html = "";
+	if(obj.grid != null && obj.grid.length > 0){
+		var grid = obj.grid;
+		for(var idx in grid){
+			var groupInfo = grid[idx];
+			html += '<option value="'+groupInfo.groupId+'">' + groupInfo.groupNm + '</option>';
+		}
+		
+		$("#popGroupInfo").append(html);
+	}
+
+	// 사용자 목록 조회
+	ASYAU40101();
+}
+
+</script>
+
+<form method="post" id="popupReqForm" name="popupReqForm" class="col-12 align-center" autocomplete="off" onsubmit="ASYAU40102(); return false;">
+<input type="hidden" id="encryptPwd" name="userPwd" value="" />
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width:800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">사용자 설정</h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center mb-0">
+					<colgroup>
+						<col width="12%">
+						<col width="21%">
+						<col width="13%">
+						<col width="21%">
+						<col width="13%">
+						<col width="9%">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th class="align-middle">아이디</th>
+							<td class="align-middle">
+								<input type="text" id="popUserId" class="form-control" value="" name="userId" readonly="readonly" data-validate-rule="{required:true}" data-alias="아이디" />
+							</td>
+							<th class="align-middle">이름</th>
+							<td class="align-middle" colspan="3">
+								<input type="text" id="popUserNm" class="form-control" value="" name="userNm" data-validate-rule="{required:true}" data-alias="이름" />
+							</td>
+						</tr>
+						<tr>
+							<th class="align-middle">전화번호</th>
+							<td class="align-middle">
+								<input type="text" id="popCpNo" class="form-control" value="" name="cpNo"/>
+							</td>
+							<th class="align-middle">이메일</th>
+							<td class="align-middle" colspan="3">
+								<input type="text" id="popEmail" class="form-control" value="" name="email"/>
+							</td>
+						</tr>
+						<tr id="popLoginGroup">
+							<th class="align-middle">최종로그인일시</th>
+							<td class="align-middle" ><input type="text" id="popLastChngTmsp" class="form-control" value="" disabled/></td>
+							<th class="align-middle">비밀번호변경일자</th>
+							<td class="align-middle" ><input type="text" id="popLastPwdChngDt" class="form-control" value="" disabled/></td>
+							<th class="align-middle">비밀번호오류횟수</th>
+							<td class="align-middle" >
+								<div class="input-group">
+									<input type="text" class="form-control" id="popPwdErrNotms" value="" disabled/>
+									<div class="input-group-append">
+										<button type="button" class="btn btn-outline-primary" onClick="ASYAU40103()">↺</button>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="align-middle">사용자상태</th>
+							<td class="align-middle"><u:formSelectStndCode cdGroupVal="ADM_USER_STUS_CD" allOption="선택" name="admUserStusCd" id="popAdmUserStusCd" /></td>
+							<th class="align-middle">IP주소</th>
+							<td class="align-middle"><input type="text" id="popDesigIp" class="form-control" value="" name="desigIp" maxlength="20"/></td>
+						</tr>
+						<tr>
+							<th class="align-middle">비고</th>
+							<td colspan="3" class="align-middle"><input type="text" id="popDescCtnt" class="form-control" value="" name="descCtnt"/></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center mb-0">
+					<colgroup>
+						<col width="12%">
+						<col width="33%">
+						<col width="55%">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th class="align-middle">그룹ROLE</th>
+							<td class="align-middle">
+								<select class="form-control" id="popGroupInfo" name="groupIdList" data-validate-rule="{required_select:true}" data-alias="그룹ROLE">
+									<option value="">그룹 선택</option>
+								</select>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer mt-0">
+			<button type="submit" class="btn btn-primary mr-2" >저장</button>
+			<button type="button" class="btn btn-outline-primary" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+
+</form>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40200.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 권한관리> 사용자 관리> 사용자 관리
+ * 화면명 : 사용자 권한 설정
+ * 설명 : 선택된 사용자의 Admin 화면거래 권한 설정
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+var g_userId = `${param.userId}`;
+var g_userNm = `${param.userNm}`;
+
+/* 사용자아이디, 사용자명 셋팅 */
+$('#popUserId').val(g_userId);
+$('#popUserNm').val(g_userNm);
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+});
+
+function init(){
+	ASYAU40201();
+}
+
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+// 사용자 권한 정보 조회
+function ASYAU40201() {
+	console.log('ASYAU40201 호출', '사용자 권한 정보 조회');
+
+	var param = {
+			userId : g_userId
+	};
+
+	/* 사용자 권한 트리 조회 */
+	httpAjax("ASYAU40201.json", param, function (data) {
+		var result = data.result.list;
+
+		// jsTree 체크 처리
+		for(var idx in result) {
+			var obj = result[idx];
+
+			obj.state = {
+				opened : true,
+				selected : (obj.useYn == 'Y')
+			};
+		}
+
+		$('#jstree').jstree({
+			"core": {
+				"data": result,
+				"checkbox": { 
+					"keep_selected_style": false,  // default: false
+					"three_state": true,           // default: true
+					"whole_node": true             // default: true
+				},
+			},
+			"checkbox" : {
+				'three_state': false
+			},
+			"plugins" : [
+				"checkbox",
+				"contextmenu",
+				"types",
+				"unique",
+				"changed"
+			]
+		})
+		.bind('loaded.jstree', function(e, data) {
+			 //font-awesome 폴더 아이콘 제어
+             $('#jstree').on("open_node.jstree", function(e, data) {
+                 if(data.node.original.screnTranDvCd == '0') {
+                     var node = data.instance.get_node(data.node.id);
+                     data.instance.set_icon(node, "far fa-folder-open new-fs16");
+                 }
+             });
+             $('#jstree').on("close_node.jstree", function(e, data) {  
+                 if(data.node.original.screnTranDvCd == '0') {
+                     var node = data.instance.get_node(data.node.id);
+                     data.instance.set_icon(node, "far fa-folder new-fs16");
+                 }
+             });
+	            
+			 $.each(result, function(i, item) {
+                 // 아이콘 설정 - 카테고리('0')는 폴더 / 화면거래는 파일로 구분
+                 if (item.screnTranDvCd == '0') {
+                	 data.instance.set_icon(item.id, "far fa-folder new-fs16");
+                 } else if(item.screnTranDvCdNm.indexOf("화면") != -1) {
+                     data.instance.set_icon(item.id, "far fa-window-maximize new-fs16");
+                 } else {
+                     data.instance.set_icon(item.id, "far fa-save new-fs16");
+                 }
+                 // 해당 메뉴권한이 없으면 skip
+                 if (item.menuAuthCd == 'N') {
+                     return true;
+                 }
+                 //// 하위메뉴가 존재하지 않는 경우에만 select 처리 (하위메뉴 존재 시 권한이 없는 메뉴까지 모두 select되기 때문)
+                 if (data.instance.get_node(item.id).children.length == 0) {
+                	 data.instance.select_node(item.id);
+                 }
+                 // 전체허용메뉴와 그룹권한메뉴는 Disabled 처리
+                 if (item.menuAuthCd == 'A' || item.menuAuthCd == 'G') {
+                	 data.instance.disable_node(item.id);
+                 }
+             });
+			 
+			 $('#jstree').on("changed.jstree", function(e, data) {
+                if(data.action == "select_node") {
+                    // 수정 시 오리지널 그룹 권한과 비교하여 타입 변경
+                    $.each(data.changed.selected, function(i, item) {
+                        var node = data.instance.get_node(item);
+                        if(node.original.menuAuthCd == 'A' || node.original.menuAuthCd == 'G') {
+                            data.instance.set_type(item, "default");
+                        } else {
+                            data.instance.set_type(item, "changed");
+                            data.event.currentTarget.blur(); // focus 상태 없애기(bootstrap 클래스 color 때문)
+                        }
+                    });
+                } else if(data.action == "deselect_node") {
+                    // 수정 시 오리지널 그룹 권한과 비교하여 타입 변경
+                    $.each(data.changed.deselected, function(i, item) {
+                        var node = data.instance.get_node(item);
+                        if(node.original.menuAuthCd == 'N') {
+                            data.instance.set_type(item, "default");
+                        } else {
+                            data.instance.set_type(item, "changed");
+                            data.event.currentTarget.blur(); // focus 상태 없애기(bootstrap 클래스 color 때문)
+                        }
+                    });
+                }
+            });
+		})
+	});
+}
+
+// 사용자 권한 정보 저장
+function ASYAU40202() {
+	console.log('ASYAU40202 호출', '사용자 권한 정보 저장');
+
+	var params = {
+			userId : g_userId
+	};
+
+	// parent node도 등록하기 위하여 selected node와 같이 가져온다. 
+	var idx = 0;
+	$.each($('#jstree').find('.jstree-undetermined, .jstree-clicked'), function(i, node) {
+		var id = $(node).closest('.jstree-node').attr('id');
+		if ($('#jstree').jstree(true).is_disabled(id)) {
+			// 전체허용메뉴 및 그룹권한메뉴로 disable된 메뉴는 skip한다.
+		} else {
+			params["screnList["+idx+"].screnTranId"] = id;
+			params["screnList["+idx+"].userId"] = g_userId;
+			idx++;
+		}
+	});
+
+	httpAjax("ASYAU40202.json", params, function (data) {
+		biz.showAlert("등록 되었습니다.");
+		popup.closeLayerPopup(true);
+	});
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+/*********************************************************************/
+</script>
+
+<form method="post" id="popReqForm" name="popReqForm" onsubmit="ASYAU40202(); return false;">
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width:800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">사용자 권한 설정</h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->				
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center mb-10">
+					<colgroup>
+						<col width="10%">
+						<col width="15%">
+						<col width="10%">
+						<col width="15%">														
+					</colgroup>
+					<tbody>
+						<tr>
+							<th class="align-middle">사용자아이디</th>
+							<td class="align-middle"><input id="popUserId" class="form-control" name="userId" data-validate-rule="{required:true}" data-alias="사용자아이디" readonly /></td>
+							<th class="align-middle">사용자명</th>
+							<td class="align-middle"><input id="popUserNm" class="form-control" name="userNm" data-validate-rule="{required:true}" data-alias="사용자명" readonly /></td>																
+						</tr>          			
+					</tbody>			
+				</table>
+			</div>
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<div id="jstree" style="overflow-y: auto; height:500px;">
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary mr-2">저장</button>
+			<button type="button" class="btn btn-outline-primary" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+</form>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU50000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 권한관리 > 사용자 권한 관리
+ * 화면명 : 사용자 권한 관리
+ * 설명 : 사용자 별로 부여된 Admin 화면거래 권한 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#searchUserRoleForm select").removeClass('form-control').addClass('form-control new-w180');   //공통 select-option css 처리
+	init();
+});
+
+ function init(){
+	 ASYAU50001();
+ }
+ /*********************************************************************
+ * 거래호출 
+ * function ASYAU50001(){ }
+/*********************************************************************/
+function ASYAU50001(pageInfo){
+	var jsonData = new Object();
+	if(pageInfo != null){
+		$.extend(jsonData, pageInfo);
+	}
+
+	jsonData.userId = $('#userNmId').val();
+	jsonData.screnTranId = $('#screnTranNmId').val();
+	//jsonData.orgNm = $('#orgNm').val();
+	jsonData.admBzwkLclsCd = $('#admBzwkLclsCd').val();
+	jsonData.admBzwkMclsCd = $('#admBzwkMclsCd').val();
+
+	httpAjax('ASYAU50001.json', jsonData, function(data){
+  		console.log("성공", data);
+  		
+		// 그룹목록 출력
+  		fncUserRoleList(data);
+ 		fncPagination(data.result);	// 페이징처리
+  	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/**
+* 그룹목록 출력
+*/
+function fncUserRoleList(data){
+	var result = data.result.list;
+	var html = "";
+	console.log(result);
+	
+	if(result.length > 0){
+		for(var i in result){
+			var obj = result[i];
+			
+			html += '<tr class="text-center border-bottom">';
+			html += '	<td>' + (Number(i)+1) + '</td>';
+			html += ' 	<td>' + obj.userId + '</td>';				//아이디
+			html += '	<td>' + obj.userNm + '</td>';				//이름
+			html += '	<td>' + util.nvl(obj.orgNm,'') + '</a></td>'; 			//소속
+			html += '	<td>' + obj.admUserStusNm + '</td>';				//사용자상태
+			html += '	<td>' + util.nvl(obj.admBzwkLclsNm,'') + '</td>';		//업무대분류
+			html += '	<td>' + util.nvl(obj.admBzwkMclsNm,'') + '</td>';		//업무중분류
+			html += '	<td>' + util.nvl(obj.screnTranId,'') + '</td>';			//화면거래ID
+			html += '	<td>' + util.nvl(obj.screnTranNm,'') + '</td>';			//화면거래명
+			html += '	<td>' + util.nvl(obj.screnTranDvNm,'') + '</td>';		//화면거래구분
+			html += '	<td>' + util.nvl(obj.sstvInfoYn,'') + '</td>';			//민감정보포함
+			html += '</tr>';
+		}					
+	}else{	
+		html += '<tr><td colspan="11" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tUserRoleInfo").empty().append(html);	
+}
+
+/*
+ * @desc paging 처리
+ * @param {Object} pageInfo
+ */
+function fncPagination(result) {
+	var pageInfo = result.pageInfo;
+	//페이지네이션 추가 (공통 페이지네이션 처리)
+	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+}
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+	
+	ASYAU50001(pageInfo);		//목록재조회
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+/*********************************************************************/
+
+</script>
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mr-auto">사용자 권한 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<!-- <div class=" d-block">	
+		<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+			  <path d="M6 12v-2h3v2H6z"/>
+			  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+			</svg>
+			엑셀 다운로드
+		</button>
+	</div> -->
+</div>
+
+<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+	<form method="post" id="searchUserRoleForm" name="searchUserRoleForm" class="col-12 align-center" autocomplete="off" onsubmit="f_searchListAdmMenu(this); return false;">
+		<table class="table mb-0 table-borderless">
+			<colgroup>	
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: *;">				
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="text-center">업무대분류</th>
+					<td>
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="admBzwkLclsCd" id="admBzwkLclsCd" />
+					</td>
+					<th class="text-center">업무중분류</th>
+					<td> 
+                       <u:formSelectStndCode cdGroupVal="ADM_BZWK_MCLS_CD" allOption="전체" name="admBzwkMclsCd" id="admBzwkMclsCd" />
+                    </td>
+				</tr>
+				<tr>
+					<th class="text-center">사용자명/사용자ID</th>
+					<td>
+						<input type="text" class="form-control new-w180" placeholder="" id="userNmId" data-alias="사용자명/사용자ID">
+					</td>
+					<th class="text-center">화면거래명/화면거래ID</th>
+					<td> 
+                       <input type="text" class="form-control new-w180" placeholder="" id="screnTranNmId" data-alias="화면거래명/화면거래ID">
+                    </td>
+				</tr>
+			</tbody>						
+		</table>				
+	</form><!-- form -->
+</div>
+<div class="text-center new-mb40">
+	<button type="submit" class="btn color-01" id="" onClick="ASYAU50001()" >조회</button>
+</div>
+				
+<!-- 하단 컨텐츠 -->			
+	<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUserRoll" class="table text-center new-mb30">
+		<thead>
+			<colgroup>
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+			</colgroup>
+			<tr class="thead-light">			
+                <th>No.</th>
+                <th>아이디</th>
+				<th>이름</th>
+				<th>소속</th>
+				<th>사용자상태</th>
+				<th>업무대분류</th>
+				<th>업무중분류</th>
+				<th>화면거래ID</th>
+				<th>화면거래명</th>
+				<th>화면거래구분</th>
+				<th>민감정보포함</th>
+			</tr>
+		</thead>
+		<tbody id="tUserRoleInfo">
+		</tbody>	
+	</table>
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYAU40001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU50000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리 > 코드관리
+ * 화면명 : 코드관리
+ * 설명 : 코드그룹 목록과 해당 코드그룹에 설정된 코드 목록을 조회
+ * 작성자 : 서예원
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ var g_cdGroupVal = "";	//선택된 코드그룹 전역변수
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+/*
+ * 로드
+ */
+$(document).ready(function(){
+	 init();
+});
+
+/*
+ * 화면 초기화
+ */
+function init(){
+	// 세로길이 조정
+	var areaHeight = $('.contents').height() - 150;
+	$('#divCodeGroupArea').height( areaHeight );
+	$('#divCodeArea').height( areaHeight );
+
+	// 코드그룹 목록 조회
+	ASYOP10001();
+}
+
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+/*
+ * @desc 코드그룹 목록 조회
+ */
+function ASYOP10001(cdGroupVal){
+	var jsonData = new Object();
+	
+	jsonData.cdGroupNm = $('#searchGroupCd').val();
+	
+	httpAjax('ASYOP10001.json', jsonData, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+		// 코드그룹목록 출력
+ 		fncCodeGroupList(data);
+  	}); 
+}
+
+/*
+ * @desc 코드 목록 조회
+ */
+function ASYOP10002(cdGroupVal){
+	g_cdGroupVal = cdGroupVal;
+	
+	var jsonData = new Object();
+	jsonData.cdVal = $('#searchCd').val();
+	
+	if(cdGroupVal!="" && cdGroupVal!=null){
+		jsonData.cdGroupVal = cdGroupVal;
+	}
+	
+	httpAjax('ASYOP10002.json', jsonData, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+		// 코드목록 출력
+ 		fncCodeList(data);
+  	}); 
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+function fncEnterKey(id){	
+	if (window.event.keyCode == 13) {
+		if (id == "searchGroupCd"){
+			console.log('fncEnterKey', $('#searchGroupCd').val());
+			ASYOP10001();
+		}else{
+			console.log('fncEnterKey', $('#searchCd').val());
+			ASYOP10002(g_cdGroupVal);
+		}
+		
+	}
+}
+/**
+* 코드그룹갱신
+*/
+function fncCleanCdGroup(){
+	document.querySelector('#searchGroupCd').value = "";
+	ASYOP10001();
+}
+/**
+* 코드정보갱신
+*/
+function fncCleanCd(){
+	document.querySelector('#searchCd').value = "";
+	ASYOP10002(g_cdGroupVal);
+}
+
+/**
+ * 코드 목록 조회
+ */
+function fncCodeListSearch(cdGroupVal) {
+	document.querySelector('#searchCd').value = "";
+	ASYOP10002(cdGroupVal);
+}
+
+/**
+* 코드그룹 목록 출력
+*/
+function fncCodeGroupList(data){
+	
+	var result = data.result.grid;
+	var html = "";
+	$("#tCodeGroupInfo").empty();
+
+	if(result!=null && result.length > 0){
+		for(var i in result){
+			var obj = result[i];
+			
+			if(obj.cdGroupVal != undefined && obj.cdGroupVal != ""){
+				html += '<tr class="text-center border-bottom" onclick="fncCodeListSearch(`'+obj.cdGroupVal+'`)" ondblclick="popASYOP10100(`'+obj.cdGroupVal+'`)";>';
+				html += '	<td>'+(Number(i)+1)+'</td>';
+				html += ' 	<td>' + obj.cdGroupVal + '</td>';			//코드그룹
+				html += '	<td><a href="javascript:popASYOP10100(`'+obj.cdGroupVal+'`);">' + util.nvl(obj.cdGroupNm, '') + '</td>';			//코드그룹명
+				html += '	<td> '+ util.nvl(obj.cdLenVal,'') + '</a></td>'; 		//코드길이
+				html += '	<td>' + util.nvl(obj.useYn,'') + '</td>';				//사용여부
+				html += '</tr>';
+			}
+		}					
+	}else{	
+		html += '<tr><td colspan="5" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tCodeGroupInfo").append(html);	
+}
+
+/**
+* 코드 목록 출력
+*/
+function fncCodeList(data){
+	
+	var result = data.result.grid;
+	var html = "";
+	$("#tCodeInfo").empty();
+
+	if(result!=null && result.length > 0){
+		for(var i in result){
+			var obj = result[i];
+			
+			if(obj.cdGroupVal != undefined && obj.cdGroupVal != ""){
+				html += '<tr class="text-center border-bottom" ondblclick="popASYOP10200(`'+obj.cdGroupVal+'`,`'+obj.cdVal+'`)";>';					
+				html += '	<td>' 
+				html += 	Number(i)+1 
+				html += '</td>';
+				html += ' 	<td>' + obj.cdVal + '</td>';				//코드
+				html += '	<td><a href="javascript:popASYOP10200(`'+obj.cdGroupVal+'`,`'+obj.cdVal+'`);">' + util.nvl(obj.cdNm,'')  + '</a></td>';				//코드명
+				html += '	<td> '+ util.nvl(obj.repstOrdr,'') + '</td>'; 		//표시순서
+				html += '	<td>' + util.nvl(obj.cdRef1Val,'') + '</td>';			//코드참조1
+				html += '	<td>' + util.nvl(obj.cdRef2Va,'') + '</td>';			//코드참조2
+				html += '	<td>' + util.nvl(obj.cdRef3Val,'') + '</td>';			//코드참조3
+				html += '	<td>' + util.nvl(obj.useYn,'') + '</td>';				//사용여부
+				html += '</tr>';
+			}
+		}					
+	}else{	
+		html += '<tr><td colspan="8" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tCodeInfo").append(html);	
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * popASYAU10100  // moveASYAU10100
+/*********************************************************************/
+/*
+ * @desc 코드그룹 설정 팝업
+ */
+function popASYOP10100(cdGroupVal){
+	var param = {}; //초기화
+	
+	param = {cdGroupVal: cdGroupVal};
+	
+	popup.openLayerPopup('/admin/sy/op/ASYOP10100.frag', param, null, function(data){
+		// 코드그룹 refresh
+		ASYOP10001();
+	});
+}
+/*
+ * @desc 코드 설정 팝업
+ */
+function popASYOP10200(cdGroupVal, cdVal){
+	var jsonData = new Object(); //초기화
+	
+	jsonData.cdGroupVal = cdGroupVal;
+	jsonData.cdVal = cdVal;
+
+	if (!cdGroupVal && g_cdGroupVal) {
+		jsonData.cdGroupVal = g_cdGroupVal;
+	}
+
+	popup.openLayerPopup('/admin/sy/op/ASYOP10200.frag', jsonData, null, function(data){
+		// 코드 목록 refresh
+		ASYOP10002(g_cdGroupVal);
+	});
+}
+
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mb-0">코드 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<div class=" d-block">
+		<button class="btn btn-primary" onClick="fncCleanCdGroup()">코드그룹갱신</button>
+		<button class="btn btn-primary" onClick="fncCleanCd()">코드정보갱신</button>
+		<!-- <button class="btn btn-primary">코드정보 서버적용</button>
+		<button class="btn btn-primary">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+				<path d="M6 12v-2h3v2H6z"></path>
+				<path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"></path>
+			</svg>
+			엑셀 다운로드
+		</button> -->
+	</div>
+</div>
+
+<!-- 제목 아래 영역 -->
+<div class="container-fluid px-0">
+	<div class="row">
+		<!-- 코드 그룹 영역 -->
+		<div class="col-5">
+			<div class="d-flex justify-content-between align-items-center new-mb15">
+				<h6 class="new-fs18">코드그룹</h6>
+				<button class="btn btn-primary" onclick="popASYOP10100()">등록</button>
+			</div>
+			<!-- 검색 영역 시작 -->
+			<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+				<table class="table mb-0 table-borderless">
+					<colgroup>
+						<col style="width: 30%">
+						<col style="width: 70%">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>그룹코드명검색</th>
+							<td>							
+								<input type="text" class="form-control" placeholder="" id="searchGroupCd" onKeyup="fncEnterKey(this.id)">								
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!-- 검색 영역 끝 -->
+			<!-- 목록 영역 시작-->
+			<div id="divCodeGroupArea" style="overflow-y: auto;">
+				<table class="table table-striped text-center new-mb30">
+					<colgroup>
+						<col style="width: 10%;">
+						<col style="width: 25%;">
+						<col style="width: 25%;">
+						<col style="width: *;">
+						<col style="width: 20%;">
+					</colgroup>
+					<thead>
+						<tr class="thead-light">
+							<th>No.</th>
+							<th>코드그룹</th>
+							<th>코드그룹명</th>
+							<th>코드길이</th>
+							<th>사용여부</th>
+						</tr>
+					</thead>
+					<!-- 조회 목록 추가 위치 -->
+					<tbody id="tCodeGroupInfo"></tbody>
+				</table>
+			</div>
+			<!-- 목록 영역 끝-->
+		</div>
+		
+		<!-- 코드 영역 -->
+		<div class="col-7">
+			<div class="d-flex justify-content-between align-items-center new-mb15">
+				<h6 class="new-fs18">코드</h6>
+				<button class="btn btn-primary" onclick="popASYOP10200()">등록</button>
+			</div>
+			<!-- 검색 영역 시작 -->
+			<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+				<table class="table mb-0 table-borderless">
+					<colgroup>
+						<col style="width: 30%">
+						<col style="width: 70%">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>코드검색</th>
+							<td>							
+								<input type="text" class="form-control" placeholder="" id="searchCd"  onKeyup="fncEnterKey(this.id)">								
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!-- 검색 영역 끝 -->
+			<!-- 목록 영역 시작-->
+			<div id="divCodeArea" style="overflow-y: auto;">
+				<table class="table table-striped text-center new-mb30">
+					<colgroup>
+						<col style="width: 10%;">
+						<col style="width: 10%;">
+						<col style="width: 15%;">
+						<col style="width: 10%;">
+						<col style="width: 15%;">
+						<col style="width: 15%;">
+						<col style="width: 15%;">
+						<col style="width: *;">
+					</colgroup>
+					<thead>
+						<tr class="thead-light">
+							<th>No.</th>
+							<th>코드</th>
+							<th>코드명</th>
+							<th>표시순서</th>
+							<th>코드참조1</th>
+							<th>코드참조2</th>
+							<th>코드참조3</th>
+							<th>사용여부</th>
+						</tr>
+					</thead>
+					<!-- 조회 목록 추가 위치 -->
+					<tbody id="tCodeInfo"></tbody>
+				</table>
+			</div>
+			<!-- 목록 영역 끝-->
+		</div>
+	</div>
+</div>
+<!-- 여기까지 컨텐츠 -->
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리 > 코드관리 > 코드 관리
+ * 화면명 : 코드그룹 설정
+ * 설명 : 코드그룹의 신규 등록 및 변경 기능 제공
+ * 작성자 : 서예원
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	var cdGroupVal = `${cdGroupVal}`;
+	init(cdGroupVal);	
+
+	// jQuery.validator 초기화
+	validation.initFormValidate(document.reqCodeForm);
+});
+ 
+function init(cdGroupVal){
+//	 $('#ASYAU10100').show();
+		
+		if (cdGroupVal != null && cdGroupVal != "") {	//cdGroupVal값이 전달되었을 경우 					
+  		 	ASYOP10101(cdGroupVal);			//상세 조회 
+  		}else{
+  			document.getElementById('popupCdGroup').readOnly = false;
+  			ASYOP10101();
+  		}
+		
+ }
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+function ASYOP10101(cdGroupVal){
+	var param = {};
+	
+	if (cdGroupVal !== null) {
+		param = {cdGroupVal: cdGroupVal};
+	}
+	console.log("param",param);
+	httpAjax('/admin/sy/op/ASYOP10101.json', param, function(data){
+  		console.log("팝업성공");
+  		console.log(data);
+  		
+  		if (data.result.grid){
+  			fncSetCdGroup(data.result.grid)
+  		}
+	});		  		
+}
+
+/*
+ * @desc 코드그룹 설정정보 등록
+ */
+function ASYOP10102(){
+	// validation 체크
+	if (!validation.checkFormValidate(document.reqCodeForm)) {
+		return false;
+	}
+
+	var updateCdGroupObject = new Object();
+	
+	updateCdGroupObject.cdGroupVal = $('#popupCdGroup').val();
+	updateCdGroupObject.cdGroupNm = $('#popupCdGroupNm').val();
+	updateCdGroupObject.descCtnt = $('#popupDescCtnt').val();
+	updateCdGroupObject.cdLenVal = $('#popupCdLenVal').val();
+	updateCdGroupObject.useYn = $('#popupUseYn').val();
+	
+	console.log("updateCdGroupObject",updateCdGroupObject);
+	
+	httpAjax('/admin/sy/op/ASYOP10102.json', updateCdGroupObject, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		var result = data.result.processResult;
+ 		if(result > 0){
+ 			var closeJson = new Object();
+ 			closeJson.result = result;
+ 			
+ 			popup.closeLayerPopup(closeJson);
+ 			ASYOP10001();
+ 		}
+  	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/*
+ * @desc 조회로직 - 수정으로 들어왔을 경우 호출
+ */
+function fncSetCdGroup(cdGroupVal){
+	document.querySelector('#popupCdGroup').value = cdGroupVal.cdGroupVal;		//코드그룹
+	document.querySelector('#popupCdGroupNm').value = util.nvl(cdGroupVal.cdGroupNm,'');		//코드그룹명
+	document.querySelector('#popupDescCtnt').value = util.nvl(cdGroupVal.descCtnt,'');		//설명
+	document.querySelector('#popupCdLenVal').value = util.nvl(cdGroupVal.cdLenVal,'');		//코드길이
+	document.querySelector('#popupUseYn').value = cdGroupVal.useYn;//시스템구분
+}
+
+</script>
+
+<form method="POST" id="reqCodeForm" name="reqCodeForm" onsubmit="ASYOP10102(); return false;">
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">코드그룹설정</h5>
+			<button type="button" class="btn btn-icon" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a"  viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">	
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center new-mb30">
+					<colgroup>
+						<col width="18%">
+                        <col width="40%">
+                        <col width="16%">
+                        <col width="*">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>코드그룹</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdGroup" name="cdGroup" readonly="readonly" data-validate-rule="{required:true}" data-alias="코드그룹" />
+                            </td>
+						</tr>
+						<tr>
+							<th>코드그룹명</th>
+                            <td colspan="3">
+                                <input type="text" class="form-control" value="" id="popupCdGroupNm" name="cdGroupNm" data-validate-rule="{required:true}" data-alias="코드그룹명">
+                            </td>
+						</tr>
+						<tr>
+							<th>설명</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" value="" id="popupDescCtnt">
+                            </td>
+						</tr>
+						<tr>
+							<th>코드길이</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdLenVal" name="cdLenVal" data-validate-rule="{required:true}" data-alias="코드길이"/>
+                            </td>
+                            <th>시스템구분</th>
+                            <td>
+                            	<select class="form-control" id="popupUseYn">
+                                    <option value="Y">사용</option>
+                                    <option value="N">미사용</option>
+                                </select>
+                            </td>
+						</tr>
+					<tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary new-mr10">저장</button>
+			<button type="button" class="btn btn-outline-primary new-mr10" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+</form>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10200.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리 > 코드관리 > 코드 관리
+ * 화면명 : 코드 설정
+ * 설명 : 코드의 신규 등록 및 변경 기능 제공
+ * 작성자 : 서예원
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+
+	// jQuery.validator 초기화
+	validation.initFormValidate(document.reqCodeForm);
+});
+ 
+function init(){
+	var cdGroupVal = `${param.cdGroupVal}`;
+	var cdVal = `${param.cdVal}`;
+
+	// 코드그룹 목록을 조회해서 상위코드에 셋팅
+	ASYOP10001();
+
+	if (cdGroupVal != null && cdGroupVal != "" && cdVal != null && cdVal != "") {	//cdGroupVal값이 전달되었을 경우 					
+		ASYOP10201(cdGroupVal,cdVal);			//상세 조회 
+	}else{
+		if (cdGroupVal) {
+			document.querySelector('#popupCdGroupVal').value = cdGroupVal;		//코드그룹
+		} else {
+			document.getElementById('popupCdGroupVal').readOnly = false;
+		}
+		document.getElementById('popupCdVal').readOnly = false;
+		ASYOP10201();
+	}
+}
+ 
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+/*
+ * @desc 코드그룹 목록 조회
+ */
+function ASYOP10001(){
+	var jsonData = new Object();
+	
+	httpAjax('ASYOP10001.json', jsonData, function(data){
+  		for(var i=0 ; i<data.result.grid.length ; i++){
+  			var cdItem = data.result.grid[i];
+  			
+  			$('#popupUpCdGroupVal').append($("<option value='"+cdItem.cdGroupVal+"'>"+cdItem.cdGroupVal+" ("+cdItem.cdGroupNm+")</option>"));
+  		}
+  	}); 
+}
+
+function ASYOP10201(cdGroupVal,cdVal){
+	// validation 체크
+	if (!validation.checkFormValidate(document.reqCodeForm)) {
+		return false;
+	}
+	
+	var jsonData = new Object(); //초기화
+	
+	if (cdGroupVal && cdVal) {
+		jsonData.cdGroupVal =cdGroupVal;
+		jsonData.cdVal = cdVal;
+	}
+	console.log("jsonData",jsonData);
+	httpAjax('/admin/sy/op/ASYOP10201.json', jsonData, function(data){
+  		console.log("팝업성공");
+  		console.log(data);
+  		
+  		if (data.result.grid){
+  			fncSetCd(data.result.grid)
+  		}
+	});		  		
+}
+ 
+
+/*
+ * @desc 코드그룹 설정정보 등록
+ */
+function ASYOP10202(){
+	// validation 체크
+	if (!validation.checkFormValidate(document.reqCodeForm)) {
+		return false;
+	}
+
+	var updateCdObject = new Object();
+	
+	updateCdObject.cdGroupVal = $('#popupCdGroupVal').val();
+	updateCdObject.cdVal = $('#popupCdVal').val();
+	updateCdObject.cdNm = $('#popupCdNm').val();
+	updateCdObject.descCtnt = $('#popupDescCtnt').val();
+	updateCdObject.cdRef1Val = $('#popupCdRef1Val').val();
+	updateCdObject.cdRef2Val = $('#popupCdRef2Val').val();
+	updateCdObject.cdRef3Val = $('#popupCdRef3Val').val();
+	updateCdObject.upCdGroupVal = $('#popupUpCdGroupVal').val();
+	updateCdObject.upCdVal = $('#popupUpCdVal').val();
+	updateCdObject.repstOrdr = util.nvl($('#popupRepstOrdr').val(), 0);
+	updateCdObject.useYn = $('#popupUseYn').val();
+
+	httpAjax('ASYOP10202.json', updateCdObject, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		var result = data.result.processResult;
+ 		if(result > 0){
+ 			var closeJson = new Object();
+ 			closeJson.result = result;
+ 			
+ 			popup.closeLayerPopup(closeJson);
+ 		}
+  	});
+}
+
+/*
+ * @desc 조회로직 - 수정으로 들어왔을 경우 호출
+ */
+function fncSetCd(cdGroupVal){
+	document.querySelector('#popupCdGroupVal').value = cdGroupVal.cdGroupVal;		//코드그룹
+	document.querySelector('#popupCdVal').value = cdGroupVal.cdVal;		//코드값
+	document.querySelector('#popupCdNm').value = util.nvl(cdGroupVal.cdNm,'');		//코드명
+	document.querySelector('#popupDescCtnt').value = util.nvl(cdGroupVal.descCtnt,'');		//설명내용
+	document.querySelector('#popupCdRef1Val').value = util.nvl(cdGroupVal.cdRef1Val,'');//코드참조1값
+	document.querySelector('#popupCdRef2Val').value = util.nvl(cdGroupVal.cdRef2Val,'');//코드참조2값
+	document.querySelector('#popupCdRef3Val').value = util.nvl(cdGroupVal.cdRef3Val,'');//코드참조3값
+	document.querySelector('#popupUpCdGroupVal').value = cdGroupVal.upCdGroupVal;//상위코드그룹값
+	document.querySelector('#popupUpCdVal').value = cdGroupVal.upCdVal;//상위코드값
+	document.querySelector('#popupRepstOrdr').value = util.nvl(cdGroupVal.repstOrdr,'');//표시순서
+	document.querySelector('#popupUseYn').value = cdGroupVal.useYn;//사용여부
+	
+}
+
+function fncUpCdGroupVal(value){
+	
+}
+</script>
+
+<form method="POST" id="reqCodeForm" name="reqCodeForm" onsubmit="ASYOP10202(); return false;">
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 900px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">코드설정</h5>
+			<button type="button" class="btn btn-icon" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a"  viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">	
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center new-mb30">
+					<colgroup>
+						<col width="11%">
+                        <col width="22%">
+                        <col width="11%">
+                        <col width="22%">
+                        <col width="11%">
+                        <col width="*">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>코드그룹</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdGroupVal" name="cdGroupVal" readonly="readonly" data-validate-rule="{required:true}" data-alias="코드그룹" />
+                            </td>
+                            <th>코드</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdVal" name="cdVal" readonly="readonly" data-validate-rule="{required:true}" data-alias="코드" />
+                            </td>
+						</tr>
+						<tr>
+							<th>코드명</th>
+                            <td colspan="5">
+                                <input type="text" class="form-control" value="" id="popupCdNm" name="cdNm" data-validate-rule="{required:true}" data-alias="코드명" >
+                            </td>
+						</tr>
+						<tr>
+							<th>설명</th>
+                            <td colspan="5">
+                            	<input type="text" class="form-control" value="" id="popupDescCtnt">
+                            </td>
+						</tr>
+						<tr>
+							<th>코드참조1</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdRef1Val">
+                            </td>
+                            <th>코드참조2</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdRef2Val">
+                            </td>
+                            <th>코드참조3</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupCdRef3Val">
+                            </td>
+						</tr>
+						<tr>
+							<th>상위코드</th>
+                            <td colspan="5">
+          						<select class="form-control" id="popupUpCdGroupVal" onchange="fncUpCdGroupVal(this.value)">
+                                	<option value=""></option>
+                                </select>
+                            </td>
+						</tr>
+						<tr>
+							<th></th>
+                            <td colspan="5">
+                            	<select class="form-control" id="popupUpCdVal">
+                                    <option value=""></option>
+                                    <option value=""></option>
+                                </select>
+                            </td>
+						</tr>
+						<tr>
+							<th>표시순서</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupRepstOrdr" name="repstOrdr" data-validate-rule="{required:true}" data-alias="표시순서" />
+                            </td>
+                            <th>사용여부</th>
+                            <td>
+                            	<select class="form-control" id="popupUseYn">
+                                    <option value="Y">사용</option>
+                                    <option value="N">미사용</option>
+                                </select>
+                            </td>
+						</tr>
+					<tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary new-mr10">저장</button>
+			<button type="button" class="btn btn-outline-primary new-mr10" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+</form>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP10200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP11000.jsp =====
+<%
+/**
+ * 시스템명 : SY/OP/ASYOP11000.jsp
+ * 세부업무구분명 : Admin > 캐시정보관리
+ * 프로그램명 : 캐시정보관리목록조회
+ * 설명 : 캐시정보관리화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+	//<![CDATA[
+	//]]>
+</script>
+<div
+	class="d-flex align-items-center justify-content-between border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="title-box d-flex align-items-center">
+		<h4 class="h4 mb-0">캐시정보 관리</h4>
+
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+</div>
+<div class="row new-mb20">
+	<div class="col-12 new-pr10">
+		<div class="border h-100 new-p15 rounded">
+			<div class="float-right new-mb15">
+				<button type="button" class="btn btn-outline-primary">추가</button>
+				<button type="button" class="btn btn-outline-primary">삭제</button>
+				<button type="button" class="btn btn-primary">저장</button>
+			</div>
+			<table class="table text-center new-mb30">
+				<colgroup>
+					<col width="5%">
+					<col width="5%">
+					<col width="9%">
+					<col width="9%">
+					<col width="12%">
+					<col width="9%">
+					<col width="9%">
+					<col width="12%">
+					<col width="12%">
+					<col width="*">
+				</colgroup>
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>
+							<div
+								class="custom-control custom-checkbox custom-control-inline align-middle">
+								<input type="checkbox" class="custom-control-input"
+									id="checkAll" /> <label class="custom-control-label"
+									for="checkAll">&nbsp</label>
+							</div>
+						</th>
+						<th>캐시구분</th>
+						<th>캐시명</th>
+						<th>캐시ID</th>
+						<th>업무구분</th>
+						<th>사용여부</th>
+						<th>서비스클래스명</th>
+						<th>서비스메소드명</th>
+						<th>서비스인자구분</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="ac">1</td>
+						<td>
+							<div
+								class="custom-control custom-checkbox custom-control-inline align-middle">
+								<input type="checkbox" class="custom-control-input" id="check1">
+								<label class="custom-control-label" for="check1">&nbsp</label>
+							</div>
+						</td>
+						<td class="ac"><select class="form-control" style="width: 100px;">
+								<option selected>cashe</option>
+								<option>properties</option>
+						</select></td>
+						<td class="ac">영업점 정보</td>
+						<td class="ac">BrimManager</td>
+						<td class="ac"><select class="form-control" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option>관리자</option>
+						</select></td>
+						<td class="ac"><select class="form-control" style="width: 100px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">brimManagerService</td>
+						<td class="ac">getBrimList</td>
+						<td class="ac"><select class="form-control" style="width: 100px;">
+								<option>언어별</option>
+								<option>국가별</option>
+								<option>일반</option>
+						</select></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="text-center">
+	<button type="button" class="btn btn-outline-primary new-mr10">목록</button>
+	<button type="button" class="btn btn-primary">서버정보</button>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP11000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP11100.jsp =====
+<%
+/**
+ * 시스템명 : SY/OP/ASYOP11100.jsp
+ * 세부업무구분명 : Admin > 메모리로드수행
+ * 프로그램명 : 캐시정보관리추가팝업
+ * 설명 : 캐시정보관리추가팝업 화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[
+//]]>
+</script>
+<div>
+</div>
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP11100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP12000.jsp =====
+<%
+/**
+ * 시스템명 : SY/OP/ASYOP12000.jsp
+ * 세부업무구분명 : Admin > 캐시정보관리
+ * 프로그램명 : 캐시정보관리목록조회
+ * 설명 : 캐시정보관리화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+	//<![CDATA[
+	//]]>
+</script>
+<div
+	class="d-flex align-items-center justify-content-between border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="title-box d-flex align-items-center">
+		<h4 class="h4 mb-0">서버정보관리</h4>
+
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+</div>
+<div class="row new-mb20">
+	<div class="col-12 new-pr10">
+		<div class="border h-100 new-p15 rounded">
+			<div class="float-right new-mb15">
+				<button type="button" class="btn btn-outline-primary">추가</button>
+				<button type="button" class="btn btn-outline-primary">삭제</button>
+				<button type="button" class="btn btn-primary">저장</button>
+			</div>
+			<table class="table text-center new-mb30">
+				<colgroup>
+					<col width="5%">
+					<col width="9%">
+					<col width="9%">
+					<col width="9%">
+					<col width="12%">
+					<col width="9%">
+					<col width="9%">
+					<col width="12%">
+					<col width="*">
+				</colgroup>
+				<tbody>
+				<thead>
+					<tr>
+						<th>번호</th>
+						<th>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="checkAll" /> 
+						        <label class="custom-control-label" for="checkAll">&nbsp</label>
+						    </div>
+						</th>
+
+						<th>업무구분</th>
+						<th>컨테이너ID</th>
+						<th>컨테이너명</th>
+						<th>호스트IP</th>
+						<th>수신포트</th>
+						<th>사용여부</th>
+						<th>컨테이터설명</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="ac">1</td>
+						<td>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="check1" /> 
+						        <label class="custom-control-label" for="check1">&nbsp</label>
+						    </div>
+						</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option selected>관리자</option>
+						</select></td>
+						<td class="ac">gbs_adm11_s</td>
+						<td class="ac">adm11_s</td>
+						<td class="ac">10.83.2.87</td>
+						<td class="ac">9400</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">21_관리자</td>
+					</tr>
+					<tr>
+						<td class="ac">2</td>
+						<td>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="check2">
+						        <label class="custom-control-label" for="check2">&nbsp</label>
+						    </div>
+						</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option selected>관리자</option>
+						</select></td>
+						<td class="ac">gbs_adm11_s</td>
+						<td class="ac">adm11_s</td>
+						<td class="ac">10.83.2.87</td>
+						<td class="ac">9400</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">21_관리자</td>
+					</tr>
+					<tr>
+						<td class="ac">3</td>
+						<td>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="check3">
+						        <label class="custom-control-label" for="check3">&nbsp</label>
+						    </div>
+						</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option selected>관리자</option>
+						</select></td>
+						<td class="ac">gbs_adm11_s</td>
+						<td class="ac">adm11_s</td>
+						<td class="ac">10.83.2.87</td>
+						<td class="ac">9400</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">21_관리자</td>
+					</tr>
+					<tr>
+						<td class="ac">4</td>
+						<td>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="check4">
+						        <label class="custom-control-label" for="check4">&nbsp</label>
+						    </div>
+						</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option selected>관리자</option>
+						</select></td>
+						<td class="ac">gbs_adm11_s</td>
+						<td class="ac">adm11_s</td>
+						<td class="ac">10.83.2.87</td>
+						<td class="ac">9400</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">21_관리자</td>
+					</tr>
+					<tr>
+						<td class="ac">5</td>
+						<td>
+						    <div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        <input type="checkbox" class="custom-control-input" id="check5">
+						        <label class="custom-control-label" for="check5">&nbsp</label>
+						    </div>
+						</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 100px;">
+								<option>전체</option>
+								<option>인터넷뱅킹</option>
+								<option selected>관리자</option>
+						</select></td>
+						<td class="ac">gbs_adm11_s</td>
+						<td class="ac">adm11_s</td>
+						<td class="ac">10.83.2.87</td>
+						<td class="ac">9400</td>
+						<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>사용</option>
+								<option>사용안함</option>
+						</select></td>
+						<td class="ac">21_관리자</td>
+					</tr>
+
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="text-center">
+	<button type="button" class="btn btn-outline-primary new-mr10">목록</button>
+	<button type="button" class="btn btn-primary">캐시정보</button>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP12000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP12100.jsp =====
+<%
+/**
+ * 시스템명 : SY/OP/ASYOP12100.jsp
+ * 세부업무구분명 : Admin > 메모리로드수행
+ * 프로그램명 : 서버정보관리추가 팝업
+ * 설명 : 서버정보관리추가 팝업 화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[
+//]]>
+</script>
+<div>
+</div>
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP12100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP20000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 운영관리
+ * 화면명 : 게시판 관리
+ * 설명 : Admin에 표시되는 게시판 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-25
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/25         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){	
+	validation.initFormValidate(document.searchBulbdBas); // jQuery.validator 초기화
+	init();	//게시판목록 조회
+});
+
+ /*
+  * 화면 초기화
+  */
+ function init(){
+ 	ASYOP20001();
+ } 
+ /*********************************************************************
+  * 거래호출 
+  * function ASYAU10100(){ }
+ /*********************************************************************/
+ /*
+  * @desc 게시판 목록 조회
+  * @param {Object} searchInfo 검색요소
+  */
+ function ASYOP20001(searchInfo){
+ 	var jsonData = new Object();
+ 	
+ 	jsonData.admAthYn = $('#admAthYn').val();	//관리자권한여부
+	jsonData.bulbdNm = $('#bulbdNm').val();	//게시판명
+ 	
+	if (searchInfo) {	//검색요소가 있을 경우 param을 검색요소로 대체
+		jsonData = $.extend(jsonData, searchInfo);
+	};
+	
+ 	httpAjax('ASYOP20001.json', jsonData, function(data){
+   		console.log("성공");
+   		console.log(data);
+   		
+   		fncsetBulbdList(data);		// 게시판목록 출력
+  		fncPagination(data.result);	// 페이징처리
+   	}); 
+ }	
+	/**
+	 * 게시판목록 출력
+	 */
+	function fncsetBulbdList(data){
+		var result = data.result.grid;
+		var pages = data.result.pageInfo;
+		
+		var html = "";
+		$("#tBulbdMenu").empty();
+		
+		if(result!=null && result.length > 0){	
+			//--------------------------------------------------------------------------------
+			// 게시판목록정보 출력
+			//--------------------------------------------------------------------------------
+						
+			for(var i in result){
+				var obj = result[i];
+				
+				if(obj.bulbdId != undefined && obj.bulbdId != "") {
+					html += '<tr class="text-center border-bottom">';
+					html += '	<td>' 
+					html += 		(pages.pageNo-1)*pages.pageSize+Number(i)+1 //No.
+					html += '	</td>';				
+					html += ' 	<td>' + obj.bulbdId + '</td>';					//게시판ID
+					html += '	<td><a href="javascript:popASYOP20100(`'+obj.bulbdId+'`);">' + util.nvl(obj.bulbdNm,'') + '</a></td>'; //게시판명
+					html += '	<td>' + obj.blpsCount + '</td>';						//게시건수
+					html += '	<td>' + util.nvl(obj.descCtnt,'') + '</td>';					//설명
+					html += '	<td>' + util.nvl(obj.admAthYn,'') + '</td>';					//관리자ONLY
+					html += '	<td>' + util.nvl(obj.mainRepstYn,'') + '</td>';				//메인표시여부
+					html += '	<td>' + util.nvl(obj.repstOrdr,'') + '</td>';				//표시순서
+					html += '	<td>' + util.nvl(obj.useYn,'') + '</td>';					//사용여부
+					html += '</tr>';
+				}
+			}					
+		}else{			
+			html += '<tr><td colspan="9" class="text-center border-bottom">내용없음</td></tr>'
+		}
+		$("#tBulbdMenu").append(html);
+	}
+
+	/*
+	 * @desc paging 처리
+	 * @param {Object} pageInfo
+	 */
+	function fncPagination(result) {
+		var pageInfo = result.pageInfo;
+		//페이지네이션 추가 (공통 페이지네이션 처리)
+		$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+	}
+
+	/*
+	 * @desc 페이지 조회 로직
+	 * @param {number} index
+	 */
+	function fncSearchNextPage(index){
+		//pageInfo 관련 설정
+		var pageInfo = {
+			page: parseInt(index)	//해당페이지로 이동
+		};
+		 	
+		//검색 정보
+		var searchInfo = {
+			admAthYn: $("#admAthYn").val(),		//관리자권한여부
+			bulbdNm: $("#bulbdNm").val(),			//게시판명
+		};
+		//병합
+		$.extend(pageInfo, searchInfo);					//Object 병합
+		ASYOP20001(pageInfo);							//목록재조회
+	}
+	 
+	 /*
+	  * @desc 검색 조회
+	  */
+	 function fncSearchBulbdBas(e){
+	 	// validation 체크
+	 	if (!validation.checkFormValidate(document.searchBulbdBas)) {
+	 		return false;
+	 	}
+	 	
+	 	//pagination 기본
+	 	var pageInfo = {
+	 		page: 1,
+	 		rows: 10
+	 	}
+		//search 기본
+	 	var searchInfo = {
+ 			admAthYn: "",	
+ 			bulbdNm: ""
+	 	}
+	 	if( $('#admAthYn').val() !== "") {
+	 		searchInfo.admAthYn = $('#admAthYn').val()
+	 	}
+	 	if( $('#bulbdNm').val() !== "") {
+	 		searchInfo.bulbdNm = $('#bulbdNm').val()
+	 	}
+	 	
+	 	$.extend(searchInfo, pageInfo);	//병합
+	 	 	
+	 	if (searchInfo.admAthYn === "" && searchInfo.bulbdNm === "") { //아무내용도 검색하지 않았을 경우
+	 		ASYOP20001(searchInfo);	//검색내용없을 경우 - 전체재조회
+	 	} else {
+	 		ASYOP20001(searchInfo);	//검색내용있을 경우 - 내용목록조회
+	 	} 
+	 	return false;
+	 }
+	 
+	 /*
+	 * @desc 게시판설정 팝업
+	 * @return ASYOP20100.frag
+	 * @param bulbdId
+	 */
+	function popASYOP20100(bulbdId){
+		console.log("popASYOP20100");
+		//$('#createCmnCodePop').show();
+ 		var param = new Object();
+ 		param = {
+ 				bulbdId: bulbdId	//선택한 게시판ID
+ 		};
+ 		popup.openLayerPopup('/admin/sy/op/ASYOP20100.frag', param, null, function(result){
+     		console.log(result);
+     		return false;
+      	});
+	}
+	 
+//]]>
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 시작 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">게시판 목록</h4>
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 제목 영역 끝 -->
+
+<!-- 제목 아래 영역 -->
+<div class="container-fluid px-0">
+	<!-- 검색 영역 시작 -->
+	<form method="post" id="searchBulbdBas" name="searchBulbdBas" autocomplete="off" onsubmit="fncSearchBulbdBas(this); return false;">
+		<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+			<table class="table mb-0 table-borderless">
+				<colgroup>
+					<col style="width: 15%">
+					<col style="width: 35%">
+					<col style="width: 15%">
+					<col style="width: *">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th class="text-center">관리자ONLY</th>
+						<td>
+							<div class="form-inline">
+								<select class="form-control new-w180" id="admAthYn">
+									<option value="">전체</option>
+									<option value="Y">대상</option>
+									<option value="N">미대상</option>
+								</select>
+							</div>
+						</td>
+						<th class="text-center">게시판명</th>
+						<td>
+							<div class="form-inline">
+								<input type="text" class="form-control new-w180" placeholder="" id="bulbdNm"/>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center new-mb40">
+			<button type="submit" class="btn color-01" onClick="ASYOP20001()">조회</button>
+		</div>
+	</form>
+	<!-- 검색 영역 끝 -->
+
+	<div class="d-flex new-mb10">
+		<div class="form-inline ml-auto">
+			<button type="button" class="btn btn-primary" id="btnLwprtMenuAdit" onClick="popASYOP20100()">등록</button>
+		</div>
+	</div>
+	<!-- 목록 영역 시작-->
+	<table class="table table-striped text-center new-mb30">
+		<colgroup>
+			<col style="width: 8%;">
+			<col style="width: 12%;">
+			<col style="width: 12%;">
+			<col style="width: 10%;">
+			<col style="width: 20%;">
+			<col style="width: 10%;">
+			<col style="width: 10%;">
+			<col style="width: 10%;">
+			<col style="width: *;">
+		</colgroup>
+		<thead>
+			<tr class="thead-light">
+				<th class="text-center">No.</th>
+				<th class="text-center">게시판ID</th>
+				<th class="text-center">게시판명</th>
+				<th class="text-center">게시건수</th>
+				<th class="text-center">설명</th>
+				<th class="text-center">관리자ONLY</th>
+				<th class="text-center">메인표시여부</th>
+				<th class="text-center">표시순서</th>
+				<th class="text-center">사용여부</th>
+			</tr>
+		</thead>
+		<!-- 조회 목록 추가 위치 -->
+		<tbody id="tBulbdMenu"></tbody>
+	</table>
+	<!-- 목록 영역 끝-->
+	
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYOP20001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- 여기까지 컨텐츠 -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP20000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP20100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 운영관리 > 게시판관리
+ * 화면명 : 게시판 설정
+ * 설명 : Admin에 표시되는 게시판 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-25
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/25         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){	
+	$("#popupCreateBulbdPopForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	validation.initFormValidate(document.popupCreateBulbdPopForm); // jQuery.validator 초기화
+	
+	init(); 		
+});
+ /*
+  * 화면 초기화
+  */
+ function init(){
+	 var bulbdId = `${bulbdId}`;
+	 
+	 if (bulbdId != null && bulbdId != "") {	//cdGroupVal값이 전달되었을 경우 					
+		 $('#popupBulbdId').val(bulbdId);
+			$('#pageIdTitle').text('게시판 수정');	 	
+			ASYOP20101(bulbdId);			//상세 조회 
+		}else{
+			$("#popupBulbdId").attr("readOnly",false);
+ 			$('#pageIdTitle').text('게시판 추가');
+ 			ASYOP20101();
+		}
+ } 
+ /*********************************************************************
+  * 거래호출 
+  * function ASYAU10100(){ }
+ /*********************************************************************/
+  /*
+  * @desc 게시판 설정정보 조회
+  */
+function ASYOP20101(bulbdId){
+var param = {};
+	
+	if (bulbdId !== null) {
+		param = {bulbdId: bulbdId};
+	}
+	
+	httpAjax('ASYOP20101.json', param, function(data){
+  		console.log("팝업성공");
+  		console.log(data);
+  		
+  		if (data.result.grid){
+  			fncSetBulbdInfo(data.result.grid)
+  		}
+	});		
+}
+ /*
+  * @desc 게시판 설정정보 등록
+  */
+function ASYOP20102(){
+	var updateBulbdObject = new Object();
+	
+	updateBulbdObject.bulbdId = $('#popupBulbdId').val();
+	updateBulbdObject.bulbdNm = $('#popupBulbdNm').val();
+	updateBulbdObject.descCtnt = $('#popupDescCtnt').val();
+	updateBulbdObject.admAthYn = $('#popupAdmAthYn').val();
+	updateBulbdObject.mainRepstYn = $('#popupMainRepstYn').val();
+	updateBulbdObject.repstOrdr = $('#popupRepstOrdr').val();
+	updateBulbdObject.useYn = $('#popupUseYn').val();
+	/*--------------------------------------------------------------------------------*/
+	/* httpAjax - 게시판정보 상세 조회	                                                  */
+	/*--------------------------------------------------------------------------------*/
+	
+	httpAjax('ASYOP20102.json', updateBulbdObject, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+  		 var result = data.result.processResult;
+ 		if(result > 0){
+ 			var closeJson = new Object();
+ 			closeJson.result = result;
+ 			
+ 			popup.closeLayerPopup(closeJson);
+ 			ASYOP20001();
+ 		}		 
+	}); 
+}
+ 
+/*
+ * @desc 조회로직 - 수정으로 들어왔을 경우 호출
+ */
+function fncSetBulbdInfo(bulbd){
+	document.querySelector('#popupBulbdId').value = bulbd.bulbdId;		//게시판ID
+	document.querySelector('#popupBulbdNm').value = util.nvl(bulbd.bulbdNm,'');		//게시판명
+	document.querySelector('#popupDescCtnt').value = util.nvl(bulbd.descCtnt,'');		//설명
+	document.querySelector('#popupAdmAthYn').value = bulbd.admAthYn;		//관리자
+	document.querySelector('#popupMainRepstYn').value = bulbd.mainRepstYn;//메인표시여부
+	document.querySelector('#popupRepstOrdr').value = util.nvl(bulbd.repstOrdr,'');	//표시순서
+	document.querySelector('#popupUseYn').value = bulbd.useYn;			//사용여부
+}
+	
+
+//]]>
+</script>
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center" id="pageIdTitle">게시판 설정</h5>
+			<button type="button" class="btn btn-icon" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a"  viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+				</svg>
+			</button>
+		</div>
+		<form method="post" id="popupCreateBulbdPopForm" name="popupCreateBulbdPopForm" autocomplete="off" onsubmit="f_popupCreateBulbdPopForm(this); return false;">
+		<div class="modal-body">	
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center new-mb30">
+					<colgroup>
+						<col width="22%">
+                        <col width="28%">
+                        <col width="22%">
+                        <col width="*">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>게시판아이디</th>
+                            <td>
+                            	<input type="text" class="form-control" value="" id="popupBulbdId" readOnly data-validate-rule="{required:true}" data-alias="게시판아이디"/>
+                            </td>
+						</tr>
+						<tr>
+							<th>게시판명</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" value="" id="popupBulbdNm" data-validate-rule="{required:true}" data-alias="게시판아이디"/>
+                            </td>
+						</tr>
+						<tr>
+							<th>설명</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" value="" id="popupDescCtnt" data-validate-rule="{required:true}" data-alias="게시판아이디"/>
+                            </td>
+						</tr>
+						<tr>
+							<th>관리자ONLY</th>
+                            <td>
+                            	<select class="form-control" id="popupAdmAthYn">
+									<option value="Y">대상</option>
+									<option value="N">미대상</option>
+								</select>
+                            </td>
+                            <th>메인표시여부</th>
+                            <td>
+								<select class="form-control" id="popupMainRepstYn">
+									<option value="Y">표시</option>
+									<option value="N">미표시</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+                            <th>표시순서</th>
+							<td>
+								<input type="text" class="form-control" value="" id="popupRepstOrdr" data-validate-rule="{}" data-alias="표시순서"/>
+							</td>
+							<th>사용여부</th>	
+							<td>
+								<select class="form-control" id="popupUseYn">
+									<option value="Y">사용</option>
+									<option value="N">미사용</option>
+								</select>
+							</td>                            
+						</tr>
+					<tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary new-mr10" onClick="ASYOP20102()">저장</button>
+			<button type="button" class="btn btn-outline-primary new-mr10" data-dismiss="modal">닫기</button>
+		</div>
+		</form>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP20100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP30000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리
+ * 화면명 : 배치 작업 관리
+ * 설명 : 설정된 배치 작업 목록을 조회
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-04
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/17         서예원            pagination, validation 추가
+ * 2023/04/14         서예원            코드정리 2단계
+ * 2023/04/13         서예원            코드정리 1단계
+ * 2023/04/04         서예원            최초생성
+ */
+%>
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+/*
+ * 로드
+ */
+ $(document).ready(function(){
+	 $("select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	 validation.initFormValidate(document.btchSearchForm); // jQuery.validator 초기화
+	 init();
+});
+ 
+/*
+ * 화면 초기화
+ */
+function init(){
+	ASYOP30001(); // 배치작업 목록 조회
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+/* 
+ * @desc 배치 작업 목록 조회
+ */
+function ASYOP30001(searchInfo){
+	var jsonData = new Object();
+ 	
+ 	jsonData.btchCyclCd = $('#btchCyclCd').val();		//스케줄구분
+	jsonData.btchJobNm = $('#btchJobIdOrNm').val();		//배치ID/배치작업명
+	
+	if (searchInfo) {	//검색요소가 있을 경우 param을 검색요소로 대체
+		jsonData = $.extend(jsonData, searchInfo);
+	};
+	
+	httpAjax('ASYOP30001.json', jsonData, function(data){
+ 		console.log("성공");
+ 		console.log(data);
+ 		
+ 		var result = data.result;
+		fncBatchListTable(result);//배치작업 목록 테이블 생성
+		fncPagination(result); // 페이징 세팅
+  	});
+}
+/* 
+ * @desc 배치 서버 적용 
+ */
+function ASYOP30002(){
+	
+}
+/* 
+ * @desc 배치 작업 설정정보 조회
+*/
+function ASYOP30101(){
+	
+}
+/* 
+ * @desc 배치 작업 설정정보 저장
+ */
+function ASYOP30102(){
+		
+ }
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/*
+ * @desc 배치작업 목록 테이블 생성
+ */
+function fncBatchListTable(result) {
+	var btchJobList = result.grid;
+	var pages = result.pageInfo;
+	
+	var html = "";
+	$("#tBatchlist").empty();
+	
+	if (btchJobList != null && btchJobList.length > 0) {
+		
+		for(var i in btchJobList){
+			var obj = btchJobList[i];
+			
+			if (obj === btchJobList[btchJobList.length - 1]) {	//마지막 요소에 border-bottom 추가
+				html += '<tr class="text-center border-bottom">';
+			} else {
+				html += '<tr>';
+			}
+			html += '	<td>';
+			html += 		(pages.pageNo-1)*pages.pageSize+Number(i)+1 //No.
+			html += '	</td>';
+			html += '	<td>'+ obj.btchJobId + '</td>';
+			html += '	<td>';
+			html += '		<a href="#" onclick="popASYOP30100(`'+ obj.btchJobId +'`);return false;">' + util.nvl(obj.btchJobNm,'') + '</a>';
+			html += '	</td>';
+			html += '	<td>' + util.nvl(obj.btchExePgmNm,'') + '</td>';
+			html += '	<td>' + util.nvl(obj.btchCyclNm,'') +'</td>';
+			html += '	<td>' + util.nvl(obj.btchExeDesigDd,'') + '</td>';
+			html += '	<td>' + util.nvl(obj.btchJobTtm,'') + '</td>';
+			html += '	<td>' + util.nvl(obj.autoExeYn,'') + '</td>';
+			html += '	<td>' + util.nvl(obj.useYn,'') + '</td>';
+		}		
+	} else {	//항목이 없을 경우 세팅
+		html += '<tr><td colspan="9" class="border-bottom">내용없음</td></tr>' 						
+	}
+	$("#tBatchlist").append(html);
+
+}
+
+/*
+ * @desc paging 처리
+ * @param {Object} pageInfo
+ */
+function fncPagination(result) {
+	var pageInfo = result.pageInfo;
+	//페이지네이션 추가 (공통 페이지네이션 처리)
+	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+}
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+
+	var searchInfo = {
+		btchCyclCd: $('#btchCyclCd').val(),		//스케줄구분
+		btchJobNm: $("#selectBtchJobIdOrNm").val(),		//배치ID or 배치작업명
+	};
+	//병합
+	$.extend(pageInfo, searchInfo);			//Object 병합
+	ASYOP30001(pageInfo);					//목록재조회
+} 
+ 
+/*
+ * @desc 검색 조회
+ * @TODO '스케줄 구분' DB와 연결 필요. 현재 '스케줄 구분' 사용하고 있지 않음
+ */
+function fncSearchListBtchJob(e){
+	// validation 체크
+	if (!validation.checkFormValidate(document.btchSearchForm)) {
+		return false;
+	}
+	
+	//pagination 기본
+	var pageInfo = {
+		page: 1,
+		rows: 10
+	}
+	var searchInfo = {
+			btchCyclCd:"",
+			btchJobNm: ""
+	}
+	if( $('#selectBtchJobIdOrNm').val() !== "") {
+		searchInfo.btchJobNm = $('#btchJobIdOrNm').val()
+	}
+	if( $('#btchCyclCd').val() !== "") {
+		searchInfo.btchCyclCd = $('#btchCyclCd').val()
+	}
+	
+	$.extend(searchInfo, pageInfo);	//병합
+	
+	if (searchInfo.btchCyclCd === "" && searchInfo.btchJobNm === "") { //아무내용도 검색하지 않았을 경우
+		ASYOP30001(searchInfo);	//검색내용없을 경우 - 전체재조회
+	} else {
+		ASYOP30001(searchInfo);	//검색내용있을 경우 - 내용목록조회
+	}
+}
+/*********************************************************************
+ * 화면호출 및 이동 
+ * popASYAU10100  // moveASYAU10100
+/*********************************************************************/
+/*
+ * @desc 배치 작업 설정 팝업 호출
+ * @return ASYOP30100.frag 
+ * @param btchJobId
+ */
+function popASYOP30100(btchJobId){
+	var param = {}; //초기화
+	param = {
+		btchJobId: btchJobId		//선택한 btchJobId 값	
+	};
+	
+	popup.openLayerPopup('/admin/sy/op/ASYOP30100.frag', param, null, function(result){
+   		console.log("ASYOP30100.frag : ", result);
+		ASYOP30001();
+   		return false;
+    });
+}
+
+	
+	
+/* 배치관리 정보 삭제 */
+/* function ASYBA11003(){
+	var checkedList = $('input:radio[name="selectedRadio"]:checked');
+	
+	if(checkedList.length > 0){
+		var confirmReturn = confirm("선택한 배치 작업 " + checkedList[0].id + "을(를) 삭제하시겠습니까?");
+		
+		if(confirmReturn == true){
+			var btchJobIdData = new Array();
+			
+			for(var i=0; i<checkedList.length; i++){
+				btchJobIdData[i] = checkedList[i].id;
+			}
+			console.log(btchJobIdData);
+			
+			var param = new Object();
+			param.btchJobIdList = btchJobIdData;
+			
+			console.log(param);
+			httpAjax('/admin/sy/ba/ASYBA11003.json', param,
+				function(data){
+			  		console.log("성공");
+			  		console.log(data);
+			  		ASYOP30001(); 
+			  		
+			}); 
+		}
+	} else{
+		alert("삭제할 배치 작업을 선택해주세요.");
+	}
+} */
+
+
+
+/* 배치관리 수정 팝업 오픈 */
+/* function openASYBA11200(seq){
+	console.log("openASYBA11200");
+	
+	var param = new Object();
+	// 배치작업명, 배치프로그램명, 시스템구분?, 실행여부, 스케줄속성(반복/주기, 매일?, 시간), 비고
+	// BTCH_JOB_NM, BTCH_EXE_PGM_NM, ?, AUTO_EXE_YN, ?(반복/주기), ?(매일), BTCH_JOB_TTM(시간), DESC_CTNT
+	param.btchJobId = btchJobList[seq].btchJobId;; // 배치작업코드
+	param.btchJobNm = btchJobList[seq].btchJobNm; //배치작업명
+	param.btchExePgmNm = btchJobList[seq].btchExePgmNm; // 배치실행프로그램명
+	param.autoExeYn = btchJobList[seq].autoExeYn; // 자동실행여부
+	param.btchJobTtm = btchJobList[seq].btchJobTtm; // 배치작업시간
+	param.descCtnt = btchJobList[seq].descCtnt; // 설명내용
+	
+	popup.openLayerPopup('/admin/sy/ba/ASYBA11200.frag', param, null, function(result){ // param값 필요
+    		console.log(result);
+    		return false;
+     	});
+} */
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">배치 작업 관리</h4>
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+
+<!-- 제목 아래 영역 -->
+<div class="container-fluid px-0">
+	<!-- 검색 영역 시작 -->
+	<form method="post" id="btchSearchForm" name="btchSearchForm" autocomplete="off" onsubmit="fncSearchListBtchJob(this); return false;">
+		<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+			<table class="table mb-0 table-borderless">
+				<colgroup>
+					<col style="width: 15%">
+					<col style="width: 35%">
+					<col style="width: 15%">
+					<col style="width: *">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th class="text-center">스케줄구분</th>
+						<td>
+							<div class="form-inline">
+								<u:formSelectStndCode cdGroupVal="BTCH_CYCL_CD" allOption="전체" name="btchCyclCd" id="btchCyclCd" style="width:180px" />
+							</div>
+						</td>
+						<th class="text-center">배치ID/배치작업명</th>
+						<td>
+							<div class="form-inline">
+								<input type="text" class="form-control new-w180" placeholder="" id="btchJobIdOrNm" data-validate-rule="{required:false, alphabethan:true}" data-alias="배치작업명">
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center new-mb40">
+			<button type="submit" class="btn color-01">조회</button>
+		</div>
+	</form>
+	<!-- 검색 영역 끝 -->
+
+	<div class="d-flex new-mb10">
+		<div class="form-inline ml-auto">
+			<button type="button" class="btn btn-primary" onclick="popASYOP30100()">등록</button>
+		</div>
+	</div>
+	<!-- 목록 영역 시작-->
+	<table class="table table-striped text-center new-mb30">
+		<colgroup>
+			<col style="width: 7%;">
+			<col style="width: 10%;">
+			<col style="width: 15%;">
+			<col style="width: *;">
+			<col style="width: 7%;">
+			<col style="width: 7%;">
+			<col style="width: 7%;">
+			<col style="width: 10%;">
+			<col style="width: 7%;">
+		</colgroup>
+		<thead>
+			<tr class="thead-light">
+				<th>No.</th>
+				<th>배치ID</th>
+				<th>배치작업명</th>
+				<th>배치실행프로그램명</th>
+				<th>스케줄구분</th>
+				<th>실행지정일</th>
+				<th>작업시간</th>
+				<th>자동실행여부</th>
+				<th>사용여부</th>
+			</tr>
+		</thead>
+		<!-- 조회 목록 추가 위치 -->
+		<tbody id="tBatchlist"></tbody>
+	</table>
+	<!-- 목록 영역 끝-->
+	
+	<!-- pagination 영역 -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYOP30001();">1</a></li> 
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- 여기까지 컨텐츠 -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP30000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP30100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리 > 배치 작업 관리
+ * 화면명 : 배치 작업 설정
+ * 설명 : 배치 작업 신규 등록 및 변경 기능 제공
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-04
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         서예원            코드정리 1단계
+ * 2023/04/04         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+//<![CDATA[
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){
+	$("select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	// keyup 이벤트 설정
+	setAutoExeYnKeyup();
+	
+	// jQuery.validator 초기화
+	validation.initFormValidate(document.btchCreateForm);
+	init();	
+});
+
+/*
+ * 화면 초기화
+ */
+function init(){
+	var btchJobId = "${btchJobId}";
+
+	if (btchJobId != null && btchJobId != "") {	//cdGroupVal값이 전달되었을 경우 					
+		$('#popupBtchJobId').val(btchJobId);
+		$('#pageIdTitle').text('배치작업 수정');	 	
+		ASYOP30101(btchJobId);			//상세 조회 
+	}else{
+		$("#popupBtchJobId").attr("readOnly",false);
+		ASYOP30101();
+	}
+
+    // 적용시작일자,적용종료일자 날짜 초기화
+    $('#popupAplyStartDt, #popupAplyEndDt').datepicker({
+	    format: "yyyymmdd",	//데이터 포맷 형식(yyyy : 년 mm : 월 dd : 일 )
+	    //startDate: 'd',	//달력에서 선택 할 수 있는 가장 빠른 날짜. 이전으로는 선택 불가능 ( d : 일 m : 달 y : 년 w : 주)
+	    //endDate: '+10d',	//달력에서 선택 할 수 있는 가장 느린 날짜. 이후로 선택 불가 ( d : 일 m : 달 y : 년 w : 주)
+	    autoclose : true,	//사용자가 날짜를 클릭하면 자동 캘린더가 닫히는 옵션
+	    calendarWeeks : false, //캘린더 옆에 몇 주차인지 보여주는 옵션 기본값 false 보여주려면 true
+	    clearBtn : false, //날짜 선택한 값 초기화 해주는 버튼 보여주는 옵션 기본값 false 보여주려면 true
+	    //daysOfWeekDisabled : [0,6],	//선택 불가능한 요일 설정 0 : 일요일 ~ 6 : 토요일
+	    //daysOfWeekHighlighted : [3], //강조 되어야 하는 요일 설정
+	    disableTouchKeyboard : false,	//모바일에서 플러그인 작동 여부 기본값 false 가 작동 true가 작동 안함.
+	    immediateUpdates: false,	//사용자가 보는 화면으로 바로바로 날짜를 변경할지 여부 기본값 :false
+	    multidate : false, //여러 날짜 선택할 수 있게 하는 옵션 기본값 :false
+	    multidateSeparator :",", //여러 날짜를 선택했을 때 사이에 나타나는 글짜 2019-05-01,2019-06-01
+	    templates : {
+	        leftArrow: '&laquo;',
+	        rightArrow: '&raquo;'
+	    }, //다음달 이전달로 넘어가는 화살표 모양 커스텀 마이징
+	    showWeekDays : true ,// 위에 요일 보여주는 옵션 기본값 : true
+	    todayHighlight : true ,	//오늘 날짜에 하이라이팅 기능 기본값 :false
+	    toggleActive : true,	//이미 선택된 날짜 선택하면 기본값 : false인경우 그대로 유지 true인 경우 날짜 삭제
+	    weekStart : 0 ,//달력 시작 요일 선택하는 것 기본값은 0인 일요일
+	    language : "ko"	//달력의 언어 선택, 그에 맞는 js로 교체해줘야한다.
+	});//datepicker end
+    // 날짜 선택 버튼 킄릭 시 이벤트
+    $('.input-group .input-group-append button').bind('click', function(){
+        $(this).parents('.input-group').find('input:text').focus();
+    });
+
+}
+	
+/* 배치관리 정보 등록 */
+function ASYOP30101(btchJobId){
+	var param = {};
+	
+	if (btchJobId !== null) {
+		param = {btchJobId: btchJobId};
+	}
+	httpAjax('ASYOP30101.json', param , function(data) {
+		console.log("성공");
+		console.log(data);
+		
+		if (data.result.grid){
+  			fncSetBtchInfo(data.result.grid)
+  		}
+	});
+}
+/*
+ * @desc 배치관리 설정정보 등록
+ */
+function ASYOP30102(){
+
+	// validation 체크
+	if (!validation.checkFormValidate(document.btchCreateForm)) {
+		return false;
+	}
+
+	var updateBtchJobObject = new Object();
+	
+	var btchCyclCd = $('#popupBtchCyclCd').val();
+	
+	updateBtchJobObject.btchJobId = $('#popupBtchJobId').val()	// 배치작업코드
+	updateBtchJobObject.btchJobNm = $('#popupBtchJobNm').val();				//배치작업명
+	updateBtchJobObject.btchExePgmNm = $('#popupBtchExePgmNm').val();	// 배치실행프로그램명
+	updateBtchJobObject.btchExePrmt = $('#popupBtchExePrmt').val();	// 배치실행파라미터
+	updateBtchJobObject.reExePosblYn = $('#popupReExePosblYn').val();		// 재실행가능여부
+	updateBtchJobObject.autoExeYn = $('#popupAutoExeYn').val();		// 자동실행여부
+	updateBtchJobObject.btchCyclCd = $('#popupBtchCyclCd').val();	// 배치주기코드
+	if( btchCyclCd =="32" ){	//월중 처리
+		updateBtchJobObject.btchExeDesigDd = $('#popupBtchExeDesigDd').val(); //배치날짜코드
+	}else{
+		updateBtchJobObject.btchExeDesigDd = "";
+	}
+	if( btchCyclCd == "90" ){	//CRON표현식
+		updateBtchJobObject.cronExrs = $('#popupCronExrs').val(); //CRON표현
+	} else {
+		updateBtchJobObject.btchJobTtm = $('#popupBtchJobTtmHr').val() + $('#popupBtchJobTtmMin').val(); // 배치작업시간
+	}
+	updateBtchJobObject.aplyStartDt = $('#popupAplyStartDt').val();
+	updateBtchJobObject.aplyEndDt = $('#popupAplyEndDt').val();
+	updateBtchJobObject.descCtnt = $('#popupDescCtnt').val();
+	updateBtchJobObject.useYn = $('#popupUseYn').val();
+
+	/*--------------------------------------------------------------------------------*/
+	/* httpAjax - 배치 작업 설정정보 저장                                             */
+	/*--------------------------------------------------------------------------------*/
+	
+	httpAjax('ASYOP30102.json', updateBtchJobObject, function(data){
+ 		console.log("성공");
+ 		console.log(data);
+ 		
+ 		var result = data.result.processResult;
+		if(result > 0){
+			var closeJson = new Object();
+			closeJson.result = result;
+			
+			popup.closeLayerPopup(closeJson);
+		}		 
+	}); 
+}
+
+/*
+* @desc 조회로직 - 수정으로 들어왔을 경우 호출
+*/
+function fncSetBtchInfo(Btch){
+	fncPopupBtchCyclCd(Btch.btchCyclCd);
+	document.querySelector('#popupBtchJobId').value = Btch.btchJobId;		//배치작업코드
+	document.querySelector('#popupBtchJobNm').value = Btch.btchJobNm;		//배치작업명
+	document.querySelector('#popupBtchExePgmNm').value = util.nvl(Btch.btchExePgmNm,'');		//배치실행프로그램명
+	document.querySelector('#popupBtchExePrmt').value = util.nvl(Btch.btchExePrmt,'');		//배치실행파라미터
+	document.querySelector('#popupReExePosblYn').value = Btch.reExePosblYn;		//재실행가능여부
+	document.querySelector('#popupAutoExeYn').value = Btch.autoExeYn;		//자동실행여부
+	document.querySelector('#popupBtchCyclCd').value = Btch.btchCyclCd;//배치주기코드
+	console.log("Btch.btchExeDesigDd",Btch.btchExeDesigDd);
+	if(Btch.btchExeDesigDd != "" && Btch.btchExeDesigDd != null){
+		document.querySelector('#popupBtchExeDesigDd').value = Btch.btchExeDesigDd;//배치주기코드
+	}
+	document.querySelector('#popupBtchJobTtmHr').value = (Btch.btchJobTtm ? Btch.btchJobTtm.substr(0,2) : '');	//배치작업시간
+	document.querySelector('#popupBtchJobTtmMin').value = (Btch.btchJobTtm ? Btch.btchJobTtm.substr(2,2) : '');	//배치작업시간
+	document.querySelector('#popupCronExrs').value = util.nvl(Btch.cronExrs,'');			//CRON표현
+	$('#popupAplyStartDt').datepicker('setDate', date.calcDateSimple(util.nvl(Btch.aplyStartDt,''), null, 'date')); //적용시작일자
+	$('#popupAplyEndDt').datepicker('setDate', date.calcDateSimple(util.nvl(Btch.aplyEndDt,''), null, 'date')); //적용종료일자
+	document.querySelector('#popupDescCtnt').value = util.nvl(Btch.descCtnt,'');			//비고
+	document.querySelector('#popupUseYn').value = util.nvl(Btch.useYn,'');
+}
+
+// keyup 이벤트 설정
+function setAutoExeYnKeyup(){
+	$("#popupAutoExeYn").keyup(function(){
+           $(this).val($(this).val().replace(/[^nyNY]/g, ''));		// 영어 n,N,y,Y가 아닐 경우 빈칸으로 대체
+           $(this).val($(this).val().replace(/[a-zA-Z]{2,}/g, $(this).val()[0]));		// 영어가 두 글자 이상일 경우 한 글자만 사용
+           $(this).val($(this).val().toUpperCase());		// 소문자 입력시 대문자로 대체
+	});
+}
+
+function fncPopupBtchCyclCd(btchCyclCd){
+	if( btchCyclCd =="32" ){	//월중 처리
+		$("#selectPopupBtchExeDesigDd").show();
+	} else{
+		$("#selectPopupBtchExeDesigDd").hide();
+	}
+	if( btchCyclCd == '' || btchCyclCd == "90" ){	//CRON표현식
+		$("#selectPopupBtchExeDesigTm").hide();
+	} else {
+		$("#selectPopupBtchExeDesigTm").show();
+	}
+}
+
+//]]>
+</script>
+
+
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center" id="pageIdTitle">배치작업 등록</h5>
+			<button type="button" class="btn btn-icon" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a"  viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+				</svg>
+			</button>
+		</div>
+		<form method="post" id="btchCreateForm" name="btchCreateForm" autocomplete="off" onsubmit="ASYOP30101(this); return false;">
+		<div class="modal-body">	
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center new-mb30">
+					<colgroup>
+						<col width="18%">
+                        <col width="40%">
+                        <col width="16%">
+                        <col width="*">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>* 배치작업ID</th>
+                            <td class="form-inline" colspan="3">
+                                <input type="text" class="form-control new-ml5" id="popupBtchJobId" value="" placeholder="배치작업ID" readonly data-validate-rule="{required:true, alphanumeric:true}" data-alias="배치작업ID" />
+                            </td>
+						</tr>
+						<tr>
+							<th>* 배치작업명</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" id="popupBtchJobNm" value="" data-validate-rule="{required:true}" data-alias="배치작업명" />
+                            </td>
+						</tr>
+						<tr>
+							<th class="">* 배치프로그램명</th>
+                            <td>
+                            	<input type="text" class="form-control" id="popupBtchExePgmNm" data-validate-rule="{required:true}" data-alias="배치프로그램명" />
+                            </td>
+						</tr>
+						<tr>
+							<th>배치실행 파라미터</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" id="popupBtchExePrmt" value="" data-validate-rule="{required:true}" data-alias="배치실행 파라미터" />
+                            </td>
+						</tr>
+						<tr>
+                            <th class="">* 재실행가능여부</th>
+                            <td>
+                            	<select class="form-control" id="popupReExePosblYn" data-validate-rule="{required:true}" data-alias="재실행가능여부" >
+                                    <option value="Y">Yes</option>
+                                    <option value="N">No</option>
+                                </select>
+                            </td>
+                            <th class="">* 자동실행여부</th>
+                            <td>
+                            	<select class="form-control" id="popupAutoExeYn" data-validate-rule="{required:true}" data-alias="자동실행여부" >
+                                    <option value="Y">Yes</option>
+                                    <option value="N">No</option>
+                                </select>
+                            </td>
+						</tr>
+						<tr>
+							<th class="">* 스케줄속성</th>
+                            <td colspan="3">
+                            	<div class="d-flex align-items-center">
+	                                <div class="form-inline" class="new-mr5">
+	                                    <u:formSelectStndCode cdGroupVal="BTCH_CYCL_CD" name="popupBtchCyclCd" id="popupBtchCyclCd" allOption="선택" onchange="fncPopupBtchCyclCd(this.value)"/>
+	                                </div>
+	                                <div id="selectPopupBtchExeDesigDd" class="new-mr5" style="display:none;">
+		                                <select class="form-control new-w90 new-mr5" id="popupBtchExeDesigDd" data-validate-rule="{}" data-alias="스케줄속성">
+		                                    <option value=''>선택</option>
+											<option value='01'>01</option>
+											<option value='02'>02</option>
+											<option value='03'>03</option>
+											<option value='04'>04</option>
+											<option value='05'>05</option>
+											<option value='06'>06</option>
+											<option value='07'>07</option>
+											<option value='08'>08</option>
+											<option value='09'>09</option>
+											<option value='10'>10</option>
+											<option value='11'>11</option>
+											<option value='12'>12</option>
+											<option value='13'>13</option>
+											<option value='14'>14</option>
+											<option value='15'>15</option>
+											<option value='16'>16</option>
+											<option value='17'>17</option>
+											<option value='18'>18</option>
+											<option value='19'>19</option>
+											<option value='20'>20</option>
+											<option value='21'>21</option>
+											<option value='22'>22</option>
+											<option value='23'>23</option>
+											<option value='24'>24</option>
+											<option value='25'>25</option>
+											<option value='26'>26</option>
+											<option value='27'>27</option>
+											<option value='28'>28</option>
+											<option value='29'>29</option>
+											<option value='30'>30</option>
+											<option value='31'>31</option>
+		                                </select>일
+	                                </div>
+	                                <div id="selectPopupBtchExeDesigTm" class="new-mr5" style="display:none;">
+		                                <select class="form-control new-w90 new-mr5" id="popupBtchJobTtmHr" data-validate-rule="{}" data-alias="스케줄속성">
+		                                    <option value=''>선택</option>
+											<option value='00'>00</option>
+											<option value='01'>01</option>
+											<option value='02'>02</option>
+											<option value='03'>03</option>
+											<option value='04'>04</option>
+											<option value='05'>05</option>
+											<option value='06'>06</option>
+											<option value='07'>07</option>
+											<option value='08'>08</option>
+											<option value='09'>09</option>
+											<option value='10'>10</option>
+											<option value='11'>11</option>
+											<option value='12'>12</option>
+											<option value='13'>13</option>
+											<option value='14'>14</option>
+											<option value='15'>15</option>
+											<option value='16'>16</option>
+											<option value='17'>17</option>
+											<option value='18'>18</option>
+											<option value='19'>19</option>
+											<option value='20'>20</option>
+											<option value='21'>21</option>
+											<option value='22'>22</option>
+											<option value='23'>23</option>
+		                                </select>시
+		                                <select class="form-control new-w90 new-ml5" id="popupBtchJobTtmMin" data-validate-rule="{}" data-alias="스케줄속성">
+											<option value=''>선택</option>
+											<option value='00'>00</option>
+											<option value='01'>01</option>
+											<option value='02'>02</option>
+											<option value='03'>03</option>
+											<option value='04'>04</option>
+											<option value='05'>05</option>
+											<option value='06'>06</option>
+											<option value='07'>07</option>
+											<option value='08'>08</option>
+											<option value='09'>09</option>
+											<option value='10'>10</option>
+											<option value='11'>11</option>
+											<option value='12'>12</option>
+											<option value='13'>13</option>
+											<option value='14'>14</option>
+											<option value='15'>15</option>
+											<option value='16'>16</option>
+											<option value='17'>17</option>
+											<option value='18'>18</option>
+											<option value='19'>19</option>
+											<option value='20'>20</option>
+											<option value='21'>21</option>
+											<option value='22'>22</option>
+											<option value='23'>23</option>
+											<option value='24'>24</option>
+											<option value='25'>25</option>
+											<option value='26'>26</option>
+											<option value='27'>27</option>
+											<option value='28'>28</option>
+											<option value='29'>29</option>
+											<option value='30'>30</option>
+											<option value='31'>31</option>
+											<option value='32'>32</option>
+											<option value='33'>33</option>
+											<option value='34'>34</option>
+											<option value='35'>35</option>
+											<option value='36'>36</option>
+											<option value='37'>37</option>
+											<option value='38'>38</option>
+											<option value='39'>39</option>
+											<option value='40'>40</option>
+											<option value='41'>41</option>
+											<option value='42'>42</option>
+											<option value='43'>43</option>
+											<option value='44'>44</option>
+											<option value='45'>45</option>
+											<option value='46'>46</option>
+											<option value='47'>47</option>
+											<option value='48'>48</option>
+											<option value='49'>49</option>
+											<option value='50'>50</option>
+											<option value='51'>51</option>
+											<option value='52'>52</option>
+											<option value='53'>53</option>
+											<option value='54'>54</option>
+											<option value='55'>55</option>
+											<option value='56'>56</option>
+											<option value='57'>57</option>
+											<option value='58'>58</option>
+											<option value='59'>59</option>
+		                                </select>분
+	                                </div>
+                                </div>
+                            </td>
+						</tr>
+						<tr>
+							<th>CRON주기</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" id="popupCronExrs" value="" data-validate-rule="{}" data-alias="CRON주기" />
+                            </td>
+						</tr>
+						<tr>
+                            <th class="">적용시작일자</th>
+                            <td class="form-inline">
+                            	<div class="input-group">
+	                            	<input type="text" class="form-control" id="popupAplyStartDt" value="" data-validate-rule="{}" data-alias="적용시작일자" />
+                            		<div class="input-group-append">
+										<button class="btn btn-outline-primary" type="button">
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+												<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+											</svg>
+										</button>
+									</div>
+                            	</div>
+                            </td>
+                            <th class="">적용종료일자</th>
+                            <td class="form-inline">
+                            	<div class="input-group">
+	                            	<input type="text" class="form-control" id="popupAplyEndDt" value="" data-validate-rule="{}" data-alias="적용종료일자" />
+                            		<div class="input-group-append">
+										<button class="btn btn-outline-primary" type="button">
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+												<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+											</svg>
+										</button>
+									</div>
+                            	</div>
+                            </td>
+						</tr>
+						<tr>
+							<th>비고</th>
+                            <td colspan="3">
+                            	<input type="text" class="form-control" id="popupDescCtnt" value="">
+                            </td>
+						</tr>
+						<tr>
+							<th>사용여부</th>
+							<td colspan="3">
+                            	<div class="d-flex align-items-center">
+									<select class="form-control new-w90 new-ml5" id="popupUseYn">
+										<option value="Y">사용</option>
+										<option value="N">미사용</option>
+									</select>
+								</div>
+							</td>
+						</tr>
+					<tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary new-mr10" onClick="ASYOP30102()">저장</button>
+			<button type="button" class="btn btn-outline-primary" data-dismiss="modal">닫기</button>
+		</div>
+		</form>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP30100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP40000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자 시스템
+ * 세부업무구분명 : 시스템 > 운영관리
+ * 화면명 : 배치 실행 이력
+ * 설명 : 각종 조건별 배치 실행 이력 조회 및 재실행 요청 기능 제공
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-25
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/25         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+/*
+ * 로드
+ */
+ $(document).ready(function(){
+     // 화면 초기화
+	 init();
+     // jQuery.validator 초기화
+     validation.initFormValidate(document.searchBtchExeTxnForm);
+     // 배치 실행 이력 조회
+     ASYOP40001({});
+});
+
+/*
+ * 화면 초기화
+ */
+function init(){
+    //공통 select-option css 처리
+    $("#searchBtchExeTxnForm select").removeClass('form-control').addClass('form-control new-w180');
+    // 조회기간 초기화
+	$('#dateRange').initDateRangePicker();
+}
+
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+/*
+ * @desc 배치 실행 이력 조회
+ * @param {Object} searchInfo 검색요소 
+ */
+function ASYOP40001(searchInfo){
+	  var jsonData = new Object();
+
+	  jsonData.dateClassification = $('#dateClassification').val();
+	  jsonData.btchStartDtm = $('#dateRange').getDateRangeStart('YYYYMMDD'); 	// 조회일자 시작
+	  jsonData.btchFinDtm = $('#dateRange').getDateRangeEnd('YYYYMMDD');  	// 조회일자 종료
+	  jsonData.btchExeStusCd = $('#btchExeStusCd').val();
+	  jsonData.btchJobNm = $('#btchJobIdOrNm').val();
+
+	  if (searchInfo) {	//검색요소가 있을 경우 param을 검색요소로 대체
+		  jsonData = $.extend(jsonData, searchInfo);
+	  }
+	  
+	  if (jsonData.btchStartDtm != null && jsonData.btchStartDtm != "" && jsonData.btchFinDtm != null && jsonData.btchFinDtm != ""){
+		   if (jsonData.dateClassification == null || jsonData.dateClassification == ""){
+			   biz.showAlert("조회기간은 조회일자구분 선택 후 조회가능합니다.");
+		   }
+	  }else{
+		  jsonData.btchStartDtm="";
+		  jsonData.btchFinDtm="";
+	  }
+	  
+	  httpAjax('ASYOP40001.json', jsonData, function(data){	//ajax
+			if(data.result.grid){
+				console.log("ASYOP40001.json: ", data);
+				var result = data.result;
+				fncSetBtchExeTxnList(result); 	//테이블 세팅, 내용이 없을 경우 '내용없음' 텍스트 출력
+				fncPagination(result);			//페이지네이션
+			}
+	  	});
+}
+function ASYOP40002(btchJobId){
+	var jsonData = new Object();
+	jsonData.btchJobId = btchJobId;
+	 
+	biz.showConfirm(btchJobId+"을 재실행 하시겠습니까?","예", function(){
+		// yes
+		httpAjax('ASYOP40002.json', jsonData, function(data){	//ajax
+			 biz.showAlert(btchJobId+"을 재실행 요청하였습니다.<br>배치실행이력을 확인하시기 바랍니다.");
+		});
+	}, "아니오", function(){
+		// no
+	});
+}
+ 
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/*
+ * 배치실행이력 목록 조회 성공 콜백 - 세팅 함수
+ * @param {Object} result 
+ */
+function fncSetBtchExeTxnList (result) {
+	var btchExeTxnList = result.grid;
+	var html = new String();
+ 	$('#tbtchExeTxnList').empty();			//테이블 비우기
+ 	
+ 	if (btchExeTxnList != null && btchExeTxnList.length > 0) {
+		for(var i in btchExeTxnList){
+			var btch = btchExeTxnList[i];
+ 			
+ 			if (btch === btchExeTxnList[btchExeTxnList.length - 1]) {	//마지막 요소에 border-bottom 추가
+ 				html += '<tr class="border-bottom">';
+ 			} else {
+ 				html += '<tr>';
+ 			}
+ 			html += '	<td>' + btch.btchExeSeqno + '</td>';			//일련번호
+ 			html += '	<td>' + format.getDateTypeFormat(util.nvl(btch.btchStartDtm,'').substring(0,8)) + '</td>';			//실행일자
+ 			html += '	<td>';
+ 			html += '		<a href="#" onclick="popASYOP30100(`'+ btch.btchJobId +'`)">' + util.nvl(btch.btchJobNm,'') + '</a>';		//배치작업명
+ 			html += '	</td>';
+ 			html += '	<td>' + util.nvl(btch.btchPrmtVal,'') +'</td>';				//파라미터
+ 			html += '	<td>' + util.nvl(btch.btchExeStusNm,'') +'</td>';			//배치실행상태
+ 			html += '	<td>' + util.nvl(format.getDateTypeFormat(btch.btchStartDtm),'') +'</td>';				//시작일시
+ 			html += '	<td>' + util.nvl(format.getDateTypeFormat(btch.btchFinDtm),'') +'</td>';				//종료일시
+ 			html += '	<td>' + util.nvl(btch.userId,'') +'</td>';					//처리자
+ 			html += '	<td>' + util.nvl(btch.tagetTrtCscnt,'') +'</td>';			//대상처리건수
+ 			html += '	<td>' + util.nvl(btch.sucssYn,'') +'</td>';					//성공여부
+ 			html += '	<td>' + util.nvl(btch.btchErrCtnt,'') +'</td>';				//오류내용
+ 			html += '	<td><a href="#none" class="btn btn-outline-primary" onClick="ASYOP40002(`'+btch.btchJobId+'`);return false;">재실행</a></td>'; //재실행
+ 		}		
+ 	} else {	//항목이 없을 경우 세팅
+ 		html += '<tr><td colspan="12" class="border-bottom">내용없음</td></tr>'; 						
+ 	}
+ 	$('#tbtchExeTxnList').append(html);
+}
+  
+/*
+ * @desc 검색 조회
+ * @TODO '배치실행상태'를 제외한 나머지 검색 조건 적용 필요
+ */
+function fncSearchListBtchExeTxn(){
+	// validation 체크
+	if (!validation.checkFormValidate(document.searchBtchExeTxnForm)) {
+		return false;
+	}
+
+    var periodStart = $('#dateRange').getDateRangeStart('YYYYMMDD'); 	// 조회일자 시작
+    var periodEnd = $('#dateRange').getDateRangeEnd('YYYYMMDD');  	// 조회일자 종료
+
+	//pagination 기본
+	var pageInfo = {
+		page: 1,
+		rows: 10
+	}
+	var searchInfo = {
+		dateClassification: "",	// 조회일자구분
+		periodStart: "",			// 조회기간 시작일시
+		periodEnd: "",				// 조회기간 종료일시
+		btchExeStusCd: "",		// 배치실행상태
+		btchJobNm: ""			// 배치ID/배치작업명
+	};
+	if( $('#dateClassification').val() !== "") {
+		searchInfo.dateClassification = $('#dateClassification').val();
+	}
+	if( periodStart !== "") {
+		searchInfo.btchStartDtm = periodStart;
+	}
+	if( periodEnd !== "") {
+		searchInfo.btchFinDtm = periodEnd;
+	}
+	if( $('#btchExeStusCd').val() !== "") {
+		searchInfo.btchExeStusCd = $('#btchExeStusCd').val();
+	}
+	if( $('#btchJobIdOrNm').val() !== "") {
+		searchInfo.btchJobNm = $('#btchJobIdOrNm').val();
+	}
+
+    $.extend(searchInfo, pageInfo);	//병합
+	
+	if (searchInfo.dateClassification === "" && searchInfo.btchStartDtm === "" && searchInfo.btchFinDtm === "" && searchInfo.btchExeStusCd === "" && searchInfo.btchJobNm === "") { //아무내용도 검색하지 않았을 경우
+		ASYOP40001(searchInfo);	//검색내용없을 경우 - 전체재조회
+	} else {
+		ASYOP40001(searchInfo);	//검색내용있을 경우 - 내용목록조회
+	}
+	
+	return false;
+	
+}
+
+/*
+ * @desc paging 처리
+ * @param {Object} pageInfo
+ */
+function fncPagination(result) {
+	var pageInfo = result.pageInfo;
+	//페이지네이션 추가 (공통 페이지네이션 처리)
+	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+}
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+
+    var searchInfo = {
+		dateClassification: $('#dateClassification').val(),		// 조회일자구분
+		btchStartDtm: $('#dateRange').getDateRangeStart('YYYYMMDD'),		// 조회기간 시작일시
+		btchFinDtm: $('#dateRange').getDateRangeEnd('YYYYMMDD'),			// 조회기간 종료일시
+		btchExeStusCd: $('#btchExeStusCd').val(),				// 배치실행상태
+		btchJobNm: $('#btchJobIdOrNm').val()					// 배치ID/배치작업명
+	}
+
+	//병합
+	$.extend(pageInfo, searchInfo);			//Object 병합
+	ASYOP40001(pageInfo);					//목록재조회
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * popASYAU10100  // moveASYAU10100
+/*********************************************************************/
+/*
+ * @desc 배치 작업 설정 팝업 호출
+ * @return ASYOP30100.frag 
+ * @param btchJobId
+ */
+function popASYOP30100(btchJobId){
+	var param = {}; //초기화
+	param = {
+		btchJobId: btchJobId		//선택한 btchJobId 값	
+	};
+	
+	popup.openLayerPopup('/admin/sy/op/ASYOP30100.frag', param, null, function(result){
+   		console.log("ASYOP30100.frag : ", result);
+   		return false;
+    });
+} 
+</script>
+
+<!-- 상단 제목 영역 시작 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">배치 실행 이력</h4>
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 상단 제목 영역 끝 -->
+
+<div class="container-fluid px-0">
+	<!-- 검색 영역 시작 -->
+	<form method="post" id="searchBtchExeTxnForm" name="searchBtchExeTxnForm" autocomplete="off" onsubmit="fncSearchListBtchExeTxn(this); return false;">
+	<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+		<table class="table mb-0 table-borderless">
+			<colgroup>
+				<col width="11%">
+				<col width="22%">
+				<col width="11%">
+				<col width="22%">
+				<col width="11%">
+				<col width="*">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="text-center">조회일자구분</th>
+					<td>
+						<div class="form-inline">
+							<select class="form-control new-w180" id="dateClassification">
+								<option value="">선택</option>
+								<option value="exeDate" selected="selected">실행일자</option>
+								<option value="endDate">종료일자</option>
+							</select>
+						</div>
+					</td>
+					<th class="text-center">조회기간</th>
+					<td>
+						<div class="input-daterange form-inline">
+							<div class="input-group" style="width:200px">
+								<input type="text" class="form-control" value="" id="dateRange">
+								<label for="dateRange">
+									<div class="input-group-append">
+										<button class="btn btn-outline-primary" type="button" id="datePickerButton">
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="" viewBox="0 0 16 16">
+												<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+											</svg>
+										</button>
+									</div>
+								</label>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th class="text-center">배치실행상태</th>
+					<td>
+						<div class="form-inline">
+							<u:formSelectStndCode cdGroupVal="BTCH_EXE_STUS_CD" allOption="전체" name="btchExeStusCd" id="btchExeStusCd"/>
+						</div>
+					</td>
+					<th class="text-center">배치ID/배치작업명</th>
+					<td>
+						<div class="form-inline">
+							<input type="text" class="form-control new-w180" id="btchJobIdOrNm"/>
+						</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="text-center new-mb40">
+		<button type="submit" class="btn color-01">조회</button>
+	</div>
+	</form>
+	<!-- 검색 영역 끝 -->
+	
+	<!-- 목록 영역 시작-->
+	<table class="table table-striped text-center new-mb30">
+		<colgroup>
+			<col style="width: 6%;">
+			<col style="width: 8%;">
+			<col style="width: 10%;">
+			<col style="width: 8%;">
+			<col style="width: 8%;">
+			<col style="width: 10%;">
+			<col style="width: 10%;">
+			<col style="width: 6%;">
+			<col style="width: 8%;">
+			<col style="width: 6%;">
+			<col style="width: *;">
+			<col style="width: 7%;">
+		</colgroup>
+		<thead>
+			<tr class="thead-light">
+				<th>일련번호</th>
+				<th>실행일자</th>
+				<th>배치작업명</th>
+				<th>파라미터</th>
+				<th>배치실행상태</th>
+				<th>시작일시</th>
+				<th>종료일시</th>
+				<th>처리자</th>
+				<th>대상처리건수</th>
+				<th>성공여부</th>
+				<th>오류내용</th>
+				<th></th>
+			</tr>
+		</thead>
+		<!-- 조회 목록 추가 위치 -->	
+		<tbody id="tbtchExeTxnList"></tbody>
+	</table>  
+	<!-- 목록 영역 끝-->
+	
+    <!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYOP40001();">1</a></li>
+	</ul>
+	<!-- pagination --> 
+</div>
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP40000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP50000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 운영관리
+ * 화면명 : 시스템 변수 설정 관리
+ * 설명 :
+ * 작성자 : 
+ * 작성일 : 2023-04-25
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/25         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){	
+	validation.initFormValidate(document.searchSysStupVarTxn); // jQuery.validator 초기화
+	init();	//목록 조회
+});
+
+ /*
+  * 화면 초기화
+  */
+ function init(){
+ 	ASYOP50001();
+ }
+
+ /*********************************************************************
+  * 거래호출 
+ /*********************************************************************/
+ /*
+  * @desc 목록 조회
+  * @param {Object} searchInfo 검색요소
+  */
+function ASYOP50001(searchInfo){
+	var jsonData = new Object();
+	
+	jsonData.stupVarKey = $('#stupVarKey').val();
+	
+	if (searchInfo) {	//검색요소가 있을 경우 param을 검색요소로 대체
+		jsonData = $.extend(jsonData, searchInfo);
+	}
+
+	httpAjax('ASYOP50001.json', jsonData, function(data){	//ajax
+		if(data.result.grid){
+			console.log("ASYOP50001.json: ", data);
+			var result = data.result;
+			fncSetSysStupVarTxnList(result); 	//테이블 세팅, 내용이 없을 경우 '내용없음' 텍스트 출력
+			fncPagination(result);			//페이지네이션
+		}
+	});
+}
+
+  /*********************************************************************
+   * 기능함수 
+   * function fnc********(data){ }
+  /*********************************************************************/
+  /*
+   * 시스템설정변수내역 목록 조회 성공 콜백 - 세팅 함수
+   * @param {Object} result 
+   */
+  function fncSetSysStupVarTxnList (result) {
+  	var sysStupVarTxnList = result.grid;
+  	var html = new String();
+   	$('#tSysStupVarTxnList').empty();			//테이블 비우기
+   	
+   	if (sysStupVarTxnList != null && sysStupVarTxnList.length > 0) {
+  		for(var i in sysStupVarTxnList){
+  			var dto = sysStupVarTxnList[i];
+   			
+   			if (dto === sysStupVarTxnList[sysStupVarTxnList.length - 1]) {	//마지막 요소에 border-bottom 추가
+   				html += '<tr class="border-bottom">';
+   			} else {
+   				html += '<tr>';
+   			}
+   			html += '	<td>' + dto.pageInfo.rowNum + '</td>';			//No
+   			html += '	<td><a href="#" onclick="popASYOP50100(`'+ dto.stupVarKey +'`);return false;">' + dto.stupVarKey + '</a></td>';		//설정변수키
+   			html += '	<td>' + dto.stupVarVal + '</td>';		//설정변수값
+   			html += '	<td>' + util.nvl(dto.descCtnt,'') +'</td>';				//설명
+   			html += '	<td>' + util.nvl(dto.useYn,'') +'</td>';					//사용여부
+   			html += '</tr>';
+   		}
+   	} else {	//항목이 없을 경우 세팅
+   		html += '<tr><td colspan="5" class="border-bottom">내용없음</td></tr>'; 						
+   	}
+   	$('#tSysStupVarTxnList').append(html);
+  }
+
+  /*
+   * @desc 검색 조회
+   */
+  function fncSearchListBtchExeTxn(){
+  	// validation 체크
+  	if (!validation.checkFormValidate(document.searchBtchExeTxnForm)) {
+  		return false;
+  	}
+
+  	//pagination 기본
+  	var pageInfo = {
+  		page: 1,
+  		rows: 10
+  	}
+  	var searchInfo = {
+  			stupVarKey: ""	// 설정변수
+  	}
+  	if( $('#stupVarKey').val() !== "") {
+  		searchInfo.stupVarKey = $('#stupVarKey').val()
+  	}
+  	
+  	$.extend(searchInfo, pageInfo);	//병합
+  	ASYOP50001(searchInfo);	//검색내용없을 경우 - 전체재조회
+  	
+  	return false;
+  	
+  }
+
+  /*
+   * @desc paging 처리
+   * @param {Object} pageInfo
+   */
+  function fncPagination(result) {
+  	var pageInfo = result.pageInfo;
+  	//페이지네이션 추가 (공통 페이지네이션 처리)
+  	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+  }
+
+  /*
+   * @desc 페이지 조회 로직
+   * @param {number} index
+   */
+  function fncSearchNextPage(index){
+  	//pageInfo 관련 설정
+  	var pageInfo = {
+  		page: parseInt(index)	//해당페이지로 이동
+  	};
+
+  	var searchInfo = {
+ 	  	stupVarKey: $('#stupVarKey').val()	// 설정변수
+  	}
+
+  	//병합
+  	$.extend(pageInfo, searchInfo);			//Object 병합
+  	ASYOP50001(pageInfo);					//목록재조회
+  }
+
+  /*********************************************************************
+   * 화면호출 및 이동 
+  /*********************************************************************/
+  /*
+   * @desc 시스템변수설정 팝업 호출
+   * @return ASYOP50100.frag 
+   */
+  function popASYOP50100(stupVarKey){
+  	var param = {}; //초기화
+  	param = {
+  			stupVarKey: stupVarKey		//선택한 stupVarKey 값	
+  	};
+  	
+  	popup.openLayerPopup('/admin/sy/op/ASYOP50100.frag', param, null, function(result){
+     		console.log("ASYOP50100.frag : ", result);
+     	 	ASYOP50001();
+     		return false;
+      });
+  }
+
+//]]>
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 시작 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">시스템 변수 설정 목록</h4>
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 제목 영역 끝 -->
+
+<!-- 제목 아래 영역 -->
+<div class="container-fluid px-0">
+	<!-- 검색 영역 시작 -->
+	<form method="post" id="searchSysStupVarTxn" name="searchSysStupVarTxn" autocomplete="off" onsubmit="fncsearchSysStupVarTxn(this); return false;">
+		<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+			<table class="table mb-0 table-borderless">
+				<colgroup>
+					<col style="width: 15%">
+					<col style="width: *">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th class="text-center">설정변수</th>
+						<td>
+							<div class="form-inline">
+								<input type="text" class="form-control new-w180" placeholder="" id="stupVarKey" name="stupVarKey" />
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center new-mb40">
+			<button type="submit" class="btn color-01" onClick="ASYOP50001();return false;">조회</button>
+		</div>
+	</form>
+	<!-- 검색 영역 끝 -->
+
+	<div class="d-flex new-mb10">
+		<div class="form-inline ml-auto">
+			<button type="button" class="btn btn-primary" id="btnLwprtMenuAdit" onClick="popASYOP50100()">등록</button>
+		</div>
+	</div>
+	<!-- 목록 영역 시작-->
+	<table class="table table-striped text-center new-mb30">
+		<colgroup>
+			<col style="width: 8%;">
+			<col style="width: 15%;">
+			<col style="width: *;">
+			<col style="width: 30%;">
+			<col style="width: 10%;">
+		</colgroup>
+		<thead>
+			<tr class="thead-light">
+				<th class="text-center">No.</th>
+				<th class="text-center">설정변수 키</th>
+				<th class="text-center">설정변수 값</th>
+				<th class="text-center">설명</th>
+				<th class="text-center">사용여부</th>
+			</tr>
+		</thead>
+		<!-- 조회 목록 추가 위치 -->
+		<tbody id="tSysStupVarTxnList"></tbody>
+	</table>
+	<!-- 목록 영역 끝-->
+	
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYOP50001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- 여기까지 컨텐츠 -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP50000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP50100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 운영관리
+ * 화면명 : 시스템 변수 설정 관리
+ * 설명 :
+ * 작성자 : 
+ * 작성일 : 2023-04-25
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/25         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp" %>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){
+
+	//확인 버튼 클릭 이벤트
+	$('#btnConfirmGrp').click(function(e){
+		if (validation.checkFormValidate(document.frmGrp)) 
+		{
+			e.preventDefault();
+			httpAjax("ASYOP50102.json", document.frmGrp , function (result) {
+				popup.closeLayerPopup(true);
+			});
+		}
+	});
+
+	//닫기 버튼 클릭 이벤트
+	$('#btnCloseGrp').click(function(){
+		popup.closeLayerPopup();
+	});
+
+	// jQuery.validator 초기화
+	validation.initFormValidate(document.frmGrp);
+	init();	
+});
+
+/*
+ * 화면 초기화
+ */
+function init(){
+	var stupVarKey = '${param.stupVarKey}';
+
+	if(stupVarKey) {
+		$('#pageIdTitle').text('시스템 변수 설정 수정');
+
+		var param = {
+			stupVarKey : stupVarKey
+		};	
+		httpAjax("ASYOP50101.json", param, function (result) {			
+			
+			$('#frmGrp [name="stupVarKey"]').attr("readonly", true);
+			$('#frmGrp [name="stupVarKey"]').val(result.result.grid.stupVarKey);
+			$('#frmGrp [name="stupVarVal"]').val(result.result.grid.stupVarVal);
+			$('#frmGrp [name="descCtnt"]').val(result.result.grid.descCtnt);
+		
+			$('#frmGrp [name="frstRegiUserId"]').val(result.result.grid.frstRegiUserId);
+			
+			$('#frmGrp [name="useYn"]').val(result.result.grid.useYn);
+			//$('#frmGrp [name="useYn"]').selectpicker('val', result.result.grid.useYn);
+		
+			$('#frmGrp [name="lastChngUserId"]').val('${sessionScope.ADMIN_SESSION.userId}');
+		});
+	}
+	else
+	{
+		$('#frmGrp [name="useYn"]').val('');
+		//$('#frmGrp [name="useYn"]').selectpicker('val', '');
+		$('#frmGrp [name="frstRegiUserId"]').val('${sessionScope.ADMIN_SESSION.userId}');
+	}
+}
+
+/*
+ * @desc 시스템 변수 설정 등록
+ */
+function ASYOP50102(){
+
+	// validation 체크
+	if (!validation.checkFormValidate(document.frmGrp)) {
+		return false;
+	}
+
+	/*--------------------------------------------------------------------------------*/
+	/* httpAjax - 시스템 변수 설정 저장                                               */
+	/*--------------------------------------------------------------------------------*/
+	
+	httpAjax('ASYOP50102.json', document.frmGrp, function(data){
+ 		console.log("성공");
+ 		console.log(data);
+
+ 		var result = data.result.processResult;
+		if(result > 0){
+			var closeJson = new Object();
+			closeJson.result = result;
+			
+			popup.closeLayerPopup(closeJson);
+		}		 
+	});
+}
+
+</script>
+
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center" id="pageIdTitle">시스템 변수 설정 등록</h5>
+			<button type="button" class="btn btn-icon" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a"  viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+				</svg>
+			</button>
+		</div>
+
+		<form method="post" id="frmGrp" name="frmGrp" autocomplete="off" onsubmit="ASYOP50102(this); return false;">
+		<input type="hidden" id="frstRegiUserId" name="frstRegiUserId"class="form-control" value="">
+		<input type="hidden" id="lastChngUserId" name="lastChngUserId"class="form-control" value="">
+
+		<div class="modal-body">	
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<table class="table table-borderless text-center new-mb30">
+					<colgroup>
+						<col width="18%">
+                        <col width="40%">
+                        <col width="16%">
+                        <col width="*">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>* 설정변수</th>
+                            <td colspan="3">
+                                <input type="text" id="stupVarKey"  name="stupVarKey" class="form-control"  data-validate-rule="{required:true}" maxlength="150" data-alias="설정변수"  >
+                            </td>
+						</tr>
+						<tr>
+							<th>* 설정변수 값</th>
+                            <td colspan="3">
+                                <textarea id="stupVarVal"  name="stupVarVal" class="form-control"  data-validate-rule="{required:true}" maxlength="2000" data-alias="설정변수 값"  rows="5"></textarea>
+                            </td>
+						</tr>
+						<tr>
+							<th>설명</th>
+                            <td colspan="3">
+                                <input type="text" id="descCtnt"  name="descCtnt" class="form-control"  maxlength="2000"  data-alias="설명"  >
+                            </td>
+						</tr>
+						<tr>
+							<th>* 사용여부</th>
+                            <td class="form-inline" colspan="3">
+								<select id="useYn" name="useYn" class="form-control" data-validate-rule="{required_select:true}" data-alias="사용여부">
+									<option value="">선택</option>
+									<option value="Y">사용</option>
+									<option value="N">비사용</option>
+								</select>
+                            </td>
+						</tr>
+					<tbody>
+				</table>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary new-mr10" onClick="ASYOP50102()">저장</button>
+			<button type="button" class="btn btn-outline-primary" data-dismiss="modal">닫기</button>
+		</div>
+		</form>
+	</div>
+</div>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/op/ASYOP50100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/404-admin.jsp =====
+<%--
+/**
+ * 1.업무구분명 : 
+ * 2.단위업무명 : 공통 > 404 에러 페이지
+ * 3.프로그램명 : 404 에러 페이지
+ * 4.설명 : 
+ *
+ * @Class  404.jsp
+ * @author  정영탁
+ * @since   2017-09-14
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-14        정영탁    최초생성
+ */
+--%>
+<!doctype html>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" isErrorPage="true"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.springframework.web.servlet.HandlerMapping"%>
+<%
+
+// 에러가 발생한 원래 페이지 URI
+String requestUri = StringUtils.trimToEmpty((String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI));
+
+if (StringUtils.isNotBlank(requestUri)) {
+	requestUri = requestUri.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+	requestUri = requestUri.replaceAll("eval\\((.*)\\)", "");
+	requestUri = requestUri.replaceAll("[\\\"\\\'][\\s]*javascript:(.*)[\\\"\\\']", "\"\"");
+	requestUri = requestUri.replaceAll("script", "");
+}
+
+%>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="format-detection" content="telephone=no">
+	<link rel="shortcut icon" href="/resources/image/favicon.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/resources/image/favicon.png">
+	<title><u:headTitleArea/></title>
+
+<jsp:include page="/WEB-INF/templates/admin/html-head.jsp" />
+
+    <script type="text/javascript">
+        window['APPLICATION_CONTEXT_ROOT'] = '${pageContext.request.contextPath}';
+    </script>
+    <script type="text/javascript">
+        /* 화면이 모두 Load될 때까지 로딩바 노출 */
+        common.showInitLoadingBar();
+        $(function(){
+            common.closeInitLoadingBar();
+        });
+    </script>
+    <sitemesh:write property='head'/>
+</head>
+<body>
+
+<div id="layout" class="layout error">
+	<div id="header" class="layout-header">
+		<jsp:include page="/WEB-INF/templates/admin/header.jsp" />
+	</div>
+
+	<div id="container" class="layout-container">
+		<div class="container-area">
+			<div class="contents-wrap">
+				<div class="contents">
+					<!-- 여기부터 컨텐츠 -->
+
+					<div class="error-box">
+						<div class="error-inner">
+							<div class="code">404</div>
+								<div class="conts">
+									<h3 class="tit">Not Found!</h3>
+									<p>죄송합니다. 현재 찾을 수 없는 페이지를 요청하셨습니다.<br/>존재하지 않는 주소를 입력하셨거나, 요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>
+									<a href="#none" onclick="biz.gotoMain();return false;" class="btn btn-primary btn-lg">메인으로</a>
+							</div>
+						</div>
+					</div>
+
+					<!-- 여기까지 컨텐츠 -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<jsp:include page="/WEB-INF/templates/admin/footer.jsp" />
+
+</body>
+</html>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/404-admin.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/404.jsp =====
+<%--
+/**
+ * 1.업무구분명 : 
+ * 2.단위업무명 : 공통 > 404 에러 페이지
+ * 3.프로그램명 : 404 에러 페이지
+ * 4.설명 : 
+ *
+ * @Class  404.jsp
+ * @author  정영탁
+ * @since   2017-09-14
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-14        정영탁    최초생성
+ */
+--%>
+<!doctype html>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" isErrorPage="true"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp" %>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.springframework.web.servlet.HandlerMapping"%>
+<%
+response.setStatus(200);
+
+// 에러가 발생한 원래 페이지 URI
+String requestUri = StringUtils.trimToEmpty((String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI));
+
+%><jsp:include page="404-admin.jsp" />
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/404.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/500.jsp =====
+<%--
+/**
+ * 1.업무구분명 : 
+ * 2.단위업무명 : 공통 > 500 에러 페이지
+ * 3.프로그램명 : 500 에러 페이지
+ * 4.설명 : 
+ *
+ * @Class  error.jsp
+ * @author  정영탁
+ * @since   2017-09-14
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-14        정영탁    최초생성
+ */
+--%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" isErrorPage="true"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp" %>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.springframework.web.servlet.HandlerMapping"%>
+<%@page import="kr.fasol.obix.core.config.Constants"%>
+<%
+response.setStatus(200);
+
+/*
+ * RequestMapping 정보 조회
+ */
+String pathWithinHandlerMapping = StringUtils.trimToEmpty((String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE));
+String serviceId = StringUtils.trimToEmpty((String) request.getAttribute(Constants.HTTP_ATTRIBUTE_KEY.SERVICE_ID.getKeyName()));
+String serviceType = StringUtils.trimToEmpty((String) request.getAttribute(Constants.HTTP_ATTRIBUTE_KEY.SERVICE_TYPE.getKeyName()));
+
+%><jsp:include page="error-admin.jsp" />
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/500.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/error-admin.jsp =====
+<%--
+/**
+ * 1.업무구분명 : 
+ * 2.단위업무명 : 공통 > 에러 페이지
+ * 3.프로그램명 : 에러 페이지
+ * 4.설명 : 
+ *
+ * @Class  error.jsp
+ * @author  정영탁
+ * @since   2017-09-14
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-14        정영탁    최초생성
+ */
+--%>
+<!doctype html>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp" %>
+
+<c:set var="returnServiceUrl" value="${ERROR_RETURN_SERVICE_ID}" />
+<c:if test="${empty returnServiceUrl and not empty BNKG_CURRENT_MENU_DTO and not empty BNKG_CURRENT_MENU_DTO.urlAddr and SERVICE_ID ne BNKG_CURRENT_MENU_DTO.urlAddr}">
+    <c:set var="returnServiceUrl" value="${BNKG_CURRENT_MENU_DTO.urlAddr}" />
+</c:if>
+
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="format-detection" content="telephone=no">
+	<link rel="shortcut icon" href="/resources/image/favicon.png">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/resources/image/favicon.png">
+	<title><u:headTitleArea/></title>
+
+<jsp:include page="/WEB-INF/templates/admin/html-head.jsp" />
+
+    <script type="text/javascript">
+        window['APPLICATION_CONTEXT_ROOT'] = '${pageContext.request.contextPath}';
+    </script>
+    <script type="text/javascript">
+        /* 화면이 모두 Load될 때까지 로딩바 노출 */
+        common.showInitLoadingBar();
+        $(function(){
+            common.closeInitLoadingBar();
+        });
+    </script>
+    <sitemesh:write property='head'/>
+</head>
+<body>
+
+<script type="text/javascript">
+//<![CDATA[
+
+    var error = {
+        confirm : function() {
+            var returnServiceId = '${returnServiceUrl}';
+            if (returnServiceId) {
+                navigate(returnServiceId);
+            } else {
+                biz.gotoMain();
+            }
+        }
+    };
+
+//]]>
+</script>
+
+<div id="layout" class="layout error">
+	<div id="header" class="layout-header">
+		<jsp:include page="/WEB-INF/templates/admin/header.jsp" />
+	</div>
+
+	<div id="container" class="layout-container">
+		<div class="container-area">
+			<div class="contents-wrap">
+				<div class="contents">
+					<!-- 여기부터 컨텐츠 -->
+
+					<div class="error-box">
+						<div class="error-inner">
+							<div class="code">500</div>
+							<div class="conts">
+								<h3 class="tit">${ERROR_CODE}</h3>
+								<p>${ERROR_MESSAGE}</p>
+								<a href="#none" class="btn btn-primary btn-lg" onclick="error.confirm();return false;">확인</a>
+							</div>
+						</div>
+					</div>
+
+					<!-- 여기까지 컨텐츠 -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<jsp:include page="/WEB-INF/templates/admin/footer.jsp" />
+
+</body>
+</html>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/error-admin.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/error.jsp =====
+<%--
+/**
+ * 1.업무구분명 : 
+ * 2.단위업무명 : 공통 > 에러 페이지
+ * 3.프로그램명 : 에러 페이지
+ * 4.설명 : 
+ *
+ * @Class  error.jsp
+ * @author  정영탁
+ * @since   2017-09-14
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-14        정영탁    최초생성
+ */
+--%>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" trimDirectiveWhitespaces="true" isErrorPage="true"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp" %>
+<%@page import="kr.fasol.obix.core.config.Constants"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
+<%@page import="org.springframework.web.servlet.HandlerMapping"%>
+<%
+response.setStatus(200);
+
+/*
+ * RequestMapping 정보 조회
+ */
+String pathWithinHandlerMapping = StringUtils.trimToEmpty((String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE));
+String serviceId = StringUtils.trimToEmpty((String) request.getAttribute(Constants.HTTP_ATTRIBUTE_KEY.SERVICE_ID.getKeyName()));
+String serviceType = StringUtils.trimToEmpty((String) request.getAttribute(Constants.HTTP_ATTRIBUTE_KEY.SERVICE_TYPE.getKeyName()));
+
+%><jsp:include page="error-admin.jsp" />
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/error/error.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/example/logViewer.jsp =====
+<%--
+/**
+ * 업무구분명 : 
+ * 세부업무구분명 : 예제 > 로그 뷰어
+ * 설명 :
+ *
+ * 파일명 : logViewer.jsp
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 11. 12.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2021. 11. 12.         정영탁          최초생성
+ */
+--%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<%@page import="kr.fasol.obix.core.util.WebUtil"%>
+
+<script type="text/javascript">
+//<![CDATA[
+
+    $(document).ready(function(){
+
+    	$('#footer').remove();
+    	$('body').css('height', '90%');
+
+    	$('#logFileDvcd').bind('change', function() {
+    		if ( $('#logFileDvcd').val() == 'custom' ) {
+    			$('#clientIp').val('');
+    			$('#clientIp').focus();
+    		} else {
+	    		$('#clientIp').val( $('#logFileDvcd').val() );
+    		}
+    	});
+
+    	$('#btnStartTail').bind('click', function() {
+    		fn_StartTail();
+    		return false;
+    	});
+
+    	$('#btnStopTail').bind('click', function() {
+    		fn_StopTail();
+    		return false;
+    	});
+
+    	$('#btnLogFileDownload').bind('click', function() {
+    		fn_LogFileDownload();
+    		return false;
+    	});
+
+    });
+
+    // Start Tail
+    function fn_StartTail() {
+    	if (!$('#applicationName').val()) {
+    		alert('로그파일 경로를 선택해 주세요.');
+    		$('#applicationName').focus();
+    		return false;
+    	}
+    	if (!$('#clientIp').val()) {
+    		alert('조회할 접속자 IP를 입력해 주세요.');
+    		$('#clientIp').focus();
+    		return false;
+    	}
+
+    	executeTail();
+    }
+
+    // Stop Tail
+    function fn_StopTail() {
+    	biz.timeout.resetTimer();
+		$('#tailStatus').text( 'Stop' );
+    }
+
+    function executeTail() {
+    	biz.timeout.startTimer($('#tailRefreshTime').val(), function(minutes, seconds) {
+    		$('#tailStatus').text( '[' + seconds + '초후에 Refresh]' );
+    		if (seconds == 0) {
+
+    			// 로그 조회
+				httpAjax('logTailProcess', { applicationName : $('#applicationName').val(), clientIp : $('#clientIp').val(), preEndPoint : $('#preEndPoint').val() }, function(data){
+					// success
+					if (data.result['logData']) {
+						$('#preEndPoint').val( (data.result['endPoint'] || '0') );
+						$('#logViewerArea').append( getSearchWord( data.result['logData'].replaceAll('\n', '<br/>') ) );
+						$('#logViewerArea').scrollTop($('#logViewerArea').prop('scrollHeight'));
+					}
+
+	    			// Timer 재시작
+	    			setTimeout(executeTail, 1000);
+				}, null, {
+					useProgress : false
+				});
+    		}
+    	});
+    }
+
+    function getSearchWord(str) {
+    	var searchWord = $('#searchWord').val();
+    	if (searchWord.length > 0) {
+	    	str = str.replaceAll(searchWord, '<span style="color:red;">' + searchWord + '</span>');
+    	}
+    	str = str.replaceAll(' ', '&nbsp;');
+    	str = str.replaceAll('\t', '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+    	return str;
+    }
+
+    function fn_LogFileDownload() {
+    	if (!$('#applicationName').val()) {
+    		alert('로그파일 경로를 선택해 주세요.');
+    		$('#applicationName').focus();
+    		return false;
+    	}
+    	if (!$('#clientIp').val()) {
+    		alert('조회할 접속자 IP를 입력해 주세요.');
+    		$('#clientIp').focus();
+    		return false;
+    	}
+
+		// 로그파일 목록 조회
+		httpAjax('logListProcess', { applicationName : $('#applicationName').val(), clientIp : $('#clientIp').val() }, function(data){
+			// success
+			var _html = '';
+			for (var i = 0; i < data.result.length; i++) {
+				_html += '<a href="javascript:fileDownload(\'' + data.result[i] + '\');">' + data.result[i] + '</a><br/>';
+			}
+			biz.showAlert(_html, null, '닫기', '다운로드할 로그파일을 선택해 주세요.', {width: '400px'});
+		});
+    }
+
+	// 파일 다운로드
+	function fileDownload(filename) {
+		navigate('logFileDownload.file', {applicationName : $('#applicationName').val(), filename : filename}, { useProgress : false });
+	}
+
+//]]>
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<div class="d-flex new-mb20 new-pb10 new-pl10 align-items-center border-bottom">
+	<h4 class="h4 mr-auto">Log Tail</h4>
+</div>
+
+<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+	<table class="table mb-0 table-borderless">
+		<colgroup>
+			<col style="width: 10%;">
+			<col style="width: 40%;">
+			<col style="width: 10%;">
+			<col style="width: 40%;">
+		</colgroup>
+		<tbody>
+			<tr>
+				<th class="align-middle">로그 파일</th>
+				<td class="align-middle">
+					<div class="form-inline">
+						<div class="input-group">
+							<select id="applicationName" class="form-control new-mr10" data-validate-rule="{required:true}" data-alias="서버정보">
+							<c:forEach var="item" items="${appList}">
+								<option value="${item}" <c:if test="${item eq currentAppName}">selected="selected"</c:if> >${item}</option>
+							</c:forEach>
+							</select>
+						</div>
+						<div class="input-group">
+							<select id="logFileDvcd" class="form-control new-mr10">
+								<option value="">조회할 접속 IP를 선택해 주세요.</option>
+								<option value="<%= WebUtil.getClientIp(request) %>">본인 PC(<%= WebUtil.getClientIp(request) %>)</option>
+								<option value="custom">직접 입력</option>
+							</select>
+						</div>
+						<div class="input-group">
+							<input type="text" id="clientIp" value="" class="form-control" data-validate-rule="{required:true}" data-alias="접속자 IP" />
+							<input type="hidden" id="preEndPoint" value="0" />
+						</div>
+					</div>
+				</td>
+				<th class="align-middle">Refresh 주기</th>
+				<td class="align-middle">
+					<div class="form-inline">
+						<select id="tailRefreshTime" class="form-control new-mr10">
+							<option value="2">2초</option>
+							<option value="5" selected="selected">5초</option>
+							<option value="10">10초</option>
+							<option value="15">15초</option>
+						</select>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<th class="align-middle">검색어</th>
+				<td class="align-middle">
+					<div class="form-inline">
+						<input type="text" id="searchWord" value="" class="form-control" />
+						<button type="button" id="btnLogFileDownload" class="btn btn-outline-primary new-mr5">로그파일 다운로드</button>
+					</div>
+				</td>
+				<th class="align-middle"></th>
+				<td class="align-middle">
+					<div class="form-inline">
+						<input type="button" id="btnStartTail" value="Start Tail" class="tn btn-primary" />&nbsp;&nbsp;
+						<input type="button" id="btnStopTail" value="Stop Tail" class="tn btn-primary" />&nbsp;&nbsp;
+						<span id="tailStatus" style="color: red;">Stop</span>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<table class="table new-mb20">
+	<colgroup>
+		<col style="width: auto;">
+	</colgroup>
+	<tbody>
+		<tr>
+			<td class="border-bottom">
+				<div id="logViewerArea" style="height: 550px; overflow-y: auto; word-break: brea-all; text-overflow: ellipsis; font-family: Consolas, 맑은고딕;"></div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<!-- 여기까지 컨텐츠 -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/example/logViewer.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/include/taglib_include.jsp =====
+<%@ page language="java" trimDirectiveWhitespaces="true" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="u" uri="/WEB-INF/tld/util" %>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/include/taglib_include.jsp =====

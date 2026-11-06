@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : 시스템설정변수내역
+-->
+<mapper namespace="kr.fasol.obix.front.dao.comm.SysStupDAO">
+
+    <!--
+    * Description : 시스템설정변수내역 목록 조회
+    -->
+    <select id="listSysStupVarTxn"
+            parameterType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO">
+		/*SysStupDAO.listSysStupVarTxn 시스템설정변수내역 목록 조회 */
+		SELECT STUP_VAR_KEY
+			 , STUP_VAR_VAL
+			 , DESC_CTNT
+			 , USE_YN
+		  FROM SYS_STUP_VAR_TXN
+		 WHERE USE_YN = 'Y'
+    </select>
+
+
+	<sql id="sqlSysStupVarTxn">
+		  FROM SYS_STUP_VAR_TXN
+		 WHERE 1=1
+	 	<if test='stupVarKey !=null  and stupVarKey !=""'>
+			AND STUP_VAR_KEY LIKE ('%' || #{stupVarKey} || '%')
+ 		</if>
+	</sql>
+
+    <!--
+    * Description : 시스템설정변수내역 목록 조회
+    -->
+    <select id="selectListSysStupVarTxn"
+            parameterType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO">
+		/*SysStupDAO.selectListSysStupVarTxn 시스템설정변수내역 목록 조회 */
+		<include refid="COMMON.pagingPreSQL" />
+		SELECT STUP_VAR_KEY
+			 , STUP_VAR_VAL
+			 , DESC_CTNT
+			 , USE_YN
+		<include refid="sqlSysStupVarTxn" />
+		ORDER BY STUP_VAR_KEY
+		<include refid="COMMON.pagingPostSQL" />
+    </select>
+
+    <!--			
+    * Description : 시스템설정변수내역 목록 개수 조회
+    -->
+    <select id="selectCountSysStupVarTxn" parameterType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO" resultType="Integer">
+    	SELECT COUNT(*) AS totalCount
+    	<include refid="sqlSysStupVarTxn" />
+    </select>	
+
+    <!--
+    * Description : 시스템설정변수내역 조회
+    -->
+    <select id="selectSysStupVarTxn"
+            parameterType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO">
+		/*SysStupDAO.selectSysStupVarTxn 시스템설정변수내역 조회 */
+		SELECT STUP_VAR_KEY
+			 , STUP_VAR_VAL
+			 , DESC_CTNT
+			 , USE_YN
+		  FROM SYS_STUP_VAR_TXN
+		 WHERE STUP_VAR_KEY = #{stupVarKey}
+    </select>
+
+
+	<!--		
+    * Description : 시스템설정변수내역 등록 Merge			
+    -->	
+    <update id="updateMergeSysStupVarTxn" parameterType="kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO">		
+		/*SysStupDAO.updateMergeSysStupVarTxn 시스템설정변수내역 등록 Merge	*/	
+		MERGE INTO SYS_STUP_VAR_TXN
+		USING DUAL
+		   ON (STUP_VAR_KEY = #{stupVarKey})
+		 WHEN MATCHED THEN
+	   UPDATE
+		  SET
+	         STUP_VAR_VAL	 = #{stupVarVal} ,
+	         DESC_CTNT	 = #{descCtnt} ,	/* 설명내용 */
+	         USE_YN	 = #{useYn} ,	/* 사용여부 */
+	         LAST_CHNG_USER_ID	= #{lastChngUserId} ,	/* 최종변경사용자아이디 */
+	         LAST_CHNG_TMSP	 = SYSTIMESTAMP	/* 최종변경타임스탬프 */
+		 WHEN NOT MATCHED THEN
+	   INSERT (
+	         STUP_VAR_KEY ,
+	         STUP_VAR_VAL ,
+	         DESC_CTNT ,
+	         USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */
+	       )
+		VALUES (
+		     #{stupVarKey} ,
+	         #{stupVarVal} ,
+	         #{descCtnt} ,	/* 설명내용 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+	         SYSTIMESTAMP	/* 최초등록타임스탬프 */
+	      )
+	</update>
+
+</mapper>

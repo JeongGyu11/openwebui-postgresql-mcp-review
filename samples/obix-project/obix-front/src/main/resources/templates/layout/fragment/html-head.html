@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" lang="ko">
+<th:block layout:fragment="HtmlHead">
+
+  <link rel="shortcut icon" th:href="@{/static/image/favicon.ico}">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" th:href="@{/static/image/favicon.ico}">
+  <!-- Custom fonts for this template-->
+  <link th:inline="css" th:href="@{/static/vendor/fontawesome-free/css/all.min.css}" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+  <!-- Custom styles for this template-->
+  <link th:inline="css" th:href="@{/static/css/sb-admin-2.min.css}" rel="stylesheet">
+
+
+  <!-- Bootstrap core JavaScript-->
+  <script th:inline="javascript" th:src="@{/static/vendor/jquery/jquery.min.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+  <!-- Core plugin JavaScript-->
+  <script th:inline="javascript" th:src="@{/static/vendor/jquery-easing/jquery.easing.min.js}"></script>
+
+  <!-- JavaScript Component -->
+  <script th:inline="javascript" th:src="@{/static/vendor/jquery/jquery.validate.min.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/vendor/jquery/jquery.magnific-popup.min.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/vendor/cryptojs/crypto-js.min.js}"></script><!-- Crypto.JS 암복호화 -->
+  <script th:inline="javascript" th:src="@{/static/vendor/jsencrypt/jsencrypt.min.js}"></script><!-- JSEncrypt (WEB E2E) -->
+
+  <!-- js > F/W -->
+  <script th:inline="javascript" th:src="@{/static/js/fwebui/fwebui.controller.min.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/fwebui/fwebui.config.js}"></script>
+
+  <!-- 공통 js -->
+  <script th:inline="javascript" th:src="@{/static/js/common/common.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/common/date.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/common/format.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/common/util.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/common/popup.js}"></script>
+  <script th:inline="javascript" th:src="@{/static/js/common/validation.js}"></script>
+
+  <!-- 업무 js -->
+  <script th:inline="javascript" th:src="@{/static/js/biz/biz-front.js}"></script>
+
+  <script th:inline="javascript" type="text/javascript">
+    //<![CDATA[
+
+    // JSEncrypt 암호화 객체
+    var $RSAEncrypt = new JSEncrypt();
+    $RSAEncrypt.setPublicKey([[${E2E_PUBLICKEY_DATA}]]);
+
+    //]]>
+  </script>
+
+</th:block>
+</html>

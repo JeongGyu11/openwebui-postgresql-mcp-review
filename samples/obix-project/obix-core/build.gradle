@@ -1,0 +1,70 @@
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'java-library'
+
+
+dependencies {
+
+	api group: 'org.springframework', name: 'spring-web', version: "$springVersion"
+	api group: 'org.springframework', name: 'spring-webmvc', version: "$springVersion"
+	api group: 'org.springframework', name: 'spring-context', version: "$springVersion"
+
+	// DataBase
+	api("org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion")
+	api group: 'org.mybatis.spring.boot', name: 'mybatis-spring-boot-starter', version: '3.0.4'
+	api group: 'com.zaxxer', name: 'HikariCP', version: '6.3.0'
+	// Oracle
+	//api group: 'com.oracle.database.jdbc', name: 'ojdbc11', version: '23.7.0.25.01'
+	// MySQL
+	//api group: 'com.mysql', name: 'mysql-connector-j', version: '9.2.0'
+	// MariaDB
+	api group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '3.5.3'
+	// PostgreSQL
+	//api group: 'org.postgresql', name: 'postgresql', version: '42.7.5'
+
+	// JASYPT: Java Simplified Encryption
+	implementation group: 'com.github.ulisesbocchio', name: 'jasypt-spring-boot-starter', version: '3.0.5'
+
+	// OpenFeign
+	api group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.3.0'
+	api "io.github.openfeign:feign-core:$feignVersion"
+	api "io.github.openfeign:feign-slf4j:$feignVersion"
+	api "io.github.openfeign:feign-okhttp:$feignVersion"
+	api "io.github.openfeign:feign-httpclient:$feignVersion"
+	api("io.github.openfeign:feign-gson:$feignVersion") {
+		exclude group: 'com.google.code.gson'
+	}
+	// Unirest
+	api group: 'com.konghq', name: 'unirest-java', version: '3.14.5'
+
+	// WebFlux
+	api("org.springframework.boot:spring-boot-starter-webflux:$springBootVersion")
+
+	compileOnly group: 'jakarta.validation', name: 'jakarta.validation-api', version: '3.1.1'
+	// Excel
+	api group: 'org.apache.poi', name: 'poi', version: '5.4.1'
+	api group: 'org.apache.poi', name: 'poi-ooxml', version: '5.4.1'
+	api group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '5.3.0'
+
+	// Mail
+	api group: 'com.sun.mail', name: 'jakarta.mail', version: '2.0.1'
+	// jai Image (TIFF/JPEG2000)
+	api group: 'com.github.jai-imageio', name: 'jai-imageio-core', version: '1.4.0'
+	api group: 'com.github.jai-imageio', name: 'jai-imageio-jpeg2000', version: '1.4.0'
+	// image EXIF
+	api group: 'com.drewnoakes', name: 'metadata-extractor', version: '2.19.0'
+	api group: 'org.apache.commons', name: 'commons-imaging', version: '1.0.0-alpha5'
+	// PDF
+	api group: 'com.itextpdf', name: 'itextpdf', version: '5.5.13.4'
+	api group: 'com.itextpdf.tool', name: 'xmlworker', version: '5.5.13.4'
+	api group: 'com.itextpdf', name: 'pdfa', version: '9.1.0'
+	api group: 'org.apache.pdfbox', name: 'pdfbox', version: '3.0.4'
+	// XML
+	api group: 'xalan', name: 'xalan', version: '2.7.3'
+	api group: 'xalan', name: 'serializer', version: '2.7.3'
+
+	// UserAgent
+	api group: 'com.github.ua-parser', name: 'uap-java', version: '1.6.1'
+
+	compileOnly group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '6.1.0'
+
+}

@@ -146,6 +146,11 @@
 				const { pptxToImages } = await import('$lib/utils/pptxToHtml');
 				const result = await pptxToImages(await blob.arrayBuffer());
 				data = { fileOfficeSlides: result.images };
+			} else if (ext === 'csv' || ext === 'tsv' || mime === 'text/csv') {
+				// The preview represents the saved CSV, rather than a separately edited index.
+				data = { fileContent: await blob.text() };
+				if (mime === 'text/csv' && ext !== 'csv') previewName = `${name}.csv`;
+				sourceToggle = true;
 			} else if (
 				mime.startsWith('text/') ||
 				codeFile ||

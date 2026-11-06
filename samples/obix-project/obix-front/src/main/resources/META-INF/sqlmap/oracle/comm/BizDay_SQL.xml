@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : 영업일조회
+-->
+<mapper namespace="kr.fasol.obix.front.dao.comm.BizDayDAO">
+
+    <!--
+    * Description : 영업일 목록 조회(휴일조회)
+    -->
+    <select id="listHoldyBas"
+            parameterType="kr.fasol.obix.front.dto.comm.HoldyBasQryDTO"
+            resultType="kr.fasol.obix.front.dto.comm.HoldyBasQryDTO">
+		/*BizDayDAO.listHoldyBas 휴일목록조회 */
+		SELECT HOLDY_YMD
+			 , HOLDY_CD
+			 , HOLDY_DTL_CTNT
+			 , USE_YN
+		  FROM HOLDY_BAS
+		 WHERE HOLDY_YMD <![CDATA[ >= ]]> #{startDt}
+		   AND HOLDY_YMD <![CDATA[ <= ]]> #{endDt}
+		   AND USE_YN = 'Y'
+		 ORDER BY HOLDY_YMD
+    </select>
+
+</mapper>

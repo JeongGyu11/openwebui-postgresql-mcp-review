@@ -1,0 +1,4708 @@
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 권한관리
+ * 프로그램명 : 화면거래 관리
+ * 설명 : 각종 조건별 Admin 화면거래 목록을 조회
+ * 작성자 : 김상훈
+ * 작성일 : 2023-03-08
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/03/08         김상훈            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+var $admBzwkLclsCd = <u:commonCodeList cdGroupVal="ADM_BZWK_LCLS_CD" />; // 업무대분류
+var $admBzwkMclsCd = <u:commonCodeList cdGroupVal="ADM_BZWK_MCLS_CD" />; // 업무중분류
+var $screnTranDvCd = <u:commonCodeList cdGroupVal="SCREN_TRAN_DV_CD" />; // 화면거래구분
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#searchScrenTranForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();
+});
+
+ function init(){
+	 ASYAU10001();
+ }
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+function ASYAU10001(){
+	var jsonData = new Object();
+
+	httpAjax('ASYAU10001.json', document.searchScrenTranForm, function(data){
+		// 화면거래목록 출력
+  		fncScrenTranList(data);
+  	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/**
+* 화면거래목록 출력
+*/
+function fncScrenTranList(data){
+	var result = data.result.grid;
+	var html = "";
+	$("#tScrenTranInfo").empty();
+	console.log(result);
+	if(result!=null && result.length > 0){
+		var idx = 1;
+		for(var i in result){
+			var obj = result[i];
+			if(obj.screnTranLvel > 0){
+				html += '<tr class="text-center border-bottom">';
+				html += '	<td>' + idx + '</td>';				// Idx
+				html += ' 	<td>' + biz.getCodeName($admBzwkLclsCd, obj.admBzwkLclsCd) + '</td>';		// 대분류코드
+				html += '	<td>' + biz.getCodeName($admBzwkMclsCd, obj.admBzwkMclsCd) + '</td>';		// 중분류코드
+				html += '	<td><a href="javascript:popASYAU10200(`'+obj.screnTranId+'`);">' + obj.screnTranId + '</a></td>';		// 화면ID
+				html += '	<td>' + util.nvl(obj.screnTranNm, '') + '</td>';			// 화면명
+				html += '	<td>' + biz.getCodeName($screnTranDvCd, obj.screnTranDvCd) + '</td>';		// 화면구분
+				html += '	<td>' + util.nvl(obj.urlAddr, '') + '</td>';				// url주소
+				html += '	<td>' + obj.menuRepstYn + '</td>';			// 메뉴표시여부
+				html += '	<td>' + obj.wholAllowYn + '</td>';			// 전체표시여부
+				html += '	<td>' + obj.sstvInfoYn + '</td>';			// 민감정보허용여부
+				html += '	<td>' + obj.repstOrdr + '</td>';			// 표시순서
+				html += '	<td>' + obj.useYn + '</td>';				// 사용여부
+				html += '</tr>';
+				
+				idx++;
+			}
+		}					
+	}else{
+		html += '<tr><td colspan="12" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	
+	$("#tScrenTranInfo").append(html);	
+}
+
+/**
+ * @desc 엑셀 다운로드
+ */
+function exportExcel() {
+	navigate('ASYAU10002.excl', document.searchScrenTranForm, { useProgress : false });
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+/*********************************************************************/
+/**
+ * 미등록 URL현황 팝업
+ */
+function popASYAU10100(){
+	var jsonData = new Object();
+ 	
+ 	var param = {}; //초기화
+ 	popup.openLayerPopup('/admin/sy/au/ASYAU10100.frag', param, null, function(data) {
+ 		return false;
+ 	});
+}
+ 
+/**
+ * 화면거래관리 설정 팝업
+ */
+function popASYAU10200(screnTranId){
+	var jsonData = new Object();
+	
+	if(screnTranId != null && screnTranId != ""){
+ 		jsonData.screnTranId = screnTranId;
+	}
+	
+	popup.openLayerPopup('/admin/sy/au/ASYAU10200.frag', jsonData, null, function(data) {
+		console.log(data);
+		var result = data.result;
+		if(result > 0){
+			ASYAU10001();
+		}
+	});
+ }
+
+</script>
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mr-auto">화면거래 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<div class=" d-block">	
+		<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+			  <path d="M6 12v-2h3v2H6z"/>
+			  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+			</svg>
+			엑셀 다운로드
+		</button>
+	</div>
+</div>
+
+<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+	<form method="post" id="searchScrenTranForm" name="searchScrenTranForm" class="col-12 align-center" autocomplete="off" onsubmit="ASYAU10001(this); return false;">
+		<table class="table mb-0 table-borderless">
+			<colgroup>	
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="align-middle text-center">업무대분류</th>
+					<td class="align-middle">					
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="admBzwkLclsCd" id="admBzwkLclsCd" style="width:180px" />
+					</td>
+					<th class="align-middle text-center">중분류</th>
+					<td class="align-middle">
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_MCLS_CD" allOption="전체" name="admBzwkMclsCd" id="admBzwkMclsCd" style="width:180px" />
+					</td>
+					<th class="align-middle text-center">화면거래구분</th>
+					<td class="align-middle"> 
+                       <u:formSelectStndCode cdGroupVal="SCREN_TRAN_DV_CD" allOption="전체" name="screnTranDvCd" id="screnTranDvCd" style="width:180px" />
+                    </td>
+				</tr>
+				<tr>
+					<th class="align-middle text-center">메뉴표시여부</th>
+					<td class="align-middle">
+						<select class="form-control new-w180" name="menuRepstYn" id="menuRepstYn">
+							<option value="">전체</option>
+							<option value="Y">Yes</option>
+							<option value="N">No</option>
+						</select>
+					</td>
+					<th class="align-middle text-center">사용여부</th>
+					<td class="align-middle">
+						<select class="form-control new-w180" name="useYn" id="useYn">
+							<option value="">전체</option>
+							<option value="Y">Yes</option>
+							<option value="N">No</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>						
+		</table>				
+	</form><!-- form -->
+</div>
+<div class="text-center new-mb40">
+	<button type="submit" class="btn color-01" id="" onClick="ASYAU10001(this); return false;">조회</button>
+</div>
+			
+<!-- //상단 컨텐츠 -->
+<div class="new-mb20 d-flex">
+	<h5 class="h5 mr-auto">관리자 메뉴 정보</h5>
+	<div class="form-inline">	
+	<button class="btn btn-outline-primary" onclick="popASYAU10100()">미등록URL현황</button>
+	<button type="button" class="btn btn-primary new-ml10" id="" onClick="popASYAU10200()">등록</button>
+	</div>
+</div>
+				
+<!-- 하단 컨텐츠 -->			
+	<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUrl" class="table table-striped text-center new-mb30">
+		<thead>
+			<colgroup>
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+			</colgroup>
+			<tr class="thead-light">
+				<th>No.</th>
+				<th>업무대분류</th>
+				<th>업무중분류</th>
+				<th>화면ID</th>
+				<th>화면명</th>
+				<th>화면구분</th>
+				<th>URL주소</th>
+				<th>메뉴표시여부</th>
+				<th>전체허용여부</th>
+				<th>민감정보포함</th>
+				<th>표시순서</th>
+				<th>사용여부</th>
+			</tr>
+		</thead>
+		<tbody id="tScrenTranInfo"></tbody>
+	</table>
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템> 권한관리> 화면거래 관리
+ * 화면명 : 화면거래 미등록 URL 현황
+ * 설명 : Admin 화면거래의 미등록 현황 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#popupDocsForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+});
+
+function init(){
+	ASYAU10101();	 
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+/*********************************************************************/
+function ASYAU10101() {
+	httpAjax('ASYAU10101.json', {}, function(data) {
+		var result = data.result;
+
+		// 화면거래에 등록되지 않은 URL
+		var serverOnlyList = result['serverOnlyList'];
+		for (var i = 0; i < serverOnlyList.length; i++) {
+			var item = serverOnlyList[i];
+			
+			var _html = '';
+			if (i < serverOnlyList.length - 1) {
+				_html += '<tr>';
+			} else {
+				_html += '<tr class="border-bottom">';
+			}
+			_html += '	<td>' + (i + 1) + '</td>';
+			_html += '	<td>' + item.urlPattern + '</td>';
+			_html += '	<td>' + item.controllerName + '</td>';
+			_html += '	<td>' + util.nvl(item.screnTranNm,'') + '</td>';
+			_html += '</tr>';
+			$('#tServerOnlyList').append(_html);
+		}
+
+
+		// 프로그램으로 구현되지 않은 URL
+		var clientOnlyList = result['clientOnlyList'];
+		for (var i = 0; i < clientOnlyList.length; i++) {
+			var item = clientOnlyList[i];
+
+			var _html = '';
+			if (i < clientOnlyList.length - 1) {
+				_html += '<tr>';
+			} else {
+				_html += '<tr class="border-bottom">';
+			}
+			_html += '	<td>' + (i + 1) + '</td>';
+			_html += '	<td>' + item.urlPattern + '</td>';
+			_html += '	<td>' + item.screnTranId + '</td>';
+			_html += '	<td>' + item.screnTranNm + '</td>';
+			_html += '</tr>';
+			$('#tClientOnlyList').append(_html);
+		}
+
+	});
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+/*********************************************************************/
+</script>
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" id="ASYAU10100">
+	<div class="modal-content" style="max-width:800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">화면거래 미등록 URL 현황</h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+		<div class="container-fluid new-p15 border rounded new-mb20">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->
+			<h6 class="h6 new-pb10" style="color:tomato;">▶ 화면거래에 등록되지 않은 URL </h6>
+			<div class="container-fluid px-0">
+				<table class="table table-borderless mb-10">
+					<thead>
+						<colgroup>
+							<col width="10%">
+							<col width="20%">
+							<col width="40%">
+							<col width="*">						
+						</colgroup>
+						<tr class="thead-light">
+							<th class="align-middle">No.</th>
+							<th class="align-middle">URL</th>
+							<th class="align-middle">대상 프로그램(Controller)</th>		
+							<th class="align-middle">화면거래명</th>							
+						</tr>
+					</thead>
+					<tbody id="tServerOnlyList">
+					</tbody>			
+				</table>
+			</div>
+			</div>
+			<div class="container-fluid new-p15 border rounded new-mb20">
+			<h6 class="h6 new-pb10" style="color:tomato;">▶ 프로그램으로 구현되지 않은 URL </h6>
+			<div class="container-fluid px-0">
+				<table class="table table-borderless mb-0">
+					<thead>
+						<colgroup>
+							<col width="10%">
+							<col width="30%">
+							<col width="20%">
+							<col width="*">						
+						</colgroup>
+						<tr class="thead-light">
+							<th class="align-middle">No.</th>
+							<th class="align-middle">URL</th>
+							<th class="align-middle">화면거래아이디</th>
+							<th class="align-middle">화면거래명</th>								
+						</tr>
+					</thead>
+					<tbody id="tClientOnlyList">
+					</tbody>			
+				</table>
+			</div>
+			</div>
+		</div>
+			<div class="modal-footer">
+			<button type="button" class="btn btn-primary" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10200.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템> 권한관리> 화면거래 관리
+ * 화면명 : 화면거래 설정
+ * 설명 : Admin 화면거래의 신규 등록 및 변경 기능 제공
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+var scrinSeCode = ""; // new : 신규 화면거래 설정, old : 기존 화면거래 설정
+
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#popupMenuForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+
+    $('#popAdmBzwkLclsCd, #popAdmBzwkMclsCd , #popScrenSeq, #popTranSeq').bind('change keyup', function(e){
+        fncPopScrenTranIdCreat(); // 화면거래ID 생성
+    });
+    $('#selectUpScrenTranId').bind('change keyup', function(e){
+        var admBzwkLclsCd = $('#selectUpScrenTranId option:selected').attr('screnTranDvCd'); // 화면거래구분코드
+        var admBzwkLclsCd = $('#selectUpScrenTranId option:selected').attr('admBzwkLclsCd'); // 어드민업무대분류코드
+        var admBzwkMclsCd = $('#selectUpScrenTranId option:selected').attr('admBzwkMclsCd'); // 어드민업무중분류코드
+        var screnTranLvel = $('#selectUpScrenTranId option:selected').attr('screnTranLvel'); // 화면거래레벨(int)
+        $('#popScrenTranDvCd').val(screnTranDvCd).prop('selected', 'selected'); // 화면거래구분코드
+        $('#popAdmBzwkLclsCd').val(admBzwkLclsCd).prop('selected', 'selected'); // 어드민업무대분류코드
+        $('#popAdmBzwkMclsCd').val(admBzwkMclsCd).prop('selected', 'selected'); // 어드민업무중분류코드
+        $("#popAdmBzwkLclsCd").prop('disabled', (admBzwkLclsCd ? true : false)); // 어드민업무대분류코드
+        $("#popAdmBzwkMclsCd").prop('disabled', (admBzwkMclsCd ? true : false)); // 어드민업무중분류코드
+        $('#popScrenTranLvel').val(Number(screnTranLvel) + 1);
+
+        fncPopScrenTranIdCreat(); // 화면거래ID 생성
+	});
+
+	init();
+});
+
+function init(){
+	var strScrenTranId = `${screnTranId}`;
+    ASYAU10202(strScrenTranId);
+
+    if (strScrenTranId != null && strScrenTranId != '') {
+		$(".trTopInfo").empty();
+		
+		$(".popDivRegist").show(); // 수정시 화면 Show
+		$(".popDivChange").hide(); // 등록시 항목 hide
+		
+		scrinSeCode = "old";  // new : 신규 화면거래 설정, old : 기존 화면거래 설정
+	}else{
+		$(".popDivRegist").hide(); // 수정시 화면 hide
+		$(".popDivChange").show(); // 등록시 항목 Show
+
+		scrinSeCode = "new";  // new : 신규 화면거래 설정, old : 기존 화면거래 설정
+
+		fncPopScrenTranIdCreat();
+	}
+}
+
+/*********************************************************************
+ * 거래호출 
+/*********************************************************************/
+/**
+ * 화면거래 설정정보 조회
+ */
+function ASYAU10202(strScrenTranId){
+	var jsonData = new Object();
+	jsonData.screnTranId = strScrenTranId;
+	
+ 	httpAjax('ASYAU10202.json', jsonData, function(data){
+ 		console.log(data.result);
+ 		$("#popAdmBzwkLclsCd").prop('disabled', true); // 어드민업무대분류코드
+ 		$("#popAdmBzwkMclsCd").prop('disabled', true); // 어드민업무중분류코드
+
+        if (data.result != null) {
+            fncScrenTranInfo(data.result); // 화면거래정보 출력
+        }
+ 	});
+}
+
+/**
+ * 화면거래 설정정보 저장
+ */
+function ASYAU10203(){
+	var strScrenTranId		= $("#popScrenTranId").val();	// 화면거래아이디
+	var strScrenTranDvCd	= $("#popScrenTranDvCd").val();	// 화면거래구분코드
+	var strAdmBzwkLclsCd	= $("#popAdmBzwkLclsCd").val();	// 어드민업무대분류코드
+	var strAdmBzwkMclsCd	= $("#popAdmBzwkMclsCd").val();	// 어드민업무중분류코드
+	var strUpScrenTranId	= $("#popUpScrenTranId").val();	// 상위화면거래아이디
+	var strScrenTranNm		= $("#popScrenTranNm").val();	// 화면거래명
+	var strUrlAddr			= $("#popUrlAddr").val();	// URL주소
+	var strScrenTranLvel	= Number($("#popScrenTranLvel").val());	// 화면거래레벨(int)
+	var strMenuRepstYn		= $("#popMenuRepstYn").val();	// 메뉴표시여부
+	var strWholAllowYn		= $("#popWholAllowYn").val();	// 전체허용여부
+	var strSstvInfoYn		= $("#popSstvInfoYn").val();	// 민감정보여부
+	var strRepstOrdr		= Number($("#popRepstOrdr").val());	// 표시순서(int)
+	var strDescCtnt			= $("#popDescCtnt").val();	// 설명내용
+	var strUseYn			= $("#popUseYn").val();	// 사용여부
+	
+	// new : 신규 화면거래 설정, old : 기존 화면거래 설정
+	if("new" == scrinSeCode){
+		strUpScrenTranId = $('#selectUpScrenTranId option:selected').val(); // 상위화면거래 화면거래아이디
+    }
+	
+	var jsonData = new Object();
+	jsonData.screnTranId	= strScrenTranId;	// 화면거래아이디
+	jsonData.screnTranDvCd	= strScrenTranDvCd;	// 화면거래구분코드
+	jsonData.admBzwkLclsCd	= strAdmBzwkLclsCd;	// 어드민업무대분류코드
+	jsonData.admBzwkMclsCd	= strAdmBzwkMclsCd;	// 어드민업무중분류코드
+	jsonData.upScrenTranId	= strUpScrenTranId;	// 상위화면거래아이디
+	jsonData.screnTranNm	= strScrenTranNm;	// 화면거래명
+	jsonData.urlAddr		= strUrlAddr;	// URL주소
+	jsonData.screnTranLvel	= strScrenTranLvel;	// 화면거래레벨(int)
+	jsonData.menuRepstYn	= strMenuRepstYn;	// 메뉴표시여부
+	jsonData.wholAllowYn	= strWholAllowYn;	// 전체허용여부
+	jsonData.sstvInfoYn		= strSstvInfoYn;	// 민감정보여부
+	jsonData.repstOrdr		= strRepstOrdr;	// 표시순서(int)
+	jsonData.descCtnt		= strDescCtnt;	// 설명내용
+	jsonData.useYn			= strUseYn;	// 사용여부
+	
+ 	httpAjax('ASYAU10203.json', jsonData, function(data){
+ 		var result = data.result.processResult;
+ 		if(result > 0){
+ 			var closeJson = new Object();
+ 			closeJson.result = result;
+ 			
+ 			popup.closeLayerPopup(closeJson);
+ 		}
+ 	});
+}
+
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/**
+ * 화면거래정보 출력
+ */
+function fncScrenTranInfo(data) {
+    if (scrinSeCode == "old") {
+        $("#popScrenTranId").val(data.screnTranId); // 화면거래아이디
+        $('#popAdmBzwkLclsCd').val(data.admBzwkLclsCd).prop('selected', 'selected'); // 어드민업무대분류코드
+        $('#popAdmBzwkMclsCd').val(data.admBzwkMclsCd).prop('selected', 'selected'); // 어드민업무중분류코드
+        $('#popScrenTranDvCd').val(data.screnTranDvCd).prop('selected', 'selected'); // 화면거래구분코드
+
+        if (data.screnTranId.length > 9) {
+            $('#popScrenSeq').val(data.screnTranId.substr(6, 2)); // 화면SEQ
+            $('#popTranSeq').val(data.screnTranId.substr(8, 2)); // 거래SEQ
+        }
+
+        $("#popUpScrenTranId").val(data.upScrenTranId); // 상위화면거래아이디
+        $("#popScrenTranLvel").val(data.screnTranLvel); // 화면거래레벨
+
+        $("#popScrenTranNm").val(data.screnTranNm); // 화면거래명
+        $("#popUrlAddr").val(data.urlAddr); // URL주소
+        $("#popDescCtnt").val(data.descCtnt); // 설명내용
+
+        $('#popMenuRepstYn').val(data.menuRepstYn).prop('selected', 'selected'); // 메뉴표시여부
+        $('#popWholAllowYn').val(data.wholAllowYn).prop('selected', 'selected'); // 전체허용여부
+        $('#popSstvInfoYn').val(data.sstvInfoYn).prop('selected', 'selected'); // 민감정보여부
+
+        $("#popRepstOrdr").val(data.repstOrdr); // 설명내용
+
+        $('#popUseYn').val(data.useYn).prop('selected', 'selected'); // 사용여부
+    }
+
+	// 상위화면거래 출력
+	if (data.screnTranList && data.screnTranList.length > 0) {
+        var optionHtml = '';
+		for (var i in data.screnTranList) {
+			var obj = data.screnTranList[i];
+
+            optionHtml += '<option value="' + obj.screnTranId + '" screnTranDvCd="' + util.nvl(obj.screnTranDvCd,'') + '" admBzwkLclsCd="' + util.nvl(obj.admBzwkLclsCd,'') + '" admBzwkMclsCd="' + util.nvl(obj.admBzwkMclsCd,'') + '" screnTranLvel="' + util.nvl(obj.screnTranLvel,'') + '">';
+            for (var i = 0; i < obj.screnTranLvel; i++) {
+                optionHtml += '　　';
+			}
+            optionHtml += obj.screnTranNm + ' (' + obj.screnTranId + ')';
+            optionHtml += '</option>';
+		}
+        $('#selectUpScrenTranId').append(optionHtml);
+    }
+
+}
+
+/**
+ * 화면거래ID 생성
+ */
+function fncPopScrenTranIdCreat(){
+	var strAdmBzwkLclsCd	= $('#popAdmBzwkLclsCd').val(); // 어드민업무대분류코드
+	var strAdmBzwkMclsCd	= $('#popAdmBzwkMclsCd').val(); // 어드민업무중분류코드
+	var strScrenSeq			= $('#popScrenSeq').val(); // 화면SEQ
+	var strpopTranSeq		= $('#popTranSeq').val(); // 거래SEQ
+	
+	if(!util.isNul(strAdmBzwkLclsCd) && !util.isNul(strAdmBzwkMclsCd)){
+		$('#popScrenTranId').val('A' + strAdmBzwkLclsCd + strAdmBzwkMclsCd + strScrenSeq + strpopTranSeq); // 화면 거래ID 채번
+	}
+}
+
+function maxLengthChk(object){
+    if (object.value.length > object.maxLength){
+      object.value = object.value.slice(0, object.maxLength);
+    }    
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function pop********(){}
+/*********************************************************************/
+
+</script>
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width:800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">화면거래 설정</h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->
+			<div class="container-fluid new-p15 border rounded new-mb20">
+			<div class="container-fluid px-0">
+			<form method="post" id="popupMenuForm" name="popupMenuForm" class="col-12 align-center" autocomplete="off" onsubmit="; return false;">
+				<table class="table table-borderless mb-0 text-center">
+					<colgroup>
+						<col width="10%">
+						<col width="15%">
+						<col width="10%">
+						<col width="15%">
+						<col width="10%">
+						<col width="15%">
+					</colgroup>
+					<tbody>
+						<tr class="trTopInfo">
+							<th class="align-middle">상위화면거래</th>
+							<td class="align-middle" colspan="5">
+								<select id="selectUpScrenTranId" name="selectUpScrenTranId" class="form-control">
+									<option value="">선택</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th class="align-middle">화면거래아이디</th>
+							<td><input class="form-control" value="" name="popScrenTranId" id="popScrenTranId" disabled/></td>
+							<th class="align-middle">업무대분류</th>
+							<td><u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="선택" name="popAdmBzwkLclsCd" id="popAdmBzwkLclsCd"/></td>
+							<th class="align-middle">업무중분류</th>
+							<td><u:formSelectStndCode cdGroupVal="ADM_BZWK_MCLS_CD" allOption="선택" name="popAdmBzwkMclsCd" id="popAdmBzwkMclsCd"/></td>														
+						</tr>		
+						<tr>
+							<th class="align-middle">화면거래구분</th>
+							<td><u:formSelectStndCode cdGroupVal="SCREN_TRAN_DV_CD" name="popScrenTranDvCd" id="popScrenTranDvCd"/></td>
+							<!-- 하위메뉴 변경 -->
+							<th class="align-middle popDivChange" style="display: none;">화면SEQ</th>
+							<td class="popDivChange" style="display: none;"><input class="form-control" type='number' maxlength='3' value="" name="popScrenSeq" id="popScrenSeq" oninput="maxLengthChk(this)"/></td>
+							<th class="align-middle popDivChange" style="display: none;">거래SEQ</th>
+							<td class="popDivChange" style="display: none;"><input class="form-control" type='number' maxlength='2' value="" name="popTranSeq" id="popTranSeq" oninput="maxLengthChk(this)"/></td>
+							<!-- 하위메뉴 변경 -->
+							<!-- 하위메뉴 추가 -->
+							<th class="align-middle popDivRegist" style="display: none;">상위화면거래ID</th>
+							<td class="popDivRegist" style="display: none;"><input class="form-control" value="" name="popUpScrenTranId" id="popUpScrenTranId" disabled/></td>
+							<th class="align-middle popDivRegist" style="display: none;">화면거래레벨</th>
+							<td class="popDivRegist" style="display: none;"><input class="form-control" value="" name="popScrenTranLvel" id="popScrenTranLvel" disabled/></td>
+							<!-- 하위메뉴 추가 -->
+						</tr>
+			
+						<tr>
+							<th class="align-middle">화면거래명</th>
+							<td colspan="5"><input class="form-control" value="" name="popScrenTranNm" id="popScrenTranNm" /></td>							
+						</tr>
+						<tr>
+							<th class="align-middle">URL 주소</th>
+							<td colspan="5"><input class="form-control" value="" name="popUrlAddr" id="popUrlAddr" /></td>							
+						</tr>
+						<tr>
+							<th class="align-middle">설명</th>
+							<td colspan="5"><input class="form-control" value="" name="popDescCtnt" id="popDescCtnt" /></td>							
+						</tr>
+						<tr>
+							<th class="align-middle">메뉴표시여부</th>
+							<td>
+								<select id="popMenuRepstYn" name="popMenuRepstYn" class="form-control">
+									<option value="Y" upcdval="">사용</option>
+									<option value="N" upcdval="">미사용</option>
+								</select>
+							</td>
+							<th class="align-middle">전체허용여부</th>
+							<td>
+								<select id="popWholAllowYn" name="popWholAllowYn" class="form-control">
+									<option value="Y" upcdval="">사용</option>
+									<option value="N" upcdval="">미사용</option>
+								</select>
+							</td>							
+							<th class="align-middle">민감정보포함</th>
+							<td>
+								<select id="popSstvInfoYn" name="popSstvInfoYn" class="form-control">
+									<option value="Y" upcdval="">사용</option>
+									<option value="N" upcdval="">미사용</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<th class="align-middle">표시순서</th>
+							<td><input class="form-control" value="" name="popRepstOrdr" id="popRepstOrdr" /></td>							
+							<th class="align-middle">사용여부</th>
+							<td>
+								<select id="popUseYn" name="popUseYn" class="form-control">
+									<option value="Y" upcdval="">사용</option>
+									<option value="N" upcdval="">미사용</option>
+								</select>
+							</td>
+						</tr>						
+					</tbody>			
+				</table>
+				</form>
+			</div>
+			</div>
+		</div>
+		<div class="modal-footer mt-0">
+			<button type="button" class="btn btn-primary  mr-2" onClick="ASYAU10203();">저장</button>
+			<button type="button" class="btn btn-outline-primary" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10205.jsp =====
+<%
+/**
+ * 시스템명 : ADMIN/SY/AU/ASYAU10200.view
+ * 세부업무구분명 : 관리자아이디중복조회팝업
+ * 프로그램명 : 관리자아이디중복조회팝업
+ * 설명 : 관리자아이디중복조회팝업 
+ * 작성자 : 김상훈
+ * 작성일 : 2023-04-04
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         서예원            코드정리 1단계
+ * 2023/04/04         김상훈            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+/*******************************************************************
+ * 화면온로드 실행
+ ********************************************************************/
+ $(document).ready(function(){ 
+	 $("#ASYAU10205").show();
+ })
+ /* 사용자 삭제 팝업 닫기 */
+function closeASYAU10200(){
+	popup.closeLayerPopup();
+}
+ 
+ /*******************************************************************
+ * 기능 함수
+ ********************************************************************/
+
+</script>
+
+<!-- 아이디 중복체크 모달 -->
+<div class="modal fade modal-alert show"  id="ASYAU10205">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+		        <h5 class="modal-title">관리자ID 중복체크</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onClick="closeASYAU10200()">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+	     	</div>
+			<div class="modal-body d-flex text-center justify-content-center align-items-center p-5">
+				<table class="table table-borderless">
+					<colgroup>
+						<col style="width: 20%;">
+						<col style="width: 60%;">
+					</colgroup>
+					<tbody>
+						<tr style="height: 55px;" class="border-bottom">
+							<th class="text-left px-3" style="background-color: #20a973; color: white;" >아이디</th>
+							<td class="align-middle">
+								<input type="text" class="form-control" placeholder="USER_ID" value="" style="width:70%; display:inline-block; " id="checkUserId" >&nbsp;
+								<button type="button" class="btn btn-primary" style="background-color: #20a973; color: white; flex:1;" onClick="checkIdExist()">중복확인</button>
+							</td>
+						</tr>
+						<tr style="height: 55px;">
+							<th class="text-left px-3" style="background-color: #20a973; color: white;">확인결과</th>
+							<td class="align-middle" style="text-align:left; padding-left:18px;">
+								<span>
+									<strong id="checkedId"></strong>
+									<span id="checkedSpan"></span>
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer justify-content-center">
+				<button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color: #20a973;" onClick="closeASYAU10200()">확인</button>&nbsp;
+				<button type="button" class="btn btn-primary" data-dismiss="modal" onClick="closeASYAU10200()">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU10205.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11000.jsp =====
+<%
+/**
+ * 시스템명 : SY/AU/ASYAU11000.jsp
+ * 세부업무구분명 : Admin > 사용자 관리
+ * 프로그램명 : 관리자 그룹 관리 목록 조회 화면
+ * 설명 : 관리자 그룹 관리 목록 화면
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/17         서예원            pagination, validation 추가
+ * 2023/04/14         서예원            코드정리 2단계
+ * 2023/04/13         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+	/*******************************************
+	 * 전역변수선언
+	 *******************************************/
+ 	var selectedGroupId = new String(); 		//선택된 그룹 id
+ 	
+	/*******************************************
+	 * 화면 온로드 실행
+	 *******************************************/
+ 	$(document).ready(function(){
+ 		validation.initFormValidate(document.admGroupSearchForm); // jQuery.validator 초기화
+ 		$("#admGroupSearchForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+		ASYAU11001();
+	});
+ 	
+ 	/*******************************************
+	 * 기능 함수
+	 *******************************************/
+ 	/* 관리자그룹 목록 조회 */
+ 	function ASYAU11001(searchInfo){
+		var param = new Object();
+ 		if (searchInfo) {	//검색요소가 있을 경우 param을 검색요소로 대체
+ 			param = searchInfo;			
+ 		};
+
+		httpAjax('/admin/sy/au/ASYAU11001.json', param,
+			function(data){
+		  		console.log("ASYAU11001.json 성공");
+		  		console.log(data);
+		  		
+		  		var admGroupList = data.result.grid;
+		  		var pages = data.result.pageInfo;
+		  		console.log("admGroupList", admGroupList);
+		  		admGroupTable(admGroupList, pages);//관리자그룹 목록 테이블 생성
+		  		setPaging(pages); // 페이징 세팅
+	  		});
+	}
+ 	
+ 	/* 관리자그룹 목록 테이블 생성 */
+ 	function admGroupTable(admGroupList, pages){
+ 		var html = new String();
+ 		$('#groupListTable').html('');			//테이블 비우기
+ 		
+ 		if (admGroupList != null && admGroupList.length > 0) {
+ 			$('#listNoneShow').empty();		//없을 경우 숨김
+ 			
+ 			for(var i in admGroupList){
+ 				var group = admGroupList[i];
+ 				if (group === admGroupList[admGroupList.length - 1]) {	//마지막 요소에 border-bottom 추가
+ 					html += '<tr class="border-bottom">';
+ 				} else {
+ 					html += '<tr>';
+ 				}
+ 				html += '	<td>'
+ 				html += 		(pages.pageNo-1)*pages.pageSize+Number(i)+1
+ 				html += '	</td>'
+ 				html += '	<td>'
+ 				html += 		group.groupId
+ 				html += '	</td>'
+ 				html += '	<td>'
+ 				html += '		<a href="#" onclick="openASYAU11100('+ "'" + group.groupId + "'" +')">'+ group.groupNm + '</a>'
+ 				html += '	</td>'
+ 				html += '	<td>'
+ 				html += 		group.groupDvCd
+ 				html += '	</td>'
+ 				html += '	<td>'
+ 				html += 		group.descCtnt
+ 				html += '	</td>'
+ 				html += '	<td>'
+ 				html += 		group.repstOrdr
+ 				html += '	</td>'
+				html += '	<td>'
+ 				html += 		group.useYn
+ 				html += '	</td>'
+				html += '	<td>'
+ 				html += '		<a href="#" onclick="openASYAU11200('+ "'" + group.groupId + "','" + group.groupNm + "','" + group.groupDvCd + "'" +')">'+ group.userCount + '</a>'
+ 				html += '	</td>'
+ 				html += '</tr>'
+ 			}		
+ 		} else {	//항목이 없을 경우 세팅
+ 			html += '<tr><td colspan="8" class="border-bottom">내용없음</td></tr>' 						
+ 		}
+ 		$('#groupListTable').append(html)
+ 		
+ 	}
+ 	 
+ 	/*
+ 	 * @desc paging 처리
+ 	 * @param {Object} pageInfo
+ 	 */
+ 	function setPaging(pages) {
+ 		var lastPage = parseInt(Math.ceil(pages.totalCount / pages.pageSize));	//전체 페이지수
+ 		var left = pages.totalCount % pages.pageSize; 				//페이지 구분 후 남은 개수
+ 		$('#pagination').empty();									//pagination 초기화
+ 		
+ 		//작성된 검색 내역이 있는지 확인
+ 		var typedSearchInfo = {};
+ 		typedSearchInfo = {
+ 			groupDvCd: $("#srhGroupDvCd").val(),
+ 			groupIdOrNm: $("#srhGroupNmId").val(),
+ 			userIdOrNm: $("#srhUserNmId").val(),
+ 			page: 1,
+ 		};
+
+ 		var paging = "";			//paging 초기화
+ 		//Left Arrow
+ 		//페이지가 1이 아닐경우에만 추가
+ 		if ( pages.pageNo !== 1 ){	
+ 			paging += '<li class="page-item">';
+ 			paging += '	<a class="page-link" href="javascript:f_searchNextPage(1)">';
+ 			paging += '		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/><path fill-rule="evenodd" d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>';
+ 			paging += '	</a>';
+ 			paging += '</li>';
+ 			paging += '<li class="page-item">';
+ 			paging += '	<a class="page-link" href="javascript:f_searchNextPage('+ (pages.pageNo - 1) +')">';
+ 			paging += '		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>';
+ 			paging += '	</a>';
+ 			paging += ' </li>';
+ 		}
+
+ 		//paging list
+ 		for(var i=1; i <= lastPage; i++) {
+ 			if (i === pages.pageNo) {
+ 				paging += '<li class="page-item"><a class="page-link active" href="javascript:f_searchNextPage('+i+');">'+ i +'</a></li>'
+ 			} else {
+ 				paging += '<li class="page-item"><a class="page-link" href="javascript:f_searchNextPage('+i+');">'+ i +'</a></li>'
+ 			}
+ 		} 
+ 		
+ 		//Right Arrow
+ 		//페이지가 마지막이 아닐 경우메만
+ 		if ( pages.pageNo !== lastPage && pages.totalCount > 10 ){
+ 			paging += ' <li class="page-item">';
+ 			paging += ' 	<a class="page-link" href="javascript:f_searchNextPage('+ (pages.pageNo+1) +')">';
+ 			paging += ' 		<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>';
+ 			paging += ' 	</a>';
+ 			paging += ' </li>';
+ 			paging += ' <li class="page-item">';
+ 			paging += ' 	<a class="page-link" href="javascript:f_searchNextPage('+lastPage+')">';
+ 			paging += '			<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8 3.646 2.354a.5.5 0 0 1 0-.708z"/><path fill-rule="evenodd" d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8 7.646 2.354a.5.5 0 0 1 0-.708z"/></svg>';
+ 			paging += '		</a>';
+ 			paging += ' </li>';
+ 		}
+ 		
+ 		$('#pagination').append(paging);
+ 	}
+ 	 
+ 	/*
+ 	 * @desc pagination
+ 	 * @param {number} index
+ 	 */
+ 	function f_searchNextPage(index){
+ 	 	//var pageLinks = $(".page-link");			// 페이지 번호
+ 		$(".page-link").removeClass("active");		//active 클래스 모두 제거(초기화)
+ 	 	$(".page-link:contains("+ index +")").addClass('active'); //클릭한 요소에 active 클래스 추가
+ 		
+ 		//pageInfo 관련 설정
+ 		var pageInfo = {
+ 			page: parseInt(index)	//해당페이지로 이동
+ 		};
+
+ 		var searchInfo = {
+			groupDvCd: $("#srhGroupDvCd option:selected").val(),					//그룹구분코드
+ 			groupIdOrNm: $("#srhGroupNmId").val(),					//그룹아이디 or 그룹명
+ 			userIdOrNm: $("#srhUserNmId").val(),					//사용자아이디 or 사용자명
+ 		};
+ 		//병합
+ 		$.extend(pageInfo, searchInfo);			//Object 병합
+ 		ASYAU11001(pageInfo);					//목록재조회
+ 	} 
+ 	 
+ 	 
+ 	/*
+ 	 * @desc 검색 조회
+ 	 */
+ 	function f_searchListAdmGroup(e){
+ 		// validation 체크
+ 		if (!validation.checkFormValidate(document.admGroupSearchForm)) {
+ 			return false;
+ 		}
+
+ 		//pagination 기본
+ 		var pageInfo = {
+ 			page: 1,
+ 			rows: 10
+ 		}
+ 		var searchInfo = {
+			groupDvCd: "",		//그룹구분코드
+ 			groupIdOrNm: "",	//그룹아이디 or 그룹명
+ 			userIdOrNm: "",		//사용자아이디 or 사용자명
+ 		}
+ 		if( $('#srhGroupNmId').val() !== "") {
+ 			searchInfo.groupIdOrNm = $('#srhGroupNmId').val();
+ 		}
+ 		if( $('#srhGroupDvCd').val() !== "") {
+ 			searchInfo.groupDvCd = $('#srhGroupDvCd option:selected').val();
+ 		}
+ 		if( $('#srhUserNmId').val() !== "") {
+ 			searchInfo.userIdOrNm = $('#srhUserNmId').val();
+ 		}
+ 		
+ 		$.extend(searchInfo, pageInfo);	//병합
+ 		
+ 		if (searchInfo.groupIdOrNm === "" && searchInfo.userIdOrNm === "" && searchInfo.groupDvCd === "") { //아무내용도 검색하지 않았을 경우
+ 			ASYAU11001(searchInfo);	//검색내용없을 경우 - 전체재조회
+ 		} else {
+ 			ASYAU11001(searchInfo);	//검색내용있을 경우 - 내용목록조회
+ 		}
+ 	}
+ 	
+ 	/* 관리자그룹 삭제 */
+ 	function deleteData(){
+ 		console.log("그룹삭제함수");
+		/*var id = $('input:radio[name="selectedRadio"]:checked');		//선택된 그룹 가져오기
+		
+		if(id.length == 0){
+			alert("삭제할 그룹을 선택하세요");
+			return false;
+		}else{
+			if(id.length>0){
+				if(confirm("선택된 그룹(들)을 삭제하시겠습니까?")==false){
+					return false;
+				}else{
+					var groupIdData = new Array();		//삭제할 데이터를 담을 객체생성
+					
+					for(var i=0; i<id.length; i++){
+						groupIdData[i] = id[i].id;
+					}
+					console.log(groupIdData);
+					
+					var param = new Object();
+					param.groupIdList = groupIdData;
+					
+					httpAjax('/admin/sy/au/ASYAU11002.json', param, function(data){
+				  		console.log("ASYAU11002 삭제 성공");
+				  		console.log(data);
+				  		ASYAU11001();
+				  	});  
+				}
+			}
+		}*/
+	}
+ 	
+ 	/* 관리자그룹 등록 및 수정 팝업 열기 */
+ 	function openASYAU11100(groupId){
+ 		selectedGroupId = groupId;
+ 		
+ 		var param = new Object();
+		param.groupId = groupId;
+	
+		popup.openLayerPopup('/admin/sy/au/ASYAU11100.frag', param, null, function(result){
+	 		return false;
+	  	});
+ 	}
+	
+ 	/* 그룹 사용자 목록 팝업 열기 */
+ 	function openASYAU11200(groupId, groupNm, groupDvCd){
+
+		var param = new Object();
+		param.groupId = groupId;
+		param.groupNm = groupNm;
+		param.groupDvCd = groupDvCd;
+		
+		popup.openLayerPopup('/admin/sy/au/ASYAU11200.frag', param, null, function(result){
+	 		return false;
+	  	});
+		
+ 	}
+
+	/* 그룹 정보 상세 조회 */
+	function ASYAU11101() { //selectOneASYAU11201
+		var param = {
+			groupId: selectedGroupId //admGroup[0].groupId
+		};
+		httpAjax('/admin/sy/au/ASYAU11101.json', param, function({response}){
+			if (result.agbOut) { //response?.result?.agbOut
+				var agbOut = result.agbOut;
+				console.log(agbOut);
+				$('#popupGroupId').val(agbOut.groupId);
+				$('#popupGroupNm').val(agbOut.groupNm);
+				$('#popupGroupDvCd').val(agbOut.groupDvCd).prop('selected', true);
+				$('#popupDescCtnt').val(agbOut.descCtnt);
+				$('#popupRepstOrdr').val(agbOut.repstOrdr)
+				$('#popupUseYn').val(agbOut.useYn).prop('selected', true);
+			}
+		})
+	}	
+</script>	
+
+<!-- // 제목 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">관리자 그룹 관리</h4>
+
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 제목 // -->
+       
+<!-- 조회 영역 시작 -->
+<!-- 조회 검색 영역 -->
+<form method="post" id="admGroupSearchForm" name="admGroupSearchForm" autocomplete="off" onsubmit="f_searchListAdmGroup(this); return false;">
+	<div class="new-p15 border rounded new-mb10">
+		<table class="table table-borderless table-layout-fixed">
+			<colgroup>
+				<col width="10%">
+				<col width="23%">
+				<col width="10%">
+				<col width="23%">
+				<col width="10%">
+				<col width="*">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="align-middle">그룹구분</th>
+					<td class="align-middle new-pr90">
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="srhGroupDvCd" id="srhGroupDvCd"/>
+					</td>
+					<th class="align-middle">그룹명/그룹ID</th>
+					<td class="align-middle new-pr90">
+						<input type="text" class="form-control" placeholder="" id="srhGroupNmId" data-validate-rule="{required:false, alphabethan:true}" data-alias="그룹명">
+					</td>
+					<th class="align-middle">사용자명/사용자ID</th>
+					<td class="align-middle new-pr90">
+						<input type="text" class="form-control" placeholder="" id="srhUserNmId" data-validate-rule="{required:false, alphabethan:true}" data-alias="그룹명">
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="new-mb5" style="text-align: center;">
+			<button type="submit" class="btn btn-primary new-mr10">조회</button>
+		</div>
+	</div>
+</form>
+<!-- 여기까지 조회 검색 영역 끝 -->
+
+<!-- 조회 결과 목록 테이블 영역 -->
+<div class="row new-mb20">
+	<div class="col-12 new-pr10">
+		<!-- 목록 상단 버튼 영역 시작-->
+		<div class="container-fluid text-right">
+			<button type="button" class="btn btn-success" onclick="openASYAU11100()">등록</button>
+		</div>
+		<div style="width: 100%; height: 10px;"></div>
+		<!-- 목록 상단 버튼 영역 끝-->
+		<div class="border h-100 new-p15 rounded">
+			
+			<!-- 목록 영역 시작-->
+			<table class="table text-center new-mb30">
+				<colgroup>
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+					<col style="width: auto;">
+				</colgroup>
+				<thead>
+					<tr class="thead-light">
+						<th>No.</th>
+						<th>그룹ID</th>
+						<th>그룹명</th>
+						<th>그룹구분</th>
+						<th>설명</th>
+						<th>표시순서</th>
+						<th>사용여부</th>
+						<th>설정사용자수</th>
+					</tr>
+				</thead>
+				<!-- 조회 목록 추가 위치 -->
+				<tbody id="groupListTable"></tbody>
+			</table>
+			<!-- 조회 결과 목록 테이블 영역 끝 -->
+			<!-- pagination -->
+			
+			<ul class="pagination justify-content-center" id="pagination">
+				<li class="page-item"><a class="page-link" href="javascript:ASYAU11001();">1</a></li>
+			</ul>
+			<!-- pagination -->
+		</div>
+	</div>
+</div>
+
+<!-- pagination -->
+<!-- >u:pageHelper urlFormat="javascrpt:f_ifGoPage('%s');" value="${pageInfo}" /< -->
+<!-- pagination 끝 -->
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11100.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU11100.frag
+ * 세부업무구분명 : 그룹 정보 등록 및 수정 팝업
+ * 프로그램명 : 그룹 정보 등록 및 수정 팝업
+ * 설명 : 그룹 정보 등록 및 수정 팝업 화면
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-19
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/19         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+ <script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언
+/*********************************************************************/
+	var groupId = "${groupId}";
+	var verify = {
+		id: false,
+	 }
+ 
+/*******************************************************************
+ * 화면온로드 실행
+ ********************************************************************/
+	$(document).ready(function(){
+		
+		if(groupId != ""){ // 수정
+			ASYAU11101(); // 그룹정보 상세조회
+			$('#popupGroupId').attr('disabled', true);
+			$("#popupAdmGroupFormBtn").text("수정");
+			$("#modalTitle").text("그룹 정보 수정");
+		} 
+		
+		$('#modalASYAU11100').show();
+		
+		validation.initFormValidate(document.popupAdmGroupForm); // jQuery.validator 초기화
+		$("#popupAdmGroupForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	});
+
+/*********************************************************************
+ * 기능함수 선언
+/*********************************************************************/
+ 	/* 목록으로 이동 */
+ 	function openASYAU11000(){
+ 		navigate("ASYAU11000.view");//화면이동 공통함수
+ 	}
+ 	
+	/* 그룹 정보 등록, 수정 구별 */
+	function distinction(){
+		// validation 체크
+ 		if (!validation.checkFormValidate(document.popupAdmGroupForm)) {
+ 			return false;
+ 		}
+		
+		if(groupId == ""){ // 그룹 정보 등록
+			ASYAU11102();
+		} else{ // 그룹 정보 수정
+			ASYAU11103();
+		}
+	}
+	 
+ 	/* 그룹 정보 등록 */
+ 	function ASYAU11102(){ 	
+		var insertParam = new Object();
+		
+		insertParam.groupId = $("#popupGroupId").val();
+		insertParam.groupNm = $("#popupGroupNm").val();
+		insertParam.groupDvCd = $("#popupGroupDvCd option:selected").val();
+		insertParam.useYn = $("#popupUseYn option:selected").val();
+		insertParam.repstOrdr = $("#popupRepstOrdr").val();
+		insertParam.descCtnt = $("#popupDescCtnt").val();
+		console.log(insertParam);
+		
+		httpAjax('/admin/sy/au/ASYAU11102.json', insertParam,
+			function(data){
+		  		console.log("성공");
+		  		console.log(data);
+		  		closeASYAU11100(); // 팝업 닫기
+		  		ASYAU11001(); // 관리자 그룹 목록 조회
+	  		
+	  		});
+ 	}
+ 	
+
+	/* 그룹 상세정보 수정 */
+	function ASYAU11103(){
+		var updateParam = new Object();
+		
+		updateParam.groupId = groupId;
+		updateParam.groupNm = $("#popupGroupNm").val();
+		updateParam.groupDvCd = $("#popupGroupDvCd option:selected").val();
+		updateParam.useYn = $("#popupUseYn option:selected").val();
+		updateParam.repstOrdr = $("#popupRepstOrdr").val();
+		updateParam.descCtnt = $("#popupDescCtnt").val();
+		console.log(updateParam);
+		
+		httpAjax('/admin/sy/au/ASYAU11103.json', updateParam,
+				function(data){
+			  		console.log("성공");
+			  		console.log(data);
+			  		closeASYAU11100(); // 팝업 단기
+			  		ASYAU11001(); // 관리자 그룹 목록 조회
+		 });
+	}
+		
+ 	/* 그룹 정보 등록 및 수정 팝업 닫기 */
+ 	function closeASYAU11100(){
+ 		popup.closeLayerPopup();
+ 	}
+ 	
+ 	/* 그룹아이디 중복 확인 팝업 */
+ 	/*function 아이디중복확인(){
+ 		popup.openLayerPopup('/admin/sy/au/ASYAU11103.frag', {}, null,
+			function(result) {
+				return false;
+		});
+ 	}*/
+ 	
+	 /* 그룹아이디 중복 조회 */
+	 /*function checkGroupIdExist() {
+		var groupId = document.querySelector('#checkGroupId').value;
+		if (groupId.length > 0) {
+			httpAjax('/admin/sy/au/ASYAU11101.json', {groupId}, function({response}){
+		  		console.log(response);
+		  		var resultContext = '';
+		   		var color = '';
+		   		$('#checkedId').text(groupId);
+		   		if (result.rstCount === 0) {
+		   			resultContext = ": 사용이 가능한 아이디 입니다.";
+		   			color = 'black';
+		   			document.getElementById('groupId').value = groupId;
+		   			verify.id = true;
+		   		} else {
+		   			resultContext = ": 이미 사용중인 아이디 입니다.";
+		   			color = 'red';
+		   			verify.id = false;
+		   		  }
+		   		document.getElementById('checkedSpan').innerHTML = resultContext;
+		   		document.getElementById('checkedSpan').style.color = color;
+		  		
+		  	});		
+		}
+	 }*/
+ 	
+</script>	
+
+<!-- 팝업 영역 시작-->
+<!-- <div class="container align-items-center new-p15 border rounded new-mb20">
+	<form method="post" id="admGroupCreateForm" name="admGroupCreateForm" autocomplete="off" onsubmit="ASYAU11102(this); return false;">
+		<div class="container h-100 new-p15 border rounded d-flex">
+			<div style="height:18px;"></div>
+			<table class="table table-borderless mb-0">
+				<colgroup>
+					<col style="width: 11%;">
+					<col style="width: 89%;">
+				</colgroup>
+				<tbody>
+					<tr>
+						<th class="align-middle">그룹ID</th>
+						<td class="align-middle">
+							<div class="d-flex">
+								<input type="text" id="groupId" class="form-control new-mr10" style="width:80%;" placeholder="그룹ID" readOnly data-validate-rule="{required:true, numalpha:true}" data-alias="그룹ID">
+								<button type="button" id="chkGroupIdButton" class="btn color-01 new-mr15" data-toggle="modal" data-target="#checkDupId" onclick="아이디중복확인()">중복확인</button>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th class="align-middle">그룹명</th>
+						<td class="align-middle">
+							<input type="text" id="groupNm" class="form-control w300" style="width:80%;" placeholder="그룹명" value>
+						</td>
+					</tr>
+					<tr>
+						<th class="align-middle">그룹구분</th>
+						<td class="align-middle">
+							<select id="groupDvCd" class="form-control new-mr10" style="width:160px">
+								<option value="100">100</option>
+								<option value="200">200</option>
+								<option value="300">300</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th class="align-middle">사용여부</th>
+						<td>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" id="useYn1" name="useYn" value="Y" class="custom-control-input">
+								<label class="custom-control-label" for="useYn1">사용</label>
+							</div>
+							<div class="custom-control custom-radio custom-control-inline">
+								<input type="radio" id="useYn2" name="useYn" value="N" class="custom-control-input">
+								<label class="custom-control-label" for="useYn2">미사용</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th class="align-middle">표시순서</th>
+						<td class="align-middle">
+							<input type="text" id="repstOrdr" class="form-control w300" style="width:80%;" placeholder="표시순서" value>
+						</td>
+					</tr>
+					<tr>
+						<th>설명</th>
+						<td>
+							<textarea id="descCtnt" class="form-control" style="width:100%; height:100px" placeholder="그룹설명" rows="6"></textarea>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			생성 컨텐츠
+		</div>
+		
+		<div class="new-mt15" style="text-align: center;">
+			<button type="button" class="btn btn-outline-primary new-mr10" onclick="openASYAU11000()">목록</button>
+			<button type="submit" class="btn color-01 new-mr10">등록</button>
+		</div>
+	</form>
+</div> -->
+
+
+<div class="modal fade show" id="modalASYAU11100" role="dialog">
+	<!-- .show, style="display: block"; :: 임시 값 -->
+	<!-- s: 20210607 간격 클래스 & 마크업 일괄 수정 -->
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content" style="width: 800px;">
+			<!-- 230113 publishing수정 : 모달에 디자인상 width값 인라인으로 넣음 -->
+			<div class="modal-header">
+				<h5 class="modal-title align-self-center" id="modalTitle">그룹 정보 등록</h5>
+				<button type="button" class="btn btn-modal-close"
+					data-dismiss="modal" onclick="closeASYAU11100()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+						fill="#93949a" class="" viewBox="0 0 16 16">
+                        <path
+							d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+                    </svg>
+				</button>
+			</div>
+			<form method="post" id="popupAdmGroupForm" name="popupAdmGroupForm" autocomplete="off" onsubmit="distinction(); return false;">
+				<div class="modal-body">
+					<h6 class="h6">그룹ROLE 기본정보</h6>
+					<div class="container-fluid new-p15 border rounded new-mb20">
+						<table class="table table-borderless">
+							<colgroup>
+								<col width="16%">
+	                            <col width="40%">
+	                            <col width="16%">
+	                            <col width="*">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th class="align-middle">그룹아이디</th>
+									<td class="align-middle">
+										<div class="d-flex justify-content-between">
+											<input type="text" id="popupGroupId" class="form-control" style="width:80%;" placeholder="그룹아이디" data-validate-rule="{required:true}" data-alias="그룹ID">
+										</div>
+									</td>
+									<th class="align-middle">그룹구분</th>
+									<td class="align-middle">
+										<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="popupGroupDvCd" id="popupGroupDvCd"/>
+									</td>
+								</tr>
+								<tr>
+									<th class="align-middle">그룹명</th>
+									<td class="align-middle" colspan="4">
+										<input type="text" id="popupGroupNm" class="form-control" placeholder="그룹명" data-validate-rule="{}" data-alias="그룹명">
+									</td>
+								</tr>
+								<tr>
+									<th class="align-middle">설명</th>
+									<td class="align-middle" colspan="4">
+										<input type="text" id="popupDescCtnt" class="form-control" placeholder="그룹설명" data-validate-rule="{}" data-alias="그룹설명">
+									</td>
+								</tr>
+								<tr>
+									<th class="align-middle">표시순서</th>
+									<td class="align-middle">
+										<input type="text" id="popupRepstOrdr" class="form-control" style="width:80%;" placeholder="표시순서" data-validate-rule="{}" data-alias="표시순서">
+									</td>
+									<th class="align-middle">사용여부</th>
+									<td class="align-middle">
+										<select id="popupUseYn" name="popupUseYn" class="form-control new-mr10" data-validate-rule="{}" data-alias="사용여부">
+											<option value="Y">사용</option>
+											<option value="N">미사용</option>
+										</select>
+									</td>
+								</tr>								
+							</tbody>
+						</table>
+					</div>
+					<h6 class="h6">그룹ROLE 권한정보</h6>
+					<div class="container-fluid new-p15 border rounded new-mb20">
+						
+					</div>
+					<div style="text-align: right;">
+						<button type="submit" class="btn btn-primary new-mr10" id="popupAdmGroupFormBtn">등록</button>
+						<button type="button" class="btn btn-outline-primary new-mr10" onclick="closeASYAU11100()">닫기</button>
+					</div>
+				</div>
+			</form>
+			<!-- <div class="modal-footer" style="text-align: center;">
+                <button type="button" class="btn btn-outline-primary new-mr10">저장</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">닫기</button>
+            </div> -->
+		</div>
+	</div>
+</div>
+<!-- 팝업 영역 끝-->
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11103.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU11103.view
+ * 세부업무구분명 : 관리자 그룹 아이디중복체크팝업
+ * 프로그램명 : 관리자 그룹 아이디중복체크팝업
+ * 설명 : 관리자 그룹 아이디중복체크팝업
+ * 작성자 : 김상훈
+ * 작성일 : 2023-04-07
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         서예원            코드정리 1단계
+ * 2023/04/07         김상훈            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[	
+ $(document).ready(function(){ 
+	 $("#ASYAU11103").show();
+ })
+ 
+/* 사용자 삭제 팝업 닫기 */
+function closeASYAU11103(){
+	popup.closeLayerPopup();
+}
+//]]>
+</script>
+
+<!-- 아이디 중복체크 모달 -->
+<div class="modal fade modal-alert show"  id="ASYAU11103">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content" style="width: 500px;">
+			<div class="modal-header">
+		        <h5 class="modal-title">그룹ID 중복체크</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onClick="closeASYAU11103()">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+	     	</div>
+			<div class="modal-body d-flex text-center justify-content-center align-items-center p-5">
+				<table class="table table-borderless">
+					<colgroup>
+						<col style="width: 20%;">
+						<col style="width: 60%;">
+					</colgroup>
+					<tbody>
+						<tr style="height: 55px;" class="border-bottom">
+							<th class="text-left px-3" style="background-color: #20a973; color: white;" >아이디</th>
+							<td class="align-middle">
+								<input type="text" class="form-control" placeholder="GROUP_ID" value="" style="width:70%; display:inline-block; " id="checkGroupId" >&nbsp;
+								<button type="button" class="btn btn-primary" style="background-color: #20a973; color: white; flex:1;" onClick="checkGroupIdExist()">중복확인</button>
+							</td>
+						</tr>
+						<tr style="height: 55px;">
+							<th class="text-left px-3" style="background-color: #20a973; color: white;">확인결과</th>
+							<td class="align-middle" style="text-align:left; padding-left:18px;">
+								<span>
+									<strong id="checkedId"></strong>
+									<span id="checkedSpan"></span>
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer justify-content-center">
+				<button type="button" class="btn btn-primary" data-dismiss="modal" style="background-color: #20a973;" onClick="closeASYAU11103()">확인</button>&nbsp;
+				<button type="button" class="btn btn-primary" data-dismiss="modal" onClick="closeASYAU11103()">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11103.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11200.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU11200.frag
+ * 세부업무구분명 : 그룹 사용자 목록 팝업
+ * 프로그램명 : 그룹 사용자 목록 팝업
+ * 설명 : 그룹 사용자 목록 팝업 화면
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-19
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/19         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+var isDupCheck = false;
+//<![CDATA[
+	/******************************
+	* 화면 온로드 함수
+	*******************************/
+	$(document).ready(function(){
+		var groupId = "${groupId}";
+		$("#popupUserGroupId").val(groupId);
+		$("#popupUserGroupNm").val("${groupNm}");
+		$("#popupUserGroupDvCd").val("${groupDvCd}");
+		
+		//ASYAU11201(groupId);
+		
+		$('#modalASYAU11200').show();
+	});
+
+	/******************************
+	* 기능 함수
+	*******************************/
+	/* 그룹 사용자 목록 조회 */
+	function ASYAU11201(groupId){
+		var param = new Object();
+		param.groupId = groupId;
+		httpAjax('/admin/sy/au/ASYAU11201.json', param,
+				function(data){
+			  		console.log("성공");
+			  		console.log(data);		  		
+		  		});
+	}
+	
+	/* 그룹 사용자 목록 팝업 닫기 */
+	function closeASYAU11200(){
+		popup.closeLayerPopup();
+	}
+	
+//]]>
+</script>		
+
+<div class="modal fade show" id="modalASYAU11200" role="dialog">
+	<!-- .show, style="display: block"; :: 임시 값 -->
+	<!-- s: 20210607 간격 클래스 & 마크업 일괄 수정 -->
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content" style="width: 800px;">
+			<!-- 230113 publishing수정 : 모달에 디자인상 width값 인라인으로 넣음 -->
+			<div class="modal-header">
+				<h5 class="modal-title align-self-center">그룹 사용자 목록</h5>
+				<button type="button" class="btn btn-modal-close"
+					data-dismiss="modal" onclick="closeASYAU11200()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+						fill="#93949a" class="" viewBox="0 0 16 16">
+                        <path
+							d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z" />
+                    </svg>
+				</button>
+			</div>
+			<div class="modal-body">
+				<!-- <h6 class="h6">고객정보</h6> -->
+				<table class="table new-mb30 table-borderless">
+					<colgroup>
+						<col width="auto">
+						<col width="auto">
+						<col width="auto">
+						<col width="auto">
+						<col width="auto">
+						<col width="auto">
+					</colgroup>
+					<tbody>
+						<tr>
+							<th class="align-middle">그룹아이디</th>
+							<td class="align-middle">
+								<div class="d-flex justify-content-between">
+									<input type="text" id="popupUserGroupId" class="form-control" placeholder="그룹ID" disabled="disabled">
+								</div>
+							</td>
+							<th class="align-middle">그룹명</th>
+							<td class="align-middle">
+								<input type="text" id="popupUserGroupNm" class="form-control w300" placeholder="그룹명" disabled="disabled">
+							</td>
+							<th class="align-middle">그룹구분</th>
+							<td class="align-middle">
+								<input type="text" id="popupUserGroupDvCd" class="form-control new-mr10" placeholder="그룹구분" disabled="disabled">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+                <div class="container-fluid new-p15 border rounded new-mb20">
+               		<table class="table new-mb30 text-center table-bordered">
+						<colgroup>
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+							<col width="auto">
+						</colgroup>
+						<thead>
+							<tr class="thead-light">
+								<th>No.</th>
+								<th>사용자아이디</th>
+								<th>사용자명</th>
+								<th>소속</th>
+								<th>직위</th>
+								<th>사용자상태</th>
+								<th>내선번호</th>
+								<th>이메일</th>
+							</tr>
+						</thead>
+						<!-- 조회 목록 추가 위치 -->
+						<tbody id="userListTable"></tbody>
+					</table>
+               	</div>
+				<div style="text-align: center;">
+					<button type="button" class="btn btn-outline-primary new-mr10" onclick="closeASYAU11200()">닫기</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- e: 20210607 간격 클래스 & 마크업 일괄 수정 -->
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11400.jsp =====
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<!-- // 제목 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">관리자 그룹 관리</h4>
+
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 제목 // -->
+
+<table class="table new-mb30 table-bordered">
+	<colgroup>
+		<col style="width: 15%;">
+		<col style="width: 85%;">
+	</colgroup>
+	<tbody>
+		<tr>
+			<th class="align-middle">그룹ID</th>
+			<td class="align-middle">
+				<input type="text" id="groupId" class="form-control w300" readonly="true" placeholder="그룹ID" value="${result.groupId}">
+			</td>
+		</tr>
+		<tr>
+			<th class="align-middle">그룹명</th>
+			<td class="align-middle">
+				<input type="text" id="groupNm" class="form-control w300" placeholder="그룹명" value="${result.groupNm}">
+			</td>
+		</tr>
+		<tr>
+			<th class="align-middle">그룹구분</th>
+			<td class="align-middle">
+				<select id="groupDvCd" class="form-control new-mr10" style="width:160px">
+					<option value=""></option>
+					<c:forEach var="cd" items="${cdList}" varStatus="status">
+						<option value="${cd.cdVal}" <c:if test="${result.groupDvCd eq cd.cdVal}">selected</c:if>>${cd.cdNm}</option>
+					</c:forEach>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th class="align-middle">사용여부</th>
+			<td>
+				<div class="custom-control custom-radio custom-control-inline">
+					<input type="radio" id="useYn1" name="useYn" value="Y" class="custom-control-input"<c:if test="${result.useYn eq 'Y'}"> checked</c:if>>
+					<label class="custom-control-label" for="useYn1">사용</label>
+				</div>
+				<div class="custom-control custom-radio custom-control-inline">
+					<input type="radio" id="useYn2" name="useYn" value="N" class="custom-control-input"<c:if test="${result.useYn eq 'N'}"> checked</c:if>>
+					<label class="custom-control-label" for="useYn2">미사용</label>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<th>설명</th>
+			<td>
+				<textarea id="descCtnt" class="form-control" placeholder="그룹설명" rows="6">${result.descCtnt}</textarea>
+			</td>
+		</tr>
+		
+	</tbody>
+</table>
+
+<div class="text-center">
+	<button type="button" class="btn btn-outline-primary new-mr10" onclick="history.back();">취소</button>
+	<button type="button" class="btn btn-primary" onclick="editData();">등록</button>
+</div>
+
+<!-- jQuery -->
+<script src="/resources/jquery/jquery-2.2.4.min.js"></script>
+<script src="/resources/jquery/jquery-ui-1.12.1.min.js"></script>
+
+<script type="text/javascript">
+//<![CDATA[
+    function editData(){
+    	
+    	var editGroupId = $("#groupId").val();
+    	var editGroupNm = $("#groupNm").val();
+    	var editGroupDvCd = $("#groupDvCd option:selected").val();
+    	var editUseYn = $("input[name=useYn]:checked").val();
+    	var editDescCtnt = $("#descCtnt").val();
+    	
+    	if(util.isNul(editGroupNm)){
+    		alert("그룹명를 입력해주세요");
+    		$("#groupNm").focus();
+    		return;
+    	}
+    	if(util.isNul(editDescCtnt)){
+    		alert("그룹구분을 선택해주세요");
+    		console.log(editDescCtnt);
+    		$("#groupDvCd").focus();
+    		return;
+    	}
+    	if(util.isNul(editDescCtnt)){
+    		alert("그룹명를 입력해주세요");
+    		$("#descCtnt").focus();
+    		return;
+    	}
+
+		var jsonData = new Object();
+		jsonData.groupId = editGroupId;
+		jsonData.groupNm = editGroupNm;
+		jsonData.groupDvCd = editGroupDvCd;
+		jsonData.useYn = editUseYn;
+		jsonData.descCtnt = editDescCtnt;
+		console.log(JSON.stringify(jsonData));
+		
+		httpAjax('/admin/sy/au/ASYAU11201.json', jsonData, function(data){
+	  		console.log("그룹수정 수행");
+	  		console.log(data);
+	  		
+	  		if(data.result=='success'){
+	  			alert("[ 그룹ID : " + editGroupId + " ]를 수정 하였습니다.");
+	  			navigate('ASYAU11000.view');
+	  		}else{
+	  			console.log("그룹수정 fail");
+	  		}
+	  	});    	    	
+    	/*
+    	$.ajax({
+    		url : "/admin/group_mng/modify.json",
+    		type : "POST",
+    		dataType : "JSON",
+    		//contentType : "application/json",
+    		data : { 
+        		"groupId" : vGroupId,
+        		"groupNm" : vGroupNm,
+        		"groupDvCd" : vGroupDvCd,
+        		"useYn" : vUseYn,
+        		"descCtnt" : vDescCtnt
+    		},
+    		success : function(response){
+    			//todo
+    			console.log(response);
+    			alert("성공");
+    			location.href="/admin/group_mng/list.view";
+    		},
+    		error : function(err){
+    			alert("실패"+err);
+    			console.log(err);
+    		}
+    	});*/
+    }
+//]]>
+</script>			
+	
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU11400.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12000.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU12000.jsp
+ * 세부업무구분명 : 관리자 메뉴관리
+ * 프로그램명 : 관리자 메뉴관리
+ * 설명 : 관리자 메뉴관리 목록 조회 화면
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-13
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/13         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+/*********************************************************************/
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#searchGroupRoleForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();
+});
+
+ function init(){
+	 ASYAU20001();
+ }
+ /*********************************************************************
+ * 거래호출 
+ * function ASYAU20001(){ }
+/*********************************************************************/
+function ASYAU20001(){
+	var jsonData = new Object();
+
+	httpAjax('ASYAU20001.json', jsonData, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+		// 그룹목록 출력
+//  		fncGroupRoleList(data);
+  	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+/*********************************************************************/
+/**
+* 그룹목록 출력
+*/
+function fncGroupRoleList(data){
+	
+	var result = data.result.grid;
+	var html = "";
+	$("#tGroupRoleInfo").empty();
+	console.log(result.length);
+	
+	if(result.length > 0){
+		for(var i in result){
+			var obj = result[i];
+			
+			if(obj.groupDvCd != undefined && obj.groupNm != "" && obj.userId != 0){
+				html += '<tr class="text-center border-bottom">';
+				html += '	<td>' + Number(i)+1 + '</td>';
+				html += ' 	<td>' + obj.groupId + '</td>';				//그룹id
+				html += '	<td>' + obj.groupNm + '</td>';				//그룹명
+				html += '	<td><a href="javascript:popASEBZ10100(`'+obj.groupId+'`);">' + obj.groupDvCd + '</a></td>'; //그룹구분
+				html += '	<td>' + obj.descCtnt + '</td>';				//설명
+				html += '	<td>' + obj.repstOrdr + '</td>';			//표시순서
+				html += '	<td>' + obj.useYn + '</td>';			//사용여부
+				html += '	<td>' + "설정사용자수" + '</td>';			//설정사용자수
+				html += '</tr>';
+			}
+		}					
+	}else{	
+		html += '<tr><td colspan="8" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tGroupRoleInfo").append(html);	
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+/*********************************************************************/
+
+</script>
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex new-mb20 new-pb10 new-pl10 align-items-center border-bottom">
+	<h4 class="h4 mr-auto">그룹ROLE 관리</h4>	
+	<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+		  <path d="M6 12v-2h3v2H6z"/>
+		  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+		</svg>
+		엑셀 다운로드
+	</button>
+</div>
+
+<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+	<form method="post" id="searchGroupRoleForm" name="searchGroupRoleForm" class="col-12 align-center" autocomplete="off" onsubmit="f_searchListAdmMenu(this); return false;">
+		<table class="table mb-0 table-borderless">
+			<colgroup>	
+				<col style="width: 13%;">
+				<col style="width: 19%;">
+				<col style="width: 13%;">
+				<col style="width: 19%;">
+				<col style="width: 13%;">
+				<col style="width: 19%;">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="align-middle">그룹구분</th>
+					<td class="align-middle">					
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="srhGroupDvCd" id="srhGroupDvCd"/>
+					</td>
+					<th class="align-middle">그룹명/그룹ID</th>
+					<td class="align-middle">
+						<input type="text" class="form-control" placeholder="" id="srhGroupNmId" data-alias="그룹명">
+					</td>
+					<th class="align-middle">사용자명/사용자ID</th>
+					<td class="align-middle"> 
+                       <input type="text" class="form-control" placeholder="" id="srhUserNmId" data-alias="그룹명">
+                    </td>
+				</tr>
+			</tbody>						
+		</table>				
+	</form><!-- form -->
+</div>
+<div class="text-center new-mb40">
+	<button type="submit" class="btn btn-primary" id="" onClick="ASEBZ10001()" >조회</button>
+</div>
+			
+<!-- //상단 컨텐츠 -->
+<div class="text-right new-mb20">
+	<button class="btn color-01" onclick="popASYAU12200()">미등록URL현황</button>
+	<button type="button" class="btn btn-primary" id="" onClick="popASYAU12100()">신규등록</button>
+</div>
+				
+<!-- 하단 컨텐츠 -->			
+	<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUrl" class="table text-center new-mb30">
+		<thead>
+			<colgroup>
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+			</colgroup>
+			<tr class="thead-light">
+				<th>Idx</th>
+				<th>업무대분류</th>
+				<th>업무중분류</th>
+				<th>화면ID</th>
+				<th>화면명</th>
+				<th>화면구분</th>
+				<th>URL주소</th>
+				<th>메뉴표시여부</th>
+				<th>전체허용여부</th>
+				<th>민감정보포함</th>
+				<th>표시순서</th>
+				<th>사용여부</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>1</td>
+				<td>회원</td>
+				<td>회원약관</td>
+				<td>ASYAU10000</td>
+				<td>회원 목록</td>
+				<td>화면 일반</td>
+				<td>/biz/sy/au/ASYAU10000.view</td>
+				<td>Y</td>
+				<td>N</td>
+				<td>N</td>
+				<td>200</td>
+				<td>Y</td>
+			</tr>
+			</tbody>	
+		<!-- <tbody id="tMenuUrlInfo"></tbody> -->
+	</table>
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12100.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU12100.frag
+ * 세부업무구분명 : 관리자메뉴등록 및 수정 팝업
+ * 프로그램명 : 관리자메뉴등록 및 수정 팝업
+ * 설명 : 관리자메뉴등록 및 수정 팝업
+ * 작성자 : 김상훈
+ * 작성일 : 2023-04-18
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/18        김상훈            최초생성
+ */
+ %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+//<![CDATA[
+/*--------------------------------------------------------------------------------*/
+/* 로드/초기화                                                                    	  */
+/*--------------------------------------------------------------------------------*/	
+
+var arrData = new Object();				//전역변수세팅 상위화면거래
+var arrUpScrenTranId = new Object();	//전역변수세팅 상위화면거래 - 대분류코드
+
+$(document).ready(function(){		
+	var jsonData = new Object();
+
+	httpAjax('ASYAU12001.json', jsonData, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+  		arrData = data.result.grid;
+  		console.log(arrData);
+  		  		
+  		var arrDataSave  = []; //중복제거
+  		for (var i = 0; i<arrData.length; i++){
+  			if(!(arrDataSave.indexOf(arrData[i].upScrenTranId)>-1)){
+  				arrDataSave.push(arrData[i].upScrenTranId);
+  	  			$('#selectUpScrenTranId').append("<option value="+arrData[i].upScrenTranId+">"+arrData[i].upScrenTranId+"</option>")
+  			}		
+  		}
+  		
+  		$("#table-body select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+  		validation.initFormValidate(document.formASYAU12100); // jQuery.validator 초기화
+  		
+  		//@desc 파라미터가 있다면, 수정으로 노출 및 조회 로직 수행	
+  		var param = "";
+  		var screnTranId = `${screnTranId}`;
+  		
+  		if (screnTranId != ""){
+  			$('#screnTranId').val(screnTranId);
+  		}else{$("#screnTranId").attr("readOnly",false);}
+  		
+  		
+  		if (screnTranId != null && screnTranId != "") {	//screnTranId값이 전달되었을 경우
+  			$('#popInsertBtn').hide();
+  			$('#pageIdTitle').text('관리자메뉴 수정');
+  			param = `${screnTranId}`;	
+  			f_selectASYAU12101(param);			//상세 조회
+  		}else{
+  			$('#popUpdateBtn').hide();
+  			$('#pageIdTitle').text('관리자메뉴 등록');
+  		}
+  		
+  		$('#ASYAU12100').show();
+  	});
+	
+	
+})
+
+/*--------------------------------------------------------------------------------*/
+/* 기능 함수                                                                    	  */
+/*--------------------------------------------------------------------------------*/
+/*
+ * @desc 조회로직 - 수정으로 들어왔을 경우 호출
+ */
+function f_selectASYAU12101(screnTranId){
+	var param = {};
+	if (screnTranId != null) {
+		param = {screnTranId: screnTranId};
+	}
+	/*--------------------------------------------------------------------------------*/
+	/* httpAjax - 관리자메뉴정보 상세 조회	                                                  */
+	/*--------------------------------------------------------------------------------*/
+	httpAjax('/admin/sy/au/ASYAU12101.json', param, function(data){
+  		console.log("성공");
+  		console.log(data);
+  		
+  		if (data.result.grid){
+  			setUserInfo(data.result.grid)
+  		}
+  		
+	});
+}
+
+//정보 세팅
+function setUserInfo(user){
+	var admBzwkLclsCd = {value:user.upScrenTranId};
+	var admBzwkMclsCd = {value:user.admBzwkLclsCd};
+	
+	UpScrenTranId(admBzwkLclsCd);	
+	AdmBzwkLclsCd(admBzwkMclsCd);
+
+	document.querySelector('#selectUpScrenTranId').value = user.upScrenTranId;	//화면ID
+	document.querySelector('#selectadmBzwkLclsCd').value = user.admBzwkLclsCd;	//대분류
+	document.querySelector('#selectadmBzwkMclsCd').value = user.admBzwkMclsCd;	//중분류
+	
+	document.querySelector('#admBzwkLclsCd').value = user.admBzwkLclsCd;	//업무 대분류
+	document.querySelector("#admBzwkMclsCd").value = user.admBzwkMclsCd;	//업무 중분류
+	document.querySelector('#screnTranDvCd').value = user.screnTranDvCd;	//화면거래구분
+	//화면seq
+	//거래seq
+	document.querySelector('#screnTranNm').value = user.screnTranNm;		//화면명	
+	document.querySelector('#urlAddr').value = user.urlAddr;				//URL주소
+	document.querySelector('#descCtnt').value = user.descCtnt;		//설명
+	document.querySelector('#menuRepstYn').value = user.menuRepstYn;	//메뉴표시여부
+	
+	if(user.wholAllowYn == undefined){
+		user.wholAllowYn = "N";
+	}
+	document.querySelector('#wholAllowYn').value = user.wholAllowYn;	//전체허용여부
+	if(user.sstvInfoYn == undefined){
+		user.sstvInfoYn = "N";
+	}
+	document.querySelector('#sstvInfoYn').value = user.sstvInfoYn;	//민감정보포함
+	document.querySelector("#repstOrdr").value = user.repstOrdr;	//표시순서
+	document.querySelector('#useYn').value = user.useYn;			//사용여부
+}
+
+/*
+ * @desc 수정로직  
+ */
+function f_updateASYAU12100(){
+	// validation 체크
+	if (!validation.checkFormValidate(document.formASYAU12100)) {
+		return false;
+	}	
+	/* 수정하기 */
+	var updateUserObject = new Object();
+	
+	updateUserObject.screnTranId = $('#screnTranId').val();
+	updateUserObject.admBzwkLclsCd = $('#admBzwkLclsCd').val();
+	updateUserObject.admBzwkMclsCd = $('#admBzwkMclsCd').val();
+	updateUserObject.screnTranDvCd = $('#screnTranDvCd').val();
+	updateUserObject.screnTranNm = $('#screnTranNm').val();
+	updateUserObject.urlAddr = $('#urlAddr').val();
+	updateUserObject.descCtnt = $('#descCtnt').val();
+	updateUserObject.menuRepstYn = $('#menuRepstYn').val();
+	updateUserObject.wholAllowYn = $('#wholAllowYn').val();
+	updateUserObject.sstvInfoYn = $('#sstvInfoYn').val();
+	updateUserObject.repstOrdr = $('#repstOrdr').val();
+	updateUserObject.useYn = $('#useYn').val();
+	
+	console.log("updateUserObject",updateUserObject);
+	
+	httpAjax('/admin/sy/au/ASYAU12004.json', updateUserObject, function(data){
+  		console.log("성공");
+  		console.log(data);
+ 		fncASYAU12001();
+  		//팝업 종료
+  		closeASYAU12100();
+	});
+}
+
+/*   
+ * @desc 등록로직 
+ */
+function f_insertASYAU12100(){
+	console.log('insert')
+	// validation 체크
+	if (!validation.checkFormValidate(document.formASYAU12100)) {
+		return false;
+	}
+	
+	//팝업 종료
+	closeASYAU12100();
+}
+/*--------------------------------------------------------------------------------*/
+/* 팝업	                                                                    	  */
+/*--------------------------------------------------------------------------------*/
+/*
+ * @desc 팝업 닫기
+ */
+function closeASYAU12100(){
+	popup.closeLayerPopup();
+}
+/*
+ * @desc 관리자메뉴 팝업 onchanged 동작
+ */
+function UpScrenTranId(values){
+	console.log(values.value);
+	var arrDataSave = [];
+	$("#selectadmBzwkLclsCd").empty();
+	$("#selectadmBzwkLclsCd").removeAttr("disabled");
+	$("#selectadmBzwkMclsCd").empty();
+	$("#selectadmBzwkMclsCd").attr("disabled",true);
+	
+ 	arrUpScrenTranId=arrData.filter(function(arr){
+	return arr.upScrenTranId === values.value;
+	});
+	
+	for (var i=0; i<arrUpScrenTranId.length; i++){
+		if(!(arrDataSave.indexOf(arrUpScrenTranId[i].admBzwkLclsCd)>-1)){
+			arrDataSave.push(arrUpScrenTranId[i].admBzwkLclsCd);
+			$('#selectadmBzwkLclsCd').append("<option value="+arrUpScrenTranId[i].admBzwkLclsCd+">"+arrUpScrenTranId[i].admBzwkLclsCd+"</option>")
+			console.log($("#selectadmBzwkLclsCd").val(""));
+		}else{	
+		}
+		
+	}
+}
+
+/*
+ * @desc 관리자메뉴 팝업 onchanged 동작
+ */
+function AdmBzwkLclsCd(values){
+	console.log(values.value);
+	
+	var arrDataSave = [];
+	$("#selectadmBzwkMclsCd").empty();
+	$("#selectadmBzwkMclsCd").removeAttr("disabled");
+	var arrAdmBzwkLclsCd=arrUpScrenTranId.filter(function(arr){
+		return arr.admBzwkLclsCd === values.value;
+	});
+	
+	for (var i=0; i<arrAdmBzwkLclsCd.length; i++){
+		if(!(arrDataSave.indexOf(arrAdmBzwkLclsCd[i].admBzwkMclsCd)>-1)){
+			arrDataSave.push(arrAdmBzwkLclsCd[i].admBzwkMclsCd);
+			$('#selectadmBzwkMclsCd').append("<option value="+arrAdmBzwkLclsCd[i].admBzwkMclsCd+">"+arrAdmBzwkLclsCd[i].admBzwkMclsCd+"</option>")
+		}else{	
+		}
+		
+	}
+}
+
+	
+//]]>
+</script>
+
+<form method="post" id="formASYAU12100" name="formASYAU12100" class="col-12" autocomplete="off" onsubmit="f_searchListAdmUser(this); return false;">
+<div class="modal fade show" id="ASYAU12100" role="dialog">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content" style="width:1100px;">
+			<!-- Header -->
+			<div class="modal-header">
+				<h5 class="modal-title align-self-center mt-3" id="pageIdTitle">관리자메뉴 등록 및 수정</h5>
+				<button type="button" class="btn btn-icon" data-dismiss="modal" onClick="closeASYAU12100()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+						<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+					</svg>
+				</button>
+			</div>
+			
+			<!-- Body -->
+			<div class="modal-body">
+				<div class="container-fluid new-p15 border rounded new-mb20">
+					<!-- 내용 -->
+					<table class="table table-borderless mb-0">
+						<colgroup>
+							<col width="18%">
+                                  <col width="15%">
+                                  <col width="18%">
+                                  <col width="15%">
+                                  <col width="18%">
+                                  <col width="15%">
+						</colgroup>
+						<tbody id="table-body">
+							<tr>
+								<th class="require" style="width:200px; border-bottom: none;">상위화면거래</th>
+								<td colspan="5">		 								
+									 <%-- <u:formSelectStndCode cdGroupVal="UP_SCREN_TRAN_ID" name="upScrenTranId" id="upScrenTranId" /> --%> 
+									 <%-- <u:formSelectStndCode style="width:100%;" cdGroupVal="ADM_BZWK_MCLS_CD" name="upScrenTranId" id="upScrenTranId" /> --%>  
+									 <select style="width:910px;" class="form-control" name="selectUpScrenTranId" id="selectUpScrenTranId" onChange="UpScrenTranId(this)">													
+									 </select> 
+								</td>
+							</tr>
+							<tr>
+							    <th class="" style="border-bottom: none;"></th>
+								<td colspan="5" >
+							    	<select style="width:910px;" class="form-control" id="selectadmBzwkLclsCd" onChange="AdmBzwkLclsCd(this)" disabled >						    			
+									</select>
+								</td>
+							</tr>	
+							<tr>
+								<th class=""></th>
+								<td colspan="5">
+									<select style="width:910px;" class="form-control" id="selectadmBzwkMclsCd" disabled>						
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th class="" style="width:200px;" >화면거래아이디</th>
+								<td>
+									<input type="text" class="form-control input-clear" readOnly style="width:100%;" id="screnTranId"/>
+								</td>
+								<th class="text-end" >업무대분류</th>
+								<td>
+			                       <u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" name="admBzwkLclsCd" id="admBzwkLclsCd" />
+			                    </td>
+						
+					          	<th class="text-end" style="width:200px;" >업무중분류</th>
+								<td>
+			                       <u:formSelectStndCode cdGroupVal="ADM_BZWK_MCLS_CD" name="admBzwkMclsCd" id="admBzwkMclsCd" />
+			                    </td>
+							</tr>                              
+							<tr>
+								<th class="" style="width:200px;" >화면거래구분</th>
+								<td >
+                        			<u:formSelectStndCode style="width:100%;" cdGroupVal="SCREN_TRAN_DV_CD" name="screnTranDvCd" id="screnTranDvCd" />
+                     			</td>
+					          	<th class="" >화면SEQ</th>
+					          	<td><input type="text" class="form-control input-clear" value="200" style="width:100%;" /></td>
+								<th class="" >거래SEQ</th>
+								<td><input type="text" class="form-control input-clear" value="00" style="width:100%;"/></td>
+							</tr>
+		                                            
+			                <tr>
+			                    <th style="width:200px;">화면거래명</th>
+			                    <td colspan="5">
+			                       <input type="text" class="form-control input-clear" value="회원 목록" style="width: 910px;"  id="screnTranNm" />
+			                    </td>
+			                </tr>
+		                                            
+							<tr>
+		                       <th style="width:200px;">URL 주소</th>
+		                       <td colspan="5">
+		                          <input type="text" class="form-control input-clear" value="/biz/mb/mb/AMBMB20000.view" style="width: 910px;"  id="urlAddr" />
+		                       </td>
+		                    </tr>
+		                   
+		                    <tr>
+		                       <th style="width:200px;">설명</th>
+		                       <td colspan="5">
+		                          <input type="text" class="form-control input-clear" value="회원 목록 화면" style="width: 910px;"  id="descCtnt" />
+		                       </td>
+		                    </tr>
+		                                            
+							<tr>
+								<th style="width:200px;">메뉴표시여부</th>
+								<td>
+									<select style="width:100%;" class="form-control" id="menuRepstYn">
+									<option value="Y">표시</option>
+									<option value="N">미표시</option>
+									</select>
+					          	</td>
+					          	<th>전체허용여부</th>
+					          	<td>
+					          		<select style="width:100%;" class="form-control" id="wholAllowYn" >									    
+									    <option value="N">미허용</option>
+									    <option value="Y">허용</option>
+									</select>
+					          	</td>
+					          	<th>민감정보포함</th>
+					          	<td>
+					          		<select  style="width:100%;" class="form-control" id="sstvInfoYn">					          			
+									    <option value="N">미포함</option>
+									    <option value="Y">포함</option>									    
+									</select>
+					          	</td>
+							</tr>
+		                                            
+							<tr>
+								<th>표시순서</th>
+								<td>
+									<input type="text" class="form-control input-clear" value="200" style="width:100%;" id="repstOrdr" />
+								</td>
+								<th>사용여부</th>
+								<td colspan="3">
+									<select  style="width:100%;" class="form-control" id="useYn">
+									    <option value="Y">사용</option>
+										<option value="N">미사용</option>
+									</select>	
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<!-- /Body -->
+			
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-primary new-mr10" onClick="closeASYAU12100()">취소</button>
+				<button type="submit" class="btn btn-primary new-mr10" onClick="f_insertASYAU12100()" id="popInsertBtn">신규등록</button>
+				<button type="submit" class="btn btn-primary new-mr10" onClick="f_updateASYAU12100()" id="popUpdateBtn">수정완료</button>
+			</div>
+		</div>
+	</div>
+</div>
+</form>
+
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12200.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU12200.frag
+ * 세부업무구분명 : 관리자화면미등록URL현황 팝업
+ * 프로그램명 : 관리자화면미등록URL현황 팝업
+ * 설명 : 관리자화면미등록URL현황 팝업
+ * 작성자 : 김상훈
+ * 작성일 : 2023-04-18
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/18        김상훈            최초생성
+ */
+ %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[
+/*--------------------------------------------------------------------------------*/
+/* 로드/초기화                                                                    	  */
+/*--------------------------------------------------------------------------------*/	
+/* 관리자화면미등록URL현황 팝업 열기 */
+$(document).ready(function(){
+	$('#ASYAU12200').show();
+})
+
+/*--------------------------------------------------------------------------------*/
+/* 기능 함수                                                                    	  */
+/*--------------------------------------------------------------------------------*/
+/*
+ * @desc 조회로직1 - 항목이 없으면, '항목없음' 문구 출력
+ */
+ 
+ /*
+  * @desc 조회로직2 - 항목이 없으면, '항목없음' 문구 출력
+  */
+
+/*--------------------------------------------------------------------------------*/
+/* 팝업 닫기                                                                    	  */
+/*--------------------------------------------------------------------------------*/
+/* 관리자화면미등록URL현황 팝업 닫기 */
+function closeASYAU12200(){
+	popup.closeLayerPopup();
+}
+	
+//]]>
+</script>
+
+<div class="modal fade show" id="ASYAU12200" role="dialog">
+	<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content" style="width:800px;">
+		
+			<!-- Header -->
+			<div class="modal-header">
+				<h5 class="modal-title align-self-center mt-3">미등록URL현황</h5>
+				<button type="button" class="btn btn-icon" data-dismiss="modal" onClick="closeASYAU12200()">
+					<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+						<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"/>
+					</svg>
+				</button>
+			</div>
+			<!-- //Header -->
+			
+			<!-- Body -->
+			<div class="modal-body">
+				<!-- 화면거래에 등록되지 않은 URL -->
+				<p class="font-weight-bold" style="color:red;">▶ 화면거래에 등록되지 않은 URL </p>
+				<div class="border rounded new-mb20">
+					<div style="min-height:100px; max-height: 300px; overflow: scroll;">
+						<table class="col-12 new-p15 table table-borderless">
+							<thead>
+								<colgroup>
+									<col style="width: 10%;">
+									<col style="width: 30%;">
+									<col style="width: 60%;">
+								</colgroup>
+								<tr class="thead-light" height="30">
+									<th class="border-right text-center">No.</th>
+									<th class="border-right text-center">URL</th>
+									<th class="text-center">대상 프로그램(Controller)</th>
+								</tr>
+							</thead>
+							<tbody id="notRegistedUrl" ></tbody>
+						</table>
+					</div>
+				</div>
+				<!-- //화면거래에 등록되지 않은 URL -->
+				
+				<!-- 프로그램으로 구현되지 않은 URL -->
+				<p class="font-weight-bold" style="color:red;">▶ 프로그램으로 구현되지 않은 URL </p>
+				<div class="border rounded new-mb20">
+					<div style="min-height:100px; max-height: 300px; overflow: scroll;">
+						<table class="col-12 new-p15 table table-borderless overflow-auto">
+							<thead>
+								<colgroup>
+									<col style="width: 10%;">
+									<col style="width: 30%;">
+									<col style="width: 20%;">
+									<col style="width: 40%;">
+								</colgroup>
+								<tr class="thead-light" height="30">
+									<th class="border-right text-center">No.</th>
+									<th class="border-right text-center">URL</th>
+									<th class="border-right text-center">화면거래아이디</th>
+									<th class="text-center">화면거래명</th>
+								</tr>
+							</thead>
+							<tbody id="notDevelopedUrl"></tbody>
+						</table>
+					</div>
+				</div>
+				<!-- //프로그램으로 구현되지 않은 URL -->
+			</div>
+			<!-- //Body -->
+			
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline-primary new-mr10" onClick="closeASYAU12200()">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU12200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU13000.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU13000.jsp
+ * 세부업무구분명 : 뱅킹시스템 접근관리
+ * 프로그램명 : 뱅킹시스템 접근관리
+ * 설명 : 뱅킹시스템 접근관리 목록 조회 화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-24
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/24         이수진            최초생성
+ */
+ %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[
+//]]>
+</script>
+
+<div class="d-flex align-items-center justify-content-between border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="title-box d-flex align-items-center">
+		<h4 class="h4 mb-0">뱅킹 시스템접근관리</h4>
+
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid px-0">
+	<div class="row new-mb20">
+		<div class="container-fluid new-pl10">
+			<!-- 상단 컨텐츠 -->
+			<div class="align-items-center new-p20 new-mb20 new-mt20 rounded">
+				<div>
+					<!-- 조회 form -->
+					<form method="post" id="bankSystem" name="bankSystem" class="col-12 align-center" autocomplete="off" onsubmit="f_bankSystem(); return false;">
+						<table class="table table-borderless">
+							<colgroup>	
+								<col style="width: auto">
+								<col style="width: auto">
+								<col style="width: auto">
+								<col style="width: auto">
+							</colgroup>
+							<tr>
+		                     <th class="text-center">사용자ID</th>
+		                     <td class="align-middle new-pr90">
+		                        <input type="text" class="form-control" placeholder="" />
+		                     </td>
+		                     <th class="text-center">중분류</th>
+		                     <td class="align-middle new-pr90">
+		                        <input type="text" class="form-control" placeholder="" />
+		                     </td>
+		                  	</tr>
+						</table>			
+					</form><!-- form -->
+				</div>
+			</div>
+			<div class="text-center new-mb20">
+				<button type="submit" class="btn btn-lg btn-primary" id="searchBankSystem" >조회</button>
+			</div>
+			
+			<!-- //상단 컨텐츠 -->
+			<div class="text-center new-mb20">
+				<div class="text-right">
+					<button type="button" class="btn btn-lg btn-primary" id="btnLwprtMenuAdit" onClick="insertBankSystem()">등록</button>
+					<button type="button" class="btn btn-lg btn-outline-primary" id="btnLwprtMenuEdit" onClick="popBankSystem()">삭제</button>
+				</div>
+			</div>		
+			
+				
+			<!-- 하단 컨텐츠 -->
+			<div class="new-p10 new-mb20 rounded">
+				<!-- lists -->
+				<table class="table text-center new-mb30">
+					<thead>
+						<colgroup>
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+						</colgroup>
+						<tr class="thead-light" height="50">
+							<th class="text-center">번호</th>
+							<th class="text-center">상태</th>
+							<th class="text-center">사용자ID</th>
+							<th class="text-center">고객명</th>
+							<th class="text-center">마스터ID</th>
+							<th class="text-center">사용자IP</th>
+							<th class="text-center">비고</th>
+							<th class="text-center">중복로그인</th>
+							<th class="text-center">사용여부</th>
+						</tr>
+					</thead>
+					<tbody id="tBankSystem">
+						<tr>
+							<td class="ac">1</td>
+							<td>
+						    	<div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        	<input type="checkbox" class="custom-control-input" id="check1" /> 
+						        	<label class="custom-control-label" for="check1">&nbsp</label>
+						    	</div>
+							</td>
+							
+							<td class="ac">C901GCM500</td>
+							<td class="ac">김길순</td>
+							<td class="ac"></td>
+							<td class="ac"></td>
+							<td class="ac"></td>
+							<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>예</option>
+								<option>아니오</option>
+							</select></td>
+							<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>예</option>
+								<option>아니요</option>
+							</select></td>		
+						</tr>
+						<tr>
+							<td class="ac">2</td>
+							<td>
+						    	<div class="custom-control custom-checkbox custom-control-inline align-middle">
+						        	<input type="checkbox" class="custom-control-input" id="check2" /> 
+						        	<label class="custom-control-label" for="check2">&nbsp</label>
+						    	</div>
+							</td>
+							
+							<td class="ac">I901AAAAA</td>
+							<td class="ac">홍리나</td>
+							<td class="ac">I901AAAAA</td>
+							<td class="ac"></td>
+							<td class="ac"></td>
+							<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>예</option>
+								<option>아니오</option>
+							</select></td>
+							<td class="ac"><select class="form-control new-mr10" style="width: 80px;">
+								<option>예</option>
+								<option>아니요</option>
+							</select></td>		
+						</tr>
+					</tbody>
+				</table>
+				 <p style="text-align: right; font-size:8px; ">공통구현 이전 임시 paging처리</p>
+				    <!-- 임시항목-->
+				    
+				    <!-- pagination -->
+					<ul class="pagination justify-content-center" id="pagination">
+						<li class="page-item"><a class="page-link" href="">1</a></li>
+					</ul>
+					<!-- pagination -->          				
+			</div>
+			<!-- //하단 컨텐츠   -->
+		</div>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU13000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU14000.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU14000.jsp
+ * 세부업무구분명 : 긴급공지관리
+ * 프로그램명 : 긴급공지관리
+ * 설명 : 긴급공지관리 목록 조회 화면
+ * 작성자 : 이수진
+ * 작성일 : 2023-04-24
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/24         이수진            최초생성
+ */
+ %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+//<![CDATA[
+//]]>
+	
+</script>
+
+<div class="d-flex align-items-center justify-content-between border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="title-box d-flex align-items-center">
+		<h4 class="h4 mb-0">긴급공지관리</h4>
+
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid px-0">
+	<div class="row new-mb20">
+		<div class="container-fluid new-pl10">
+			<!-- 상단 컨텐츠 -->
+			<div class="align-items-center new-p20 new-mb20 new-mt20 rounded">
+				<div >
+				<!-- 조회 form -->
+				<form method="post" id="reqForm" name="reqForm" class="col-12 align-center" autocomplete="off" onsubmit="f_searchListEn(this); return false;">
+					<table class="table table-borderless mb-0">
+						<colgroup >	
+							<col style="width: 17%;">
+							<col style="width: 17%;">
+							<col style="width: 13%;">
+							<col style="width: 17%;">
+							<col style="width: 17%;">
+						</colgroup>
+						<tr>
+		                     <th class="text-center">시스템구분</th>
+		                     <td colspan = "2">
+		                        <select class="form-control" id="">
+									<option value="">전체</option>
+									<option value="Y">Yes</option>
+									<option value="N">No</option>
+								</select>
+		                     </td>
+		                     <th class="text-center">긴급공지유형</th>
+		                     <td>
+		                        <select class="form-control" id="">
+									<option value="">전체</option>
+									<option>정기PM</option>
+								</select>
+		                     </td>
+                 		</tr>
+						<tr>
+							<th class="text-center">게시일</th>
+							<td>
+								<select class="form-control" id="">
+									<option value="">전체</option>
+									<option>2017</option>
+									<option>2018</option>
+								</select>								
+							</td>
+							<td>
+							<select class="form-control" id="">
+									<option value="">전체</option>
+									<option>01</option>
+									<option>02</option>
+									<option>03</option>
+									<option>04</option>
+									<option>05</option>
+									<option>06</option>
+									<option>07</option>
+									<option>08</option>
+									<option>09</option>
+									<option>10</option>
+									<option>11</option>
+									<option>12</option>
+								</select>
+							</td>
+							
+							<th class="text-center">게시제목명</th>
+							<td class="form-control">
+		                        <input type="text" class="form-control" placeholder="" />
+		                     </td>
+							<th></th>
+							<td></td>
+						</tr>
+					</table>
+				
+				</form><!-- form -->
+				</div>
+			</div>
+			<div class="text-center new-mb20">
+				<button type="button" class="btn btn-lg btn-primary" id="" onClick="" >조회</button>
+			</div>
+			
+			<!-- //상단 컨텐츠 -->
+			<div class="text-center new-mb20">
+				<div class="text-right">
+					<button type="button" class="btn btn-lg btn-primary" id="btnLwprtMenuAdit" onClick="location.href='/admin/sy/au/ASYAU14100.view'">등록</button>
+				</div>
+			</div>		
+			
+				
+			<!-- 하단 컨텐츠 -->
+			<div class="new-p10 new-mb20 rounded">
+				<!-- lists -->
+				<table class="table text-center new-mb30">
+					<thead>
+						<colgroup>
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+						</colgroup>
+						<tr class="thead-light" height="50">
+							<th class="text-center">템플릿ID</th>
+							<th class="text-center">게시제목명</th>
+							<th class="text-center">공지유형</th>
+							<th class="text-center">게시기간</th>
+							<th class="text-center">게시여부</th>							
+						</tr>
+					</thead>
+					<tbody id="tBankSystem">
+						<tr>
+							<td class="ac">00000000002</td>						
+							<td class="ac">카카오기업뱅킹 서버 긴급 점검 안내</td>
+							<td class="ac">정기 PM</td>
+							<td class="ac">2017.02.20 19:17 ~ 2017.03.26 07:03</td>
+							<td class="ac">N</td>					
+						</tr>
+						<tr>
+							<td class="ac">00000000001</td>						
+							<td class="ac">카카오기업뱅킹 서버 긴급 점검 안내</td>
+							<td class="ac">정기 PM</td>
+							<td class="ac">2017.02.20 18:44 ~ 2017.03.26 06:44</td>
+							<td class="ac">N</td>	
+						</tr>
+					</tbody>
+				</table>
+				<!-- pagination -->
+					<ul class="pagination justify-content-center" id="pagination">
+						<li class="page-item"><a class="page-link" href="">1</a></li>
+					</ul>
+					<!-- pagination --> 
+			</div>
+			<!-- //하단 컨텐츠   -->
+		</div>
+	</div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU14000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU14100.jsp =====
+<%
+/**
+ * 시스템명 : /ADMIN/SY/AU/ASYAU14100.frag
+ * 세부업무구분명 : 긴급 공지 등록 및 수정 화면
+ * 프로그램명 : 긴급 공지 등록 및 수정
+ * 설명 : 긴급 공지 등록 및 수정 화면
+ * 작성자 : 서예원
+ * 작성일 : 2023-04-24
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/04/24         서예원            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+
+<script type="text/javascript">
+	/* 목록으로 이동 */
+	function openASYAU14000(){
+		navigate("ASYAU14000.view");
+	}
+	
+	/* 업로드된 이미지 파일 이름 보이기 */
+	function setFileName(value){
+		$('#imageFileName').val(value);
+	}
+</script>
+
+<!-- 제목 영역 시작 -->
+<div class="d-flex align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<h4 class="h4 mb-0">긴급 공지 등록</h4>
+
+	<div class="custom-control custom-checkbox custom-control-inline star">
+		<input type="checkbox" id="star01" class="custom-control-input">
+		<label for="star01" class="custom-control-label"></label>
+	</div>
+</div>
+<!-- 제목 영역 끝 -->
+
+<div class="new-p15 border rounded new-mb10">
+	<ul class="nav nav-tabs">
+		<li class="nav-item">
+			<a href="#tab1" class="nav-link active" data-toggle="tab">공지관리</a>
+		</li>
+		<li class="nav-item">
+			<a href="#tab2" class="nav-link" data-toggle="tab">공지설정</a>
+		</li>
+		<li class="nav-item">
+			<a href="#tab3" class="nav-link" data-toggle="tab">공지현황</a>
+		</li>
+	</ul>
+	
+	<div class="tab-content new-mt10">
+		<!-- 공지관리 탭의 내용 시작 -->
+		<div class="tab-pane active" id="tab1">
+			<div class="row new-mb20">
+				<div class="col-12 new-pr10">
+					<table class="table text-center new-mb30 ">
+						<colgroup>
+							<col width="15%">
+							<col width="*">
+						</colgroup>
+						<tbody>
+							<tr>
+								<th class="align-middle">긴급공지현황</th>
+								<td class="align-middle text-left">정기PM</td>
+							</tr>
+							<tr>
+								<th class="align-middle">게시여부</th>
+								<td class="align-middle text-left">
+									<div class="custom-control custom-radio">
+										<input type="radio" id="uploadYnManage1" name="uploadYnManage"class="custom-control-input" checked> 
+										<label class="custom-control-label" for="uploadYnManage1">사용</label>
+										<label></label>
+										<input type="radio" id="uploadYnManage2" name="uploadYnManage"class="custom-control-input"> 
+										<label class="custom-control-label" for="uploadYnManage2">미사용</label>
+									</div> 
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">기간</th>
+								<td class="align-middle">
+									<div class="input-daterange form-inline">
+										<div class="input-group new-mr5">
+											<input type="text" class="form-control" value="2017.05.11">
+											<div class="input-group-append">
+												<button class="btn btn-outline-primary" type="button">
+													<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="" viewBox="0 0 16 16">
+														<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+													</svg>
+												</button>
+											</div>
+										</div>
+										<input type="text" class="form-control new-w70" value="10:05">
+										<span class="hyphen"></span>
+										<div class="input-group new-mr5">
+											<input type="text" class="form-control" value="">
+											<div class="input-group-append">
+												<button class="btn btn-outline-primary" type="button">
+													<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="" viewBox="0 0 16 16">
+														<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+													</svg>
+												</button>
+											</div>
+										</div>
+										<input type="text" class="form-control new-w70" value="10:05">
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">공지문구사용여부</th>
+								<td>
+									<div class="custom-control custom-radio text-left">
+										<input type="radio" id="useYn1" name="useYn"class="custom-control-input" checked> 
+										<label class="custom-control-label" for="useYn1">사용</label>
+										<label></label>
+										<input type="radio" id="useYn2" name="useYn"class="custom-control-input"> 
+										<label class="custom-control-label" for="useYn2">미사용</label>
+									</div> 
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">게시제목명</th>
+								<td><input type="text" class="form-control" style="width:60%" value="정기PM 안내"></td>
+							</tr>
+							<tr>
+								<th class="align-middle">이미지</th>
+								<td>
+									<div class="custom-control custom-radio text-left">
+										<input type="text" class="form-control custom-control-inline" id="imageFileName" style="width:60%" readonly>
+										
+										<div class="text-center custom-control-inline">
+                                            <label class="form-control custom-control-inline new-w70" for="imageFile">파일찾기</label>
+                                            <input type="file" class="custom-file-input custom-control-inline" id="imageFile" onchange="setFileName(this.value)">
+                                        </div>
+									</div>
+								</td>
+							</tr>
+							<tr class="border-bottom">
+								<th class="align-middle">공지문구</th>
+								<td>
+									<div class="new-mb10 custom-control custom-radio text-left">
+										<input type="radio" id="top" name="customRadio"class="custom-control-input" checked> 
+										<label class="custom-control-label" for="top">상단</label>
+										<label></label>
+										<input type="radio" id="middle" name="customRadio"class="custom-control-input"> 
+										<label class="custom-control-label" for="middle">중앙</label>
+										<label></label>
+										<input type="radio" id="bottom" name="customRadio"class="custom-control-input"> 
+										<label class="custom-control-label" for="bottom">하단</label>
+									</div> 
+									<textarea name="" id="" cols="30" rows="4" class="form-control"></textarea>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center">
+						<button type="button" class="btn btn-outline-primary new-mr10" onclick="openASYAU14000()">목록</button>
+						<button type="button" class="btn btn-primary">저장</button>
+					</div>
+					<div class="text-center">
+						<button type="button" class="btn btn-outline-primary new-mr10" onclick="openASYAU14000()">목록</button>
+						<button type="button" class="btn btn-primary new-mr10">삭제</button>
+						<button type="button" class="btn btn-primary">수정</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- 공지관리 탭의 내용 끝 -->
+		
+		<!-- 공지설정 탭의 내용 시작 -->
+		<div class="tab-pane " id="tab2">
+			<div class="row new-mb20">
+				<div class="col-12 new-pr10">
+					<table class="table text-center new-mb30 ">
+						<colgroup>
+							<col width="15%">
+                            <col width="30%">
+                            <col width="15%">
+                            <col width="*">
+						</colgroup>
+						<tbody>
+							<tr>
+								<th class="align-middle">시스템구분</th>
+								<td class="align-middle text-left">
+									<select class="form-control">
+                                        <option>선택</option>
+                                    </select>
+								</td>
+								<th class="align-middle">긴급공지ID</th>
+								<td class="align-middle text-left">
+									<input type="text" class="form-control" style="width:60%" value="">
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">기간</th>
+								<td class="align-middle" colspan="3">
+									<div class="input-daterange form-inline">
+										<div class="input-group new-mr5">
+											<input type="text" class="form-control" value="2017.05.11">
+											<div class="input-group-append">
+												<button class="btn btn-outline-primary" type="button">
+													<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="" viewBox="0 0 16 16">
+														<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+													</svg>
+												</button>
+											</div>
+										</div>
+										<input type="text" class="form-control" value="10:05" style="width:70px">
+										<span class="hyphen"></span>
+										<div class="input-group new-mr5">
+											<input type="text" class="form-control" value="">
+											<div class="input-group-append">
+												<button class="btn btn-outline-primary" type="button">
+													<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="" viewBox="0 0 16 16">
+														<path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"></path>
+													</svg>
+												</button>
+											</div>
+										</div>
+										<input type="text" class="form-control new-w70" value="10:05">
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">게시여부</th>
+								<td class="align-middle text-left" colspan="3">
+									<div class="custom-control custom-radio">
+										<input type="radio" id="uploadYnSetting1" name="uploadYnSetting"class="custom-control-input" checked> 
+										<label class="custom-control-label" for="uploadYnSetting1">사용</label>
+										<label></label>
+										<input type="radio" id="uploadYnSetting2" name="uploadYnSetting"class="custom-control-input"> 
+										<label class="custom-control-label" for="uploadYnSetting2">미사용</label>
+									</div> 
+								</td>
+							</tr>
+							<tr>
+								<th class="align-middle">위치</th>
+								<td class="align-middle text-left">
+									<select class="form-control">
+                                        <option>메인페이지</option>
+                                    </select>
+								</td>
+								<th class="align-middle">공지순위</th>
+								<td><input type="text" class="form-control" style="width:60%" value="정기PM 안내"></td>
+							</tr>
+						</tbody>
+					</table>
+					<div class="text-center">
+						<button type="button" class="btn btn-outline-primary new-mr10" onclick="openASYAU14000()">목록</button>
+						<button type="button" class="btn btn-primary">저장</button>
+					</div>
+					<div class="text-center">
+						<button type="button" class="btn btn-outline-primary new-mr10" onclick="openASYAU14000()">목록</button>
+						<button type="button" class="btn btn-primary">수정</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- 공지설정 탭의 내용 끝 -->
+		
+		<!-- 공지현황 탭의 내용 시작 -->
+		<div class="tab-pane " id="tab3">
+			<div class="row new-mb20">
+				<div class="col-12 new-pr10">
+					<table class="table text-center new-mb30">
+						<colgroup>
+							<col style="width: auto;">
+							<col style="width: auto;">
+							<col style="width: auto;">
+						</colgroup>
+						<thead>
+							<tr class="thead-light">
+								<th>공지번호</th>
+								<th>게시기간</th>
+								<th>게시여부</th>
+							</tr>
+						</thead>
+						<!-- 조회 목록 추가 위치 -->
+						<tbody id="listTable">
+							<tr class="border-bottom">
+								<td class="align-middle">1837347189</td>
+								<td class="align-middle">2017.02.15 15:11  ∼ 2017.02.25 15:11 </td>
+								<td class="align-middle">N</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<!-- 공지현황 탭의 내용 끝 -->
+ 	 </div>
+</div>
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU14100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20000.jsp =====
+<%
+	/**
+	 * 시스템명 : 관리자시스템
+	 * 세부업무구분명 : 시스템 > 권한관리
+	 * 화면명 : 그룹ROLE 관리
+	 * 설명 : 각종 조건별 Admin 그룹ROLE 목록을 조회
+	 * 작성자 : 이수진
+	 * 작성일 : 2023-05-02
+	 * --------------------------------------------------------------------
+	 * Modification Information
+	 * --------------------------------------------------------------------
+	 * 수정일               수정자            수정내용
+	 * --------------------------------------------------------------------
+	 * 2023/05/02         이수진            최초생성
+	 */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언
+ * g_******
+ * gArr_****** 배열
+ *********************************************************************/
+var $groupDvCd = <u:commonCodeList cdGroupVal="GROUP_DV_CD" />; // 그룹구분코드
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){
+	$("#searchGroupRoleForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();
+});
+
+function init(){
+	ASYAU20001(); // 그룹ROLE 목록 조회
+}
+
+/*********************************************************************
+ * 거래호출
+ * function ASYAU20001(){ }
+ **********************************************************************/
+/**
+ * 그룹ROLE 목록 조회
+ */
+function ASYAU20001(pageInfo){
+	var jsonData = new Object();
+	if(pageInfo){
+		$.extend(jsonData, pageInfo);
+	}
+
+	jsonData.groupDvCd = $('#groupDvCd').val(); // 그룹구분
+	jsonData.groupIdOrNm = $('#groupIdOrNm').val(); // 그룹ID/그룹명
+
+	httpAjax('ASYAU20001.json', jsonData, function(data){
+		// 그룹목록 출력
+		fncGroupRoleList(data);
+		fncPagination(data.result);	// 페이징처리
+	});
+}
+
+/*********************************************************************
+ * 기능함수
+ * function fnc********(data){ }
+ **********************************************************************/
+/**
+ * 그룹목록 출력
+ */
+function fncGroupRoleList(data){
+
+	var result = data.result.grid;
+	var html = "";
+	$("#tGroupRoleInfo").empty();
+
+	if(result!=null && result.length > 0){
+		var idx = 1;
+
+		for(var i in result){
+			var obj = result[i];
+
+			if(obj.groupDvCd != undefined && obj.groupNm != "" && obj.userId != 0){
+				html += '<tr class="text-center border-bottom">';
+				html += '	<td>' + idx + '</td>';
+				html += ' 	<td>' + obj.groupId + '</td>';				//그룹id
+				html += '	<td><a href="javascript:popASYAU20100(`'+obj.groupId+'`);">' + obj.groupNm + '</a></td>';				//그룹명
+				html += '	<td>' + biz.getCodeName($groupDvCd, obj.groupDvCd) + '</td>'; //그룹구분
+				html += '	<td>' + util.nvl(obj.descCtnt, '') + '</td>';				//설명
+				html += '	<td>' + util.nvl(obj.repstOrdr, '') + '</td>';			//표시순서
+				html += '	<td>' + util.nvl(obj.useYn, '') + '</td>';			//사용여부
+				html += '	<td onClick="popASYAU20200(`'+obj.groupId+'`)">' + obj.userCount + '</td>';			//설정사용자수
+				html += '</tr>';
+
+				idx++;
+			}
+		}
+	} else {
+		html += '<tr><td colspan="8" class="text-center border-bottom">내용없음</td></tr>'
+	}
+
+	$("#tGroupRoleInfo").append(html);
+}
+
+/*
+ * @desc paging 처리
+ * @param {Object} pageInfo
+ */
+function fncPagination(result) {
+	var pageInfo = result.pageInfo;
+	//페이지네이션 추가 (공통 페이지네이션 처리)
+	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));
+}
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+
+	ASYAU20001(pageInfo);		//목록재조회
+}
+
+/*********************************************************************
+ * 화면호출 및 이동
+ * function popASYAU10100(){}  // moveASYAU10100
+ *********************************************************************/
+/**
+ * 그룹정보등록 팝업
+ */
+function popASYAU20100(groupId){
+	var jsonData = new Object();
+	jsonData.groupId = groupId;
+
+	popup.openLayerPopup('/admin/sy/au/ASYAU20100.frag', jsonData, null, function(result) {
+		if (result) {
+			ASYAU20001(); // 그룹ROLE 목록 조회
+		}
+	});
+}
+/**
+ * 그룹사용자목록 팝업
+ */
+function popASYAU20200(groupId){
+	var jsonData = new Object();
+	jsonData.groupId = groupId; // 그룹ID
+
+	popup.openLayerPopup('/admin/sy/au/ASYAU20200.frag', jsonData, null, function(result) {});
+}
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mr-auto">그룹ROLE 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<!-- <div class=" d-block">
+		<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+			  <path d="M6 12v-2h3v2H6z"/>
+			  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+			</svg>
+			엑셀 다운로드
+		</button>
+	</div> -->
+</div>
+
+<form method="post" id="searchGroupRoleForm" name="searchGroupRoleForm" class="col-12 align-center" autocomplete="off" onsubmit="ASYAU20001(); return false;">
+	<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+		<table class="table mb-0 table-borderless">
+			<colgroup>
+				<col style="width: 20%;">
+				<col style="width: 30%;">
+				<col style="width: 20%;">
+				<col style="width: 30%;">
+			</colgroup>
+			<tbody>
+			<tr>
+				<th class="align-middle text-center">그룹구분</th>
+				<td class="align-middle">
+					<u:formSelectStndCode cdGroupVal="GROUP_DV_CD" allOption="전체" name="groupDvCd" id="groupDvCd" style="width:180px"/>
+				</td>
+				<th class="align-middle text-center">그룹명/그룹ID</th>
+				<td class="align-middle">
+					<input type="text" class="form-control new-w180" placeholder="" id="groupIdOrNm" name="groupIdOrNm" data-alias="그룹명"/>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="text-center new-mb40">
+		<button type="submit" class="btn color-01" >조회</button>
+	</div>
+</form><!-- form -->
+
+<!-- //상단 컨텐츠 -->
+<div class="text-right new-mb20">
+	<button type="button" class="btn btn-primary" id="" onClick="popASYAU20100()">등록</button>
+</div>
+
+<!-- 하단 컨텐츠 -->
+<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUrl" class="table table-striped text-center new-mb30">
+		<thead>
+		<colgroup>
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+			<col style="width: auto;">
+		</colgroup>
+		<tr class="thead-light">
+			<th>No.</th>
+			<th>그룹ID</th>
+			<th>그룹명</th>
+			<th>그룹구분</th>
+			<th>설명</th>
+			<th>표시순서</th>
+			<th>사용여부</th>
+			<th>설정사용자수</th>
+		</tr>
+		</thead>
+		<tbody id="tGroupRoleInfo">
+		<!-- <tr>
+            <td>1</td>
+            <td>100</td>
+            <td>고객지원 일반</td>
+            <td>메인</td>
+            <td>고객지원 일반 사용자 그룹</td>
+            <td>10</td>
+            <td>Y</td>
+            <td onClick="popASYAU20200()">10</td>
+        </tr> -->
+		</tbody>
+	</table>
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYAU40001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20100.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템> 관리자> 그룹ROLE 관리
+ * 화면명 : 그룹ROLE 설정
+ * 설명 : Admin 그룹ROLE의 신규 등록 및 변경 기능 제공
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+**********************************************************************/
+var gArr_screnGroupList = []; // 그룹 화면 목록
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+*********************************************************************/
+$(document).ready(function(){ 
+	$("select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+});
+
+function init(){
+	var strGroupId = `${groupId}`;
+	
+	if(util.isNul(strGroupId)){
+		$("#popGroupId").attr("disabled", false);
+	}
+	
+	// 그룹ROLE 설정 조회
+	ASYAU20101(strGroupId);
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU10100(){ }
+**********************************************************************/
+/**
+ * 그룹ROLE 설정 조회
+**/
+function ASYAU20101(strGroupId){
+	var jsonData = new Object();
+	jsonData.groupId = strGroupId;
+	
+	httpAjax('ASYAU20101.json', jsonData, function(data){
+		console.log(data.result);
+		var result = data.result;
+		
+		if(!util.isNul(result)){
+			fncGroupEstbsInqireInfo(result);
+		}
+	});
+}
+
+/**
+ * 그룹ROLE 설정 조회
+**/
+function ASYAU20102(){
+	var strGroupId = $("#popGroupId").val(); // 그룹아이디
+	var strGroupDvCd = $("#popGroupDvCd").val(); // 그룹구분
+	var strGroupNm = $("#popGroupNm").val(); // 그룹명
+	var strDescCtnt = $("#popDescCtnt").val(); // 설명
+	var strRepstOrdr = $("#popRepstOrdr").val(); // 표시순서
+	var strUseYn = $("#popUseYn").val(); // 사용여부
+	
+	if(util.isNul(strGroupId)){
+		biz.showAlert("그룹아이디를 입력해주세요.");
+		return;
+	}
+	
+	if(util.isNul(popGroupDvCd)){
+		biz.showAlert("그룹구분을 선택해주세요.");
+		return;
+	}
+	
+	if(util.isNul(strGroupNm)){
+		biz.showAlert("그룹명을 입력해주세요.");
+		return;
+	}
+	
+	if(util.isNul(strUseYn)){
+		biz.showAlert("사용여부를 선택해주세요.");
+		return;
+	}
+	
+	var newScrenGroupList = new Array();
+	var screnCheckList = $("#jsTree").find('.jstree-clicked');
+	if(screnCheckList.length > 0){
+		for(var idx = 0 ; idx < screnCheckList.length ; idx++){
+			var screnTranId = screnCheckList[idx].getAttribute('id').replace('_anchor', '');
+
+			var obj = new Object();
+			obj.screnTranId = screnTranId;
+			obj.useYn = 'Y';
+			
+			newScrenGroupList.push(obj);
+		}
+	}
+
+	var grid = new Array();
+	$.each(gArr_screnGroupList, function(index, item){
+		var obj = new Object();
+		var oldUseYn = item.useYn;
+		var newUseYn = 'N';
+
+		var treeObj = $('#jsTree').jstree(true).get_node(item.screnTranId);
+		if(treeObj.state.selected){
+			newUseYn = 'Y';
+		}
+		
+		if(oldUseYn != newUseYn){
+			obj.groupId = strGroupId;
+			obj.screnTranId = item.screnTranId;
+			obj.useYn = newUseYn;
+			
+			grid.push(obj);
+		}
+		
+	});
+		
+	
+	var jsonData = new Object();
+	jsonData.groupId = strGroupId; // 그룹아이디
+	jsonData.groupDvCd = strGroupDvCd; // 그룹구분
+	jsonData.groupNm = strGroupNm; // 그룹명
+	jsonData.descCtnt = strDescCtnt; // 설명
+	jsonData.repstOrdr = strRepstOrdr; // 표시순서
+	jsonData.useYn = strUseYn; // 사용여부
+	jsonData.grid = grid; // 그룹권한 화면ID 목록
+	
+	console.log(jsonData);
+	
+	httpAjax('ASYAU20102.json', jsonData, function(data){
+		console.log(data.result);
+		
+		if(Number(data.result.processResult) > 0){
+			popup.closeLayerPopup(true);
+		}
+		
+	}, null, {
+		fragmentJSONRequest : true
+	});
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+**********************************************************************/
+/**
+ * 그룹ROLE 설정 정보 출력
+**/
+function fncGroupEstbsInqireInfo(data){
+	$("#popGroupId").val(data.groupId); // 그룹아이디
+	$("#popGroupDvCd").val(data.groupDvCd); // 그룹구분
+	$("#popGroupNm").val(data.groupNm); // 그룹명
+	$("#popDescCtnt").val(data.descCtnt); // 설명
+	$("#popRepstOrdr").val(data.repstOrdr); // 표시순서
+	$("#popUseYn").val(data.useYn); // 사용여부
+
+	var screnList = data.grid;
+	var screnCheckList = new Array();
+
+	$.each(data.grid2, function(index, item){
+		if(item.useYn == 'Y'){
+			screnCheckList.push(item.screnTranId);
+		}
+	});
+
+	// 그룹권한 리스트 추가
+	$.each(screnList, function(index, item){
+		var obj = new Object();
+		obj.screnTranId = item.screnTranId;
+		obj.upScrenTranId = item.upScrenTranId;
+		obj.screnTranNm = item.screnTranNm;
+
+		if(screnCheckList.indexOf(item.screnTranId) > -1) { // 그룹권한 있음
+			obj.useYn = "Y";
+		}else{
+			obj.useYn = "N";
+		}
+
+		gArr_screnGroupList.push(obj);
+	});
+
+	var arrData = new Array();
+	for(var idx in gArr_screnGroupList){
+		var obj = gArr_screnGroupList[idx];
+
+		// jsTree 체크 처리
+		var state = new Object();
+		state.opened = true;
+		if("Y" == obj.useYn) { // 그룹권한 있음
+			state.selected = true;
+		}else{
+			state.selected = false;
+		}
+
+		// jsTree 데이터 입력
+		var data = new Object();
+		data.id = obj.screnTranId;
+		data.parent = util.nvl(obj.upScrenTranId, "#");
+		data.text = obj.screnTranNm;
+		data.state = state;
+
+		arrData.push(data);
+	}
+
+	$("#jsTree").jstree({
+		"core": {
+			"data": arrData,
+			"checkbox": {
+				"keep_selected_style": false,  // default: false
+				"three_state": true,           // default: true
+				"whole_node": true             // default: true
+			},
+			"check_callback" : true
+		},
+		"checkbox" : {
+			'three_state': false
+		},
+		"plugins" : [
+			"checkbox",
+			"contextmenu",
+			"types",
+			"unique",
+			"changed"
+		]
+	})
+	.bind('select_node.jstree', function(e, data) {
+        //console.log(data);
+        $.each(data.node.children_d, function(i, item){
+            data.instance.select_node(item);
+		});
+	})
+	.bind('deselect_node.jstree', function(e, data) {
+        //console.log(data);
+        $.each(data.node.children_d, function(i, item){
+            data.instance.deselect_node(item);
+        });
+	});
+}
+
+/**
+ * 팝업 닫기
+**/
+function fncPopClose(){
+	popup.closeLayerPopup();
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+ *********************************************************************/
+</script>
+
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width:800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">그룹ROLE 설정</h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<h6 class="h6 new-pb10" style="color:tomato;">▶ 그룹ROLE 기본정보 </h6>
+				<div class="container-fluid px-0">
+					<table class="table table-borderless mb-10 text-center">
+						<thead>
+							<colgroup>
+								<col width="10%">
+								<col width="15%">
+								<col width="10%">
+								<col width="15%">
+								<col width="10%">
+								<col width="15%">
+							</colgroup>
+						</thead>
+						<tbody>
+							<tr>
+								<th class="align-middle">그룹아이디</th>
+								<td class="align-middle"><input id="popGroupId" class="form-control" value="" name="popGroupId" disabled/></td>
+								<th class="align-middle">그룹구분</th>
+								<td class="align-middle"><u:formSelectStndCode cdGroupVal="GROUP_DV_CD" name="popGroupDvCd" id="popGroupDvCd"/></td>																
+							</tr>
+							<tr>
+								<th class="align-middle">그룹명</th>
+								<td class="align-middle" colspan="5"><input id="popGroupNm" class="form-control" value="" name="popGroupNm" /></td>
+							</tr>
+							<tr>
+								<th class="align-middle">설명</th>
+								<td class="align-middle" colspan="5"><input id="popDescCtnt" class="form-control" value="" name="popDescCtnt" /></td>
+							</tr>
+							<tr>
+								<th class="align-middle">표시순서</th>
+								<td class="align-middle"><input id="popRepstOrdr" class="form-control" value="" name="popRepstOrdr" /></td>
+								<th class="align-middle">사용여부</th>
+								<td class="align-middle">
+									<select class="form-control" id="popUseYn" name="popUseYn">
+										<option value="Y">사용</option>
+										<option value="N">미사용</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>			
+					</table>
+				</div>
+			</div>
+			<div class="container-fluid new-p15 border rounded new-mb20">
+				<h6 class="h6 new-pb10" style="color:tomato;">▶ 그룹ROLE 권한 정보 </h6>
+				<div id="jsTree">
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button type="submit" class="btn btn-primary new-mr10" onclick="ASYAU20102()">확인</button>
+			<button type="button" class="btn btn-outline-primary new-mr10" onclick="fncPopClose()">닫기</button>
+		</div>
+	</div>
+</div>
+			
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20100.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20200.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템> 관리자> 그룹ROLE 관리
+ * 화면명 : 그룹ROLE 사용자 목록
+ * 설명 : 선택된 그룹ROLE에 속한 Admin 사용자 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+ *********************************************************************/
+var $admUserStusCd = <u:commonCodeList cdGroupVal="ADM_USER_STUS_CD" />; // 어드민사용자상태코드
+var $groupDvCd = <u:commonCodeList cdGroupVal="GROUP_DV_CD" />; // 그룹구분코드
+ 
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#popupSelectDocsForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();	
+});
+
+function init(){
+	var strGroupId = `${groupId}`;
+	
+	// 그룹ROLE 사용자 목록 조회
+	ASYAU20201(strGroupId);
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU20201(){ } // 그룹ROLE 사용자 목록 조회
+ *********************************************************************/
+/**
+ * 그룹ROLE 사용자 목록 조회
+ */
+function ASYAU20201(strGroupId){
+	var jsonData = new Object();
+	jsonData.groupId = strGroupId;
+	
+	httpAjax('ASYAU20201.json', jsonData, function(data){
+		console.log(data.result);
+		var result = data.result;
+		
+		if(!util.isNul(result)){
+			fncGroupcAdmUserInfo(result);
+		}
+	});
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+ *********************************************************************/
+/**
+ * 그룹 사용자 목록 출력
+ */
+function fncGroupcAdmUserInfo(data){
+	var result = data.grid;
+	var html = "";
+	$("#tGroupcAdmUserInfo").empty();
+	
+	
+	$("#popGroupId").val(data.groupId); // 그룹아이디
+	$("#popGroupNm").val(data.groupNm); // 그룹명
+	$("#popGroupDvCd").val(biz.getCodeName($groupDvCd, data.groupDvCd)); // 그룹구분코드
+	
+	
+	if(result!=null && result.length > 0){
+		var idx = 1;
+			
+		for(var i in result){
+			var obj = result[i];
+					
+			html += '<tr class="text-center border-bottom">';
+			html += '	<td>' + idx + '</td>'; // No.
+			html += '	<td>' + obj.userId + '</td>'; //  사용자아이디
+			html += '	<td>' + obj.userNm + '</td>';  // 사용자명
+			html += '	<td>' + util.nvl(obj.brofcCd, '미 등록') + '</td>'; // 소속
+//				html += '	<td>' + obj.groupId + '</td>'; // 직위
+			html += '	<td>' + biz.getCodeName($admUserStusCd, obj.admUserStusCd) + '</td>'; // 사용자상태
+			html += '	<td>' + obj.cpNo + '</td>'; // 휴대전화번호
+			html += '	<td>' + obj.email + '</td>'; // 이메일
+			html += '</tr>';
+				
+			idx++;
+		}					
+	}else{	
+		html += '<tr><td colspan="8" class="text-center border-bottom">내용없음</td></tr>'
+	}
+		
+	$("#tGroupcAdmUserInfo").append(html);	
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+ *********************************************************************/
+</script>
+<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+	<div class="modal-content" style="max-width: 800px;">
+		<div class="modal-header">
+			<h5 class="modal-title align-self-center">그룹ROLE사용자 목록 </h5>
+			<button type="button" class="btn btn-modal-close" data-dismiss="modal">
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#93949a" class="" viewBox="0 0 16 16">
+					<path d="M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z"></path>
+				</svg>
+			</button>
+		</div>
+		<div class="modal-body">
+			<!-- 사용자 정보 기입 영역 -->
+			<!-- 조회 form -->
+			<div class="container-fluid new-p15 border rounded new-mb20">
+			<div class="container-fluid new-pb10">
+				<form method="post" id="popupSelectDocsForm" name="popupSelectDocsForm" class="col-12 align-center" autocomplete="off" onsubmit="; return false;">
+					<table class="text-center">	
+						<colgroup>
+							<col width="13%">
+							<col width="17%">
+							<col width="13%">
+							<col width="*">
+							<col width="13%">
+							<col width="17%">								
+						</colgroup>
+						<tr class="new-pb10">
+							<th class="new-pr5">그룹아이디</th>
+							<td><input id="popGroupId" class="form-control" value="" name=""  readonly/></td>
+							<th class="new-pr5">그룹명</th>
+							<td><input id="popGroupNm" class="form-control flex-1" value="" name="" readonly /></td>	
+							<th class="new-pr5">그룹구분</th>
+							<td><input id="popGroupDvCd" class="form-control flex-1" value="" name="" readonly /></td>						
+						</tr>
+					</table>
+				</form>
+			</div>
+			<div class="container-fluid px-0">
+				<table class="table text-center new-mb30">
+				<colgroup>
+						<col width="5%">
+						<col width="13%">
+						<col width="10%">
+						<col width="*">
+						<!-- <col width="10%"> -->
+						<col width="13%">
+                		<col width="18%">
+                		<col width="15%">
+            		</colgroup>
+            		<thead>
+            			<tr class="thead-light">
+	            			<th>No.</th>
+	             			<th>사용자아이디</th>
+	             			<th>사용자명</th>
+	             			<th>소속</th>
+	             			<!-- <th>직위</th> -->
+	             			<th>사용자상태</th>
+	             			<th>휴대전화번호</th>
+	             			<th>이메일</th>
+	             		</tr>
+            		</thead>
+            		<tbody id="tGroupcAdmUserInfo">	             			
+	             	</tbody>
+            	</table>
+			</div>						
+		</div>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-primary" data-dismiss="modal">닫기</button>
+		</div>
+	</div>
+</div>
+
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU20200.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU30000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 권한관리
+ * 화면명 : 그룹ROLE 권한 관리
+ * 설명 : 그룹ROLE 별로 부여된 Admin 화면거래 권한 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+*********************************************************************/
+var $admBzwkLclsCd = <u:commonCodeList cdGroupVal="ADM_BZWK_LCLS_CD" />; // 업무대분류
+var $admBzwkMclsCd = <u:commonCodeList cdGroupVal="ADM_BZWK_MCLS_CD" />; // 업무중분류
+var $screnTranDvCd = <u:commonCodeList cdGroupVal="SCREN_TRAN_DV_CD" />; // 화면거래구분
+var $groupDvCd = <u:commonCodeList cdGroupVal="GROUP_DV_CD" />; // 그룹구분코드
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#searchGroupRoleForm select").removeClass('form-control').addClass('form-control');   //공통 select-option css 처리
+	init();
+});
+
+function init(){
+	ASYAU30001();
+}
+/*********************************************************************
+ * 거래호출 
+ * function ASYAU30001(){ }
+*********************************************************************/
+function ASYAU30001(pageInfo){
+	
+	var strGroupDvCd = $("#groupDvCd").val(); // 그룹구분코드
+	var strAdmBzwkLclsCd = $("#admBzwkLclsCd").val(); // 업무대분류
+	var strAdmBzwkMclsCd = $("#admBzwkMclsCd").val(); // 업무중분류
+	var strGroupIdOrNm = $("#groupIdOrNm").val(); // 그룹명/그룹ID
+	var strScrenIdOrNm = $("#screnIdOrNm").val(); // 화면거래명/화면거래ID
+	
+	var jsonData = new Object();
+	if(pageInfo != null){
+		$.extend(jsonData, pageInfo);
+	}
+	
+	jsonData.groupDvCd = strGroupDvCd; // 그룹구분코드
+	jsonData.admBzwkLclsCd = strAdmBzwkLclsCd; // 업무대분류
+	jsonData.admBzwkMclsCd = strAdmBzwkMclsCd; // 업무중분류
+	jsonData.groupIdOrNm = strGroupIdOrNm; // 그룹명/그룹ID
+	jsonData.screnIdOrNm = strScrenIdOrNm; // 화면거래명/화면거래ID
+	
+	httpAjax('ASYAU30001.json', jsonData, function(data){
+		console.log(data);
+
+		fncGroupRoleList(data); // 그룹목록 출력
+		fncPagination(data.result);	// 페이징처리
+	});
+}
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+ *********************************************************************/
+/**
+ * 그룹목록 출력
+ */
+function fncGroupRoleList(data){
+	
+	var result = data.result.grid;
+	var html = "";
+	$("#tGroupRoleInfo").empty();
+	
+	if(result!=null && result.length > 0){
+		
+		for(var i in result){
+			var obj = result[i];
+			
+			html += '<tr class="text-center border-bottom">';
+			html += '	<td>' + obj.num + '</td>';
+			html += ' 	<td>' + util.nvl(obj.groupId, '') + '</td>';				//그룹id
+			html += '	<td><a href="javascript:popASYAU20100(`'+obj.groupId+'`);">' + util.nvl(obj.groupNm, '') + '</a></td>';				//그룹명
+			html += '	<td>' + biz.getCodeName($groupDvCd, obj.groupDvCd) + '</td>'; //그룹구분
+			html += '	<td>' + util.nvl(obj.useYn, '') + '</td>';				//사용여부
+			html += '	<td>' + biz.getCodeName($admBzwkLclsCd, obj.admBzwkLclsCd) + '</td>';		//업무대분류
+			html += '	<td>' + biz.getCodeName($admBzwkMclsCd, obj.admBzwkMclsCd) + '</td>';		//업무중분류
+			html += '	<td>' + obj.screnTranId + '</td>';			//화면거래ID
+			html += '	<td><a href="javascript:popASYAU10200(`'+obj.screnTranId+'`);">' + obj.screnTranNm + '</a></td>';			//화면거래명
+			html += '	<td>' + biz.getCodeName($screnTranDvCd, obj.screnTranDvCd) + '</td>';		//화면거래구분
+			html += '	<td>' + obj.sstvInfoYn + '</td>';			//민감정보포함
+			html += '</tr>';
+		}
+	}else{	
+		html += '<tr><td colspan="11" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tGroupRoleInfo").append(html);	
+}
+
+ /*
+  * @desc paging 처리
+  * @param {Object} pageInfo
+  */
+ function fncPagination(result) {
+ 	var pageInfo = result.pageInfo;
+ 	//페이지네이션 추가 (공통 페이지네이션 처리)
+ 	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+ }
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+	ASYAU30001(pageInfo);							//목록재조회
+}
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+*********************************************************************/
+/**
+ * 그룹정보등록 팝업
+ */
+function popASYAU20100(groupId){
+	var jsonData = new Object();
+	jsonData.groupId = groupId; // 그룹구분코드
+	popup.openLayerPopup('ASYAU20100.frag', jsonData, null, function(result) {
+		return false;
+	});
+}
+ 
+/**
+ * 화면거래관리 설정 팝업
+ */
+function popASYAU10200(screnTranId){
+	var jsonData = new Object();
+	
+	if(screnTranId != null && screnTranId != ""){
+ 		jsonData.screnTranId = screnTranId;
+	}
+	
+	popup.openLayerPopup('/admin/sy/au/ASYAU10200.frag', jsonData, null, function(data) {
+		console.log(data);
+		var result = data.result;
+		if(result > 0){
+			ASYAU30001();
+		}
+	});
+}
+/**
+ * 그룹사용자목록 팝업
+ */
+function popASYAU30200(){
+	var jsonData = new Object();
+
+	var param = {}; //초기화
+	popup.openLayerPopup('popASYAU20200.frag', param, null, function(result) {
+		return false;
+	});
+}
+</script>
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mr-auto">그룹ROLE 권한 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<!-- <div class=" d-block">	
+		<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+			  <path d="M6 12v-2h3v2H6z"/>
+			  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+			</svg>
+			엑셀 다운로드
+		</button>
+	</div> -->
+</div>
+
+<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+	<form method="post" id="searchGroupRoleForm" name="searchGroupRoleForm" class="col-12 align-center" autocomplete="off" onsubmit="f_searchListAdmMenu(this); return false;">
+		<table class="table mb-0 table-borderless">
+			<colgroup>	
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="align-middle text-center">그룹구분</th>
+					<td class="align-middle">					
+						<u:formSelectStndCode cdGroupVal="GROUP_DV_CD" allOption="전체" name="groupDvCd" id="groupDvCd" style="width:180px"/>
+					</td>
+					<th class="align-middle text-center">업무대분류</th>
+					<td class="align-middle new-w180">
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_LCLS_CD" allOption="전체" name="admBzwkLclsCd" id="admBzwkLclsCd" style="width:180px"/>
+					</td>
+					<th class="align-middle text-center">업무중분류</th>
+					<td class="align-middle new-w180"> 
+						<u:formSelectStndCode cdGroupVal="ADM_BZWK_MCLS_CD" allOption="전체" name="admBzwkMclsCd" id="admBzwkMclsCd" style="width:180px"/>
+					</td>
+				</tr>
+				<tr>
+					<th class="align-middle text-center">그룹명/그룹ID</th>
+					<td class="align-middle new-w180">
+						<input type="text" class="form-control new-w180" placeholder="" id="groupIdOrNm" data-alias="그룹명/그룹ID">
+					</td>
+					<th class="align-middle text-center">화면거래명/화면거래ID</th>
+					<td class="align-middle new-w180"> 
+						<input type="text" class="form-control new-w180" placeholder="" id="screnIdOrNm" data-alias="화면거래명/화면거래ID">
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form><!-- form -->
+</div>
+<div class="text-center new-mb40">
+	<button type="submit" class="btn color-01" id="" onClick="ASYAU30001()" >조회</button>
+</div>
+				
+<!-- 하단 컨텐츠 -->			
+	<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUrl" class="table table-striped text-center new-mb30">
+		<thead>
+			<colgroup>
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+			</colgroup>
+			<tr class="thead-light">
+				<th>No.</th>
+				<th>그룹ID</th>
+				<th>그룹명</th>
+				<th>그룹구분</th>
+				<th>사용여부</th>
+				<th>업무대분류</th>
+				<th>업무중분류</th>
+				<th>화면거래ID</th>
+				<th>화면거래명</th>
+				<th>화면거래구분</th>
+				<th>민감정보포함</th>
+			</tr>
+		</thead>
+		<tbody id="tGroupRoleInfo">
+			<!-- <tr>
+				<td>1</td>
+				<td>100</td>
+				<td>고객지원 일반 사용자 그룹</td>
+				<td>사용자 그룹</td>
+				<td>Y</td>
+				<td>회원</td>
+				<td>회원관리</td>
+				<td>ASYAU10100</td>
+				<td>사용자 관리</td>
+				<td>화면 일반</td>
+				<td>N</td>
+			</tr> -->
+		</tbody>
+		<!-- <tbody id="tGroupRoleInfo"></tbody> -->
+	</table>
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYAU30001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU30000.jsp =====
+
+
+===== SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40000.jsp =====
+<%
+/**
+ * 시스템명 : 관리자시스템
+ * 세부업무구분명 : 시스템 > 권한관리
+ * 화면명 : 사용자 관리
+ * 설명 : 각종 조건별 Admin 관리자 목록을 조회
+ * 작성자 : 이수진
+ * 작성일 : 2023-05-02
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/05/02         이수진            최초생성
+ */
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/jsp/include/taglib_include.jsp"%>
+<script type="text/javascript">
+/*********************************************************************
+ * 전역변수 선언 
+ * g_****** 
+ * gArr_****** 배열
+ *********************************************************************/
+var $admUserStusCd = <u:commonCodeList cdGroupVal="ADM_USER_STUS_CD" />; // 어드민사용자상태코드
+
+/*******************************************************************
+ * 화면온로드
+ * function init(){ }
+ ********************************************************************/
+$(document).ready(function(){ 
+	$("#searchUserForm select").removeClass('form-control').addClass('form-control new-w180');   //공통 select-option css 처리
+	init();
+});
+
+function init(){
+	ASYAU40001();
+}
+
+/*********************************************************************
+* 거래호출 
+* function ASYAU40001(){ }
+*********************************************************************/
+function ASYAU40001(pageInfo){
+	var strAdmUserStusCd = $("#admUserStusCd").val(); // 사용자상태
+	var strGroupIdNm = $("#groupIdNm").val(); // 그룹ID/그룹명
+	var strUserIdNm = $("#userIdNm").val(); // 사용자ID/사용자명
+	
+	var jsonData = new Object();
+	if(pageInfo != null){
+		$.extend(jsonData, pageInfo);
+	}
+	
+	jsonData.admUserStusCd = strAdmUserStusCd; // 사용자상태
+	jsonData.groupIdNm = strGroupIdNm; // 그룹ID/그룹명
+	jsonData.userIdNm = strUserIdNm; // 사용자ID/사용자명
+
+	httpAjax('ASYAU40001.json', jsonData, function(data){
+		// 사용자목록 출력
+ 		fncUserList(data);
+ 		fncPagination(data.result);	// 페이징처리
+  	});
+}
+
+/*********************************************************************
+ * 기능함수 
+ * function fnc********(data){ }
+*********************************************************************/
+/**
+ * 사용자목록 출력
+ */
+function fncUserList(data){
+	
+	var result = data.result.grid;
+	var html = "";
+	$("#tUserInfo").empty();
+	
+	if(result.length > 0){
+		for(var i in result){
+			var obj = result[i];
+			
+			html += '<tr class="text-center border-bottom">';
+			html += '	<td>' + obj.num + '</td>';
+			html += ' 	<td><a href="javascript:popASYAU40100(`'+obj.userId+'`);">' + obj.userId + '</a></td>';				//아이디
+			html += '	<td><a href="javascript:popASYAU40100(`'+obj.userId+'`);">' + util.nvl(obj.userNm, '') + '</a></td>';				//이름
+			html += '	<td>' + biz.getCodeName($admUserStusCd, util.nvl(obj.admUserStusCd, '')) + '</td>';		//사용자상태
+			html += '	<td>' + util.nvl(obj.cpNo, '') + '</td>';					//전화번호
+			html += '	<td>' + util.nvl(obj.email, '') + '</td>';				//이메일
+			html += '	<td>' + util.nvl(obj.groupNm, '') + '</td>';				//그룹
+			html += '	<td>' + (obj.lginTmsp ? format.formatTimeStamp(new Date(obj.lginTmsp)) : '') + '</td>';		//최종로그인 일시
+			html += '	<td><a href="#none" class="btn btn-outline-primary" onclick="popASYAU40200(`'+obj.userId+'`, `' + util.nvl(obj.userNm, '') + '`);return false;">권한설정</a></td>';		//권한설정
+			html += '</tr>';
+		}
+	}else{	
+		html += '<tr><td colspan="10" class="text-center border-bottom">내용없음</td></tr>'
+	}
+	$("#tUserInfo").append(html);	
+}
+
+/*
+ * @desc paging 처리
+ * @param {Object} pageInfo
+ */
+function fncPagination(result) {
+	var pageInfo = result.pageInfo;
+	//페이지네이션 추가 (공통 페이지네이션 처리)
+	$("#pagination").empty().append(biz.getPageInfoHtml(result.pageInfo, "javascript:fncSearchNextPage('{0}')"));		
+}
+
+/*
+ * @desc 페이지 조회 로직
+ * @param {number} index
+ */
+function fncSearchNextPage(index){
+	//pageInfo 관련 설정
+	var pageInfo = {
+		page: parseInt(index)	//해당페이지로 이동
+	};
+	
+	ASYAU40001(pageInfo);		//목록재조회
+}
+
+/**
+ * @desc 엑셀 다운로드
+ */
+function exportExcel() {
+	navigate('ASYAU40002.excl', document.searchUserForm, { useProgress : false });
+}
+
+/*********************************************************************
+ * 화면호출 및 이동 
+ * function popASYAU10100(){}  // moveASYAU10100
+ *********************************************************************/
+// 등록/수정
+function popASYAU40100(userId){
+	var jsonData = new Object();
+	
+	if(!util.isNul(userId)){
+		jsonData.userId = userId;
+	}
+	
+	popup.openLayerPopup('/admin/sy/au/ASYAU40100.frag', jsonData, null, function(result) {
+		if (result) {
+			ASYAU40001();
+		}
+	});
+}
+
+// 권한 설정
+function popASYAU40200(id, nm){
+	var jsonData = new Object();
+	jsonData.userId = id;
+	jsonData.userNm = nm;
+	
+	popup.openLayerPopup('/admin/sy/au/ASYAU40200.frag', jsonData, null, function(result) {
+		return false;
+	});
+}
+</script>
+
+<!-- 여기부터 컨텐츠 -->
+<!-- 제목 영역 -->
+<div class="d-flex justify-content-between align-items-center border-bottom new-mb20 new-pb10 new-pl10">
+	<div class="form-inline">
+		<h4 class="h4 mr-auto">사용자 관리</h4>
+		<div class="custom-control custom-checkbox custom-control-inline star">
+			<input type="checkbox" id="star01" class="custom-control-input">
+			<label for="star01" class="custom-control-label"></label>
+		</div>
+	</div>
+	<div class=" d-block">	
+		<button type="button" class="btn  btn-primary" id="" onClick="exportExcel()">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet-fill" viewBox="0 0 16 16">
+			  <path d="M6 12v-2h3v2H6z"/>
+			  <path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0zM9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1zM3 9h10v1h-3v2h3v1h-3v2H9v-2H6v2H5v-2H3v-1h2v-2H3V9z"/>
+			</svg>
+			엑셀 다운로드
+		</button>
+	</div>
+</div>
+
+<form method="post" id="searchUserForm" name="searchUserForm" @class="col-12 align-center" autocomplete="off" onsubmit="ASYAU40001(); return false;">
+	<div class="new-mb30 new-px30 new-py10 bg-info rounded-lg">
+		<table class="table mb-0 table-borderless">
+			<colgroup>	
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+				<col style="width: 11%;">
+				<col style="width: 22%;">
+			</colgroup>
+			<tbody>
+				<tr>
+					<th class="text-center">사용자상태</th>
+					<td>
+						<u:formSelectStndCode cdGroupVal="ADM_USER_STUS_CD" allOption="전체" name="admUserStusCd" id="admUserStusCd" />
+					</td>
+					<th class="text-center">그룹ID/그룹명</th>
+					<td>
+						<input type="text" class="form-control new-w180" placeholder="" id="groupIdNm" name="groupIdNm" data-alias="그룹아이디/그룹명">
+					</td>
+					<th class="text-center">사용자ID/사용자명</th>
+					<td> 
+						<input type="text" class="form-control new-w180" placeholder="" id="userIdNm" name="userIdNm" data-alias="사용자아이디/사용명">
+					</td>
+				</tr>
+			</tbody>						
+		</table>				
+	</div>
+	<div class="text-center new-mb40">
+		<button type="submit" class="btn color-01" >조회</button>
+	</div>
+</form><!-- form -->
+
+<!-- //상단 컨텐츠 -->
+<div class="text-right new-mb20">
+	<button type="button" class="btn btn-primary" id="" onClick="popASYAU40100()">등록</button>
+</div>
+
+<!-- 하단 컨텐츠 -->			
+<!-- lists -->
+<div class="text-center new-mb40">
+	<table id="tMenuUrl" class="table table-striped text-center new-mb30">
+		<thead>
+			<colgroup>
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+				<col style="width: auto;">
+			</colgroup>
+			<tr class="thead-light">			
+				<th>No.</th>
+				<th>아이디</th>
+				<th>이름</th>
+				<th>사용자상태</th>
+				<th>전화번호</th>
+				<th>이메일</th>
+				<th>그룹</th>
+				<th>최종로그인 일시</th>
+				<th>기능</th>
+			</tr>
+		</thead>
+		<tbody id="tUserInfo">
+		</tbody>	
+	</table>
+	<!-- pagination -->
+	<ul class="pagination justify-content-center" id="pagination">
+		<li class="page-item"><a class="page-link" href="javascript:ASYAU40001();">1</a></li>
+	</ul>
+	<!-- pagination -->
+</div>
+<!-- //하단 컨텐츠   -->
+
+===== END SOURCE FILE: obix-admin/src/main/webapp/WEB-INF/jsp/admin/sy/au/ASYAU40000.jsp =====

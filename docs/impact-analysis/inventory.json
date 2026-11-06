@@ -1,0 +1,11 @@
+{
+  "tables": 29,
+  "foreign_keys": 19,
+  "java_classes": 426,
+  "java_methods": 1155,
+  "mapper_statements": 397,
+  "admin_screens": 46,
+  "controller_routes": 93,
+  "routes_with_table_trace": 47,
+  "xml_errors": []
+}

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민게시판내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmBulbdTxnDAO">
+			
+    <!--			
+    * Description : 어드민게시판내역 목록조회			
+    -->			
+    <select id="listAdmBulbdTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO">
+		/*AdmBulbdTxnDAO.listAdmBulbdTxn 어드민게시판내역 목록 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , BLPS_TITL	/* 게시글제목 */
+		     , BLPS_CTNT	/* 게시글내용 */
+		     , INQRY_NUM	/* 조회수 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BULBD_TXN	
+		 WHERE 1=1	
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시판내역 정보조회			
+    -->			
+    <select id="selectAdmBulbdTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO">
+		/*AdmBulbdTxnDAO.selectAdmBulbdTxn 어드민게시판내역 정보 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , BLPS_TITL	/* 게시글제목 */
+		     , BLPS_CTNT	/* 게시글내용 */
+		     , INQRY_NUM	/* 조회수 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BULBD_TXN	
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시판내역 등록			
+    -->			
+	<insert id="insertAdmBulbdTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO">
+		/*AdmBulbdTxnDAO.insertAdmBulbdTxn 어드민게시판내역 등록*/	
+		INSERT INTO ADM_BULBD_TXN	
+	       ( BULBD_ID ,	/* 게시판아이디 */
+		     BLPS_SEQNO ,	/* 게시글일련번호 */
+		     BLPS_TITL ,	/* 게시글제목 */
+		     BLPS_CTNT ,	/* 게시글내용 */
+		     INQRY_NUM ,	/* 조회수 */
+		     USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */	
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */	
+	       )		
+		VALUES ( #{bulbdId} ,	/* 게시판아이디 */
+	         #{blpsSeqno} ,	/* 게시글일련번호 */
+	         #{blpsTitl} ,	/* 게시글제목 */
+	         #{blpsCtnt} ,	/* 게시글내용 */
+	         #{inqryNum} ,	/* 조회수 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         SYSTIMESTAMP	/* 최초등록타임스탬프 */	
+	      )		
+	</insert>		
+			
+	<!--		
+    * Description : 어드민게시판내역 수정			
+    -->			
+	<update id="updateAdmBulbdTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO">
+		/*AdmBulbdTxnDAO.updateAdmBulbdTxn 어드민게시판내역 수정*/	
+		UPDATE ADM_BULBD_TXN 	
+		   SET	
+		   <if test='bulbdId != "" and bulbdId != null'> 	
+		       BULBD_ID = #{bulbdId} ,	/* 게시판아이디 */
+	       </if>	
+		   <if test='blpsSeqno != "" and blpsSeqno != null'> 	
+		       BLPS_SEQNO = #{blpsSeqno} ,	/* 게시글일련번호 */
+	       </if>	
+		   <if test='blpsTitl != "" and blpsTitl != null'> 	
+		       BLPS_TITL = #{blpsTitl} ,	/* 게시글제목 */
+	       </if>	
+		   <if test='blpsCtnt != "" and blpsCtnt != null'> 	
+		       BLPS_CTNT = #{blpsCtnt} ,	/* 게시글내용 */
+	       </if>	
+		   <if test='inqryNum != "" and inqryNum != null'> 	
+		       INQRY_NUM = #{inqryNum} ,	/* 조회수 */
+	       </if>	
+		   <if test='useYn != "" and useYn != null'> 	
+		       USE_YN = #{useYn} ,	/* 사용여부 */
+	       </if>	
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,
+		       LAST_CHNG_TMSP	 = SYSTIMESTAMP
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+	</update>		
+			
+	<!--		
+    * Description : 어드민게시판내역 삭제			
+    -->			
+	<delete id="deleteAdmBulbdTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO">
+		/*AdmBulbdTxnDAO.deleteAdmBulbdTxn 어드민게시판내역 삭제*/	
+		DELETE 	
+		  FROM ADM_BULBD_TXN 	
+		 WHERE 1=1
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+	</delete>		
+</mapper>			
+
+

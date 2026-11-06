@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>ObiX 관리 시스템</title>
+</head>
+<body style="margin:0;">
+<table style="width:720px; margin:30px auto; border-spacing:0; font-size:14px; font-family:'Malgun Gothic', Dotum, Gulim, Helvetica, Arial, sans-serif; line-height:1.4; color:#333;">
+    <tbody>
+    <tr style="height:550px;">
+        <td style="padding:0 56px; border:4px solid #060f33; vertical-align:top;">
+            <table style="width:600px; margin:0 auto; border-spacing:0;">
+                <tbody>
+                <tr>
+                    <td style="padding:42px 0 20px 0; font-size:26px; color:#b58943; line-height:1.35;">
+                        <p style="margin:0; font-weight:bold; letter-spacing:0;">ObiX 관리 시스템</p>
+                        <p style="margin:0;">비밀번호 재설정을 위한 승인번호 입니다.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:0; font-size:15px; font-weight:bold; line-height:1.55;">
+                        - 아래의 승인번호를 비밀번호 재설정을 위한 화면의 승인번호 란에 입력 바랍니다.<br />
+                        - 승인번호 : <span th:text="${approvalNum}"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

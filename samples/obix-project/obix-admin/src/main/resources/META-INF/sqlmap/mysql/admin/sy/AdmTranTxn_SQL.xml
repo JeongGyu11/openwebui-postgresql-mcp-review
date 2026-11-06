@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민사용자거래내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmTranTxnDAO">
+
+	<sql id="sqlAdmTranTxn" >
+			<choose>
+				<when test='"inqryDt".equals(inqDtDv)'>
+					<if test="inqDtSt != null and inqDtSt != ''">
+					   AND A.INQRY_DT <![CDATA[>=]]> #{inqDtSt}
+					</if>
+					<if test="inqDtEd != null and inqDtEd != ''">
+					   AND A.INQRY_DT <![CDATA[<=]]> #{inqDtEd}
+					</if>
+				</when>						
+				<when test='"lastChngTmsp".equals(inqDtDv)'>
+					<if test="inqDtSt != null and inqDtSt != ''">
+					   AND IFNULL(C.LAST_CHNG_TMSP, C.FRST_REGI_TMSP) <![CDATA[>=]]> DATE_FORMAT(#{inqDtSt}, '%Y%m%d%H%i%s.%f')
+					</if>
+					<if test="inqDtEd != null and inqDtEd != ''">
+				       AND IFNULL(C.LAST_CHNG_TMSP, C.FRST_REGI_TMSP) <![CDATA[<=]]> DATE_FORMAT(#{inqDtEd}, '%Y%m%d%H%i%s.%f')
+					</if>
+				</when>
+			</choose>
+			<if test="admBzwkLclsCd != null and admBzwkLclsCd != ''">
+				AND B.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd} 
+			</if>				
+			<if test="inqryRsnCd != null and inqryRsnCd != ''">
+				AND C.INQRY_RSN_CD = #{inqryRsnCd} 
+			</if>
+			<if test="screnTranNm != null and screnTranNm != ''">
+				AND B.SCREN_TRAN_NM LIKE CONCAT('%', #{screnTranNm}, '%')
+			</if>
+			<if test="userId != null and userId != ''">
+				AND A.USER_ID LIKE CONCAT('%', #{userId}, '%')
+			</if>
+	</sql>
+
+	<!--			
+	* Description : 어드민사용자거래내역 목록조회
+	-->
+	<select id="listAdmTranTxn" 
+		parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO"
+		resultType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO" >
+		<include refid="COMMON.pagingPreSQL" />
+		
+		/*AdmTranTxnDAO.listAdmTranTxn 어드민사용자거래내역 목록 조회 */
+	    SELECT
+		           A.INQRY_DT -- 조회일자
+		         , A.USER_ID -- 사용자아이디
+		         , (SELECT USER_NM FROM ADM_USER_BAS WHERE USER_ID = A.USER_ID) AS USER_NM
+		         , B.ADM_BZWK_LCLS_CD-- 어드민업무대분류코드
+		         , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_LCLS_CD' AND CD_VAL = B.ADM_BZWK_LCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_LCLS_CD_NM -- 어드민업무대분류
+		         , B.SCREN_TRAN_NM -- 화면거래명
+		         , B.SCREN_TRAN_ID -- 화면거래아이디
+		         , COUNT(A.USER_ID) AS INQRY_CNT -- 조회건수
+	      FROM ADM_TRAN_TXN A -- 어드민사용자거래내역
+	     INNER JOIN ADM_SCREN_TRAN_BAS B -- 어드민화면거래기본
+	          ON A.SCREN_TRAN_ID = B.SCREN_TRAN_ID   
+	    WHERE 1=1
+		<include refid="sqlAdmTranTxn" />
+	    GROUP BY A.INQRY_DT, A.USER_ID, B.SCREN_TRAN_ID, B.ADM_BZWK_LCLS_CD, B.SCREN_TRAN_NM
+	    ORDER BY A.INQRY_DT DESC, A.USER_ID, B.SCREN_TRAN_NM 
+		
+		<include refid="COMMON.pagingPostSQL" />	
+	</select>
+
+	<!--			
+	* Description : 어드민사용자거래내역 목록조회 엑셀
+	-->
+	<select id="listAllAdmTranTxn" 
+		parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO"
+		resultType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO" >
+		/*AdmTranTxnDAO.listAllAdmTranTxn 어드민사용자거래내역 목록 조회 엑셀 */
+	    SELECT
+		           A.INQRY_DT -- 조회일자
+		         , A.USER_ID -- 사용자아이디
+		         , (SELECT USER_NM FROM ADM_USER_BAS WHERE USER_ID = A.USER_ID) AS USER_NM
+		         , B.ADM_BZWK_LCLS_CD-- 어드민업무대분류코드
+		         , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_LCLS_CD' AND CD_VAL = B.ADM_BZWK_LCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_LCLS_CD_NM -- 어드민업무대분류
+		         , B.SCREN_TRAN_NM -- 화면거래명
+		         , B.SCREN_TRAN_ID -- 화면거래아이디
+		         , COUNT(A.USER_ID) AS INQRY_CNT -- 조회건수
+	      FROM ADM_TRAN_TXN A -- 어드민사용자거래내역
+	     INNER JOIN ADM_SCREN_TRAN_BAS B -- 어드민화면거래기본
+	          ON A.SCREN_TRAN_ID = B.SCREN_TRAN_ID   
+	    WHERE 1=1
+		<include refid="sqlAdmTranTxn" />
+	    GROUP BY A.INQRY_DT, A.USER_ID, B.SCREN_TRAN_ID, B.ADM_BZWK_LCLS_CD, B.SCREN_TRAN_NM
+	    ORDER BY A.INQRY_DT DESC, A.USER_ID, B.SCREN_TRAN_NM 
+	</select>
+
+	<!--			
+	* Description : 어드민사용자거래내역 검색목록 개수 조회 			
+	-->		
+	<select id="selectCountAdmTranTxn" parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO" resultType="Integer">
+		SELECT COUNT(*) AS TOTAL_COUNT
+		FROM (
+		    SELECT 1
+		      FROM ADM_TRAN_TXN A -- 어드민사용자거래내역
+		     INNER JOIN ADM_SCREN_TRAN_BAS B -- 어드민화면거래기본
+		          ON A.SCREN_TRAN_ID = B.SCREN_TRAN_ID   
+		    WHERE 1=1
+			<include refid="sqlAdmTranTxn" />
+		    GROUP BY A.INQRY_DT, A.USER_ID, B.SCREN_TRAN_ID, B.ADM_BZWK_LCLS_CD, B.SCREN_TRAN_NM
+		)
+	</select>
+
+	<!--
+	* Description : 어드민사용자거래내역 insert
+	-->
+	<insert id="insertAdmTranTxn"
+			parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO">
+	   INSERT INTO ADM_TRAN_TXN
+		(
+			  USER_ID
+			, INQRY_DT
+			, SCREN_TRAN_ID
+			, TRAN_OCCUR_TMSP
+			, CONN_IP
+			, URL_ADDR
+			, SSTV_INFO_YN
+		)
+	   VALUES
+		(
+			  #{userId}
+			, DATE_FORMAT(NOW(), '%Y%m%d')
+			, #{screnTranId}
+			, CURRENT_TIMESTAMP()
+			, #{connIp}
+			, #{urlAddr}
+			, #{sstvInfoYn}
+		)
+	</insert>
+
+</mapper>

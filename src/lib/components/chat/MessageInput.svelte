@@ -28,6 +28,14 @@
 	import { KokoroWorker } from '$lib/workers/KokoroWorker';
 
 	const dispatch = createEventDispatcher();
+	let refreshingDatabase = false;
+	const submitWhenReady = () => {
+		if (refreshingDatabase) {
+			toast.error('DB 최신 자료를 확인 중입니다. 완료 후 전송해 주세요.');
+			return;
+		}
+		dispatch('submit', prompt);
+	};
 
 	import {
 		type Model,
@@ -634,7 +642,7 @@
 	const createSkillHandler = async () => {
 		prompt = '/skills:create';
 		await tick();
-		dispatch('submit', prompt);
+		submitWhenReady();
 	};
 
 	const insertTextAtCursor = async (text: string) => {
@@ -1978,7 +1986,7 @@
 								focus({ preventScroll: true });
 
 								if ($settings?.speechAutoSend ?? false) {
-									dispatch('submit', prompt);
+									submitWhenReady();
 								}
 							}}
 						/>
@@ -1986,7 +1994,7 @@
 					<form
 						class="w-full flex flex-col gap-1.5 {recording ? 'hidden' : ''}"
 						on:submit|preventDefault={() => {
-							dispatch('submit', prompt);
+							submitWhenReady();
 						}}
 					>
 						<button
@@ -2402,7 +2410,7 @@
 																if (enterPressed) {
 																	e.preventDefault();
 																	if (prompt !== '' || files.length > 0) {
-																		dispatch('submit', prompt);
+																		submitWhenReady();
 																	}
 																}
 															}
@@ -2468,6 +2476,7 @@
 							<div class=" flex justify-between mt-0.5 mb-2 mx-0.5 max-w-full" dir="ltr">
 								<div class="ml-1 self-end flex items-center">
 									<InputMenu
+										bind:refreshingDatabase
 										onCompare={openComparison}
 										bind:files
 										selectedModels={selectedModelIds}
@@ -3015,7 +3024,7 @@
 															? 'bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-100 '
 															: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700 disabled'} transition rounded-full p-[0.3125rem] self-center"
 														type="submit"
-														disabled={prompt === '' && files.length === 0}
+														disabled={refreshingDatabase || (prompt === '' && files.length === 0)}
 													>
 														<svg
 															xmlns="http://www.w3.org/2000/svg"

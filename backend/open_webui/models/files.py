@@ -112,6 +112,8 @@ class FileForm(BaseModel):
 
 
 class FileUpdateForm(BaseModel):
+    filename: str | None = None
+    path: str | None = None
     hash: str | None = None
     data: dict | None = None
     meta: dict | None = None
@@ -335,6 +337,12 @@ class FilesTable:
             try:
                 result = await db.execute(select(File).filter_by(id=id))
                 file = result.scalars().first()
+
+                if form_data.filename is not None:
+                    file.filename = form_data.filename
+
+                if form_data.path is not None:
+                    file.path = form_data.path
 
                 if form_data.hash is not None:
                     file.hash = form_data.hash

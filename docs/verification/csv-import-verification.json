@@ -1,0 +1,16 @@
+[
+  {
+    "table": "products",
+    "filename": "postgresql-public.products.csv",
+    "rows": 3,
+    "csvDownload": "PASS",
+    "refreshSameId": "PASS"
+  },
+  {
+    "table": "company_documents",
+    "filename": "postgresql-public.company_documents.csv",
+    "rows": 3,
+    "csvDownload": "PASS",
+    "refreshSameId": "PASS"
+  }
+]

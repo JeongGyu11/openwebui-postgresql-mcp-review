@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 배치실행내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.BtchExeTxnDAO">
+
+    <!--
+    * Description : 배치기본 목록 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="listBtchBas"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchExeTxnDAO.listBtchBas 배치기본 조회 */
+		SELECT 
+		    BTCH_JOB_ID     /* 배치작업ID */
+		    ,BTCH_JOB_NM     /* 배치작업명 */
+		    ,BTCH_CYCL_CD     /* 배치주기코드 */
+		    ,BTCH_EXE_PGM_NM     /* 배치실행프로그램명 */
+		    ,BTCH_EXE_PRMT     /* 배치실행파라미터 */
+		    ,RE_EXE_POSBL_YN     /* 재실행가능여부 */
+		    ,BTCH_EXE_DESIG_DD     /* 배치실행지정일 */
+		    ,BTCH_JOB_TTM     /* 배치작업시간 */
+		    ,CRON_EXRS     /* CRON표현 */
+		    ,AUTO_EXE_YN     /* 자동실행여부 */
+		    ,DESC_CTNT     /* 설명내용 */
+		FROM BTCH_BAS
+		WHERE USE_YN = 'Y'
+        AND IFNULL(APLY_START_DT, DATE_FORMAT(NOW(), '%Y%m%d')) <![CDATA[ <= ]]> DATE_FORMAT(NOW(), '%Y%m%d')
+        AND IFNULL(APLY_END_DT, DATE_FORMAT(NOW(), '%Y%m%d')) <![CDATA[ >= ]]> DATE_FORMAT(NOW(), '%Y%m%d')
+    </select>
+
+    <!--
+    * Description : 배치기본 상세 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="selectBtchBas"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchExeTxnDAO.selectBtchBas 배치기본 상세 조회 */
+		SELECT 
+		    BTCH_JOB_ID     /* 배치작업ID */
+		    ,BTCH_JOB_NM     /* 배치작업명 */
+		    ,BTCH_CYCL_CD     /* 배치주기코드 */
+		    ,BTCH_EXE_PGM_NM     /* 배치실행프로그램명 */
+		    ,BTCH_EXE_PRMT     /* 배치실행파라미터 */
+		    ,RE_EXE_POSBL_YN     /* 재실행가능여부 */
+		    ,BTCH_JOB_TTM     /* 배치작업시간 */
+		    ,CRON_EXRS     /* CRON표현 */
+		    ,AUTO_EXE_YN     /* 자동실행여부 */
+		    ,DESC_CTNT     /* 설명내용 */
+		FROM BTCH_BAS
+		WHERE USE_YN = 'Y'
+		AND BTCH_JOB_ID = #{btchJobId}
+    </select>
+
+    <!--
+    * Description : 배치실행내역 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="listBtchExeTxn"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.listBtchExeTxn 배치실행내역 조회 */
+		SELECT 
+	         BTCH_EXE_SEQNO     /*배치실행일련번호*/
+	        ,BTCH_JOB_ID     /*배치작업ID*/
+	        ,BTCH_PRMT_VAL     /*배치파라미터값*/
+	        ,USER_ID     /*사용자아이디*/
+	        ,TAGET_TRT_CSCNT     /*대상처리건수*/
+	        ,BTCH_EXE_STUS_CD     /*배치실행상태코드*/
+	        ,BTCH_START_DTM     /*배치시작일시*/
+	        ,BTCH_FIN_DTM     /*배치완료일시*/
+	        ,SUCSS_YN     /*성공여부*/
+	        ,BTCH_ERR_CTNT     /*배치오류내용*/
+		FROM BTCH_EXE_TXN
+		WHERE 1=1
+		AND BTCH_JOB_ID = #{btchJobId}
+		AND BTCH_START_DTM BETWEEN (SUBSTR(#{btchStartDtm},1,8) || '000000') AND (SUBSTR(#{btchStartDtm},1,8) || '240000')
+		AND BTCH_START_DTM <![CDATA[ >= ]]> #{btchStartDtm}
+    </select>
+
+
+    <sql id="sqlBtchExeTxn">
+		  FROM BTCH_EXE_TXN	A
+			  LEFT OUTER JOIN BTCH_BAS B
+			  ON A.BTCH_JOB_ID = B.BTCH_JOB_ID
+          WHERE 1=1
+		<if test="btchExeStusCd !='' and btchExeStusCd != null">
+			AND A.BTCH_EXE_STUS_CD = ${btchExeStusCd}
+		</if>
+		<if test='btchJobNm !=null  and btchJobNm !=""'>
+			AND (BTCH_JOB_NM LIKE CONCAT('%', #{btchJobNm},'%') OR A.BTCH_JOB_ID LIKE CONCAT('%', #{btchJobNm},'%'))
+		</if>
+		<if test='btchStartDtm!=null and btchStartDtm!="" and btchFinDtm!=null and btchFinDtm != "" and dateClassification=="exeDate"'>
+			AND A.BTCH_START_DTM BETWEEN #{btchStartDtm} AND #{btchFinDtm}
+		</if>
+		<if test='btchStartDtm!=null and btchStartDtm!="" and btchFinDtm!=null and btchFinDtm != "" and dateClassification=="endDate"'>
+			AND A.BTCH_FIN_DTM BETWEEN #{btchStartDtm} AND #{btchFinDtm}
+		</if>
+    </sql>
+
+    <!--			
+    * Description : 배치실행이력 목록조회			
+    * TODO : '배치실행상태'를 제외한 나머지 검색 조건 적용 필요
+    -->
+    <select id="selectListBtchExeTxn"
+    	parameterType="kr.fasol.obix.admin.dto.biz.sy.BtchExeTxnQryDTO"
+    	resultType="kr.fasol.obix.admin.dto.biz.sy.BtchExeTxnQryDTO">
+    	
+    	/*BtchExeTxnDAO.selectListBtchExeTxn 배치실행내역 목록 조회 */
+    	<include refid="COMMON.pagingPreSQL" />
+		SELECT A.BTCH_EXE_SEQNO	/* 배치실행일련번호 */
+		     , A.BTCH_JOB_ID	/* 배치작업ID */
+		     , A.BTCH_PRMT_VAL	/* 배치파라미터값 */
+		     , A.USER_ID	/* 사용자아이디 */
+		     , A.TAGET_TRT_CSCNT	/* 대상처리건수 */
+		     , A.BTCH_EXE_STUS_CD	/* 배치실행상태코드 */
+		     , A.BTCH_START_DTM	/* 배치시작일시 */
+		     , A.BTCH_FIN_DTM	/* 배치완료일시 */
+		     , A.SUCSS_YN	/* 성공여부 */
+		     , A.BTCH_ERR_CTNT	/* 배치오류내용 */
+		     , B.BTCH_JOB_NM /* 배치작업명 */
+		     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'BTCH_EXE_STUS_CD' AND CD_VAL = A.BTCH_EXE_STUS_CD AND USE_YN = 'Y') BTCH_EXE_STUS_NM
+    	<include refid="sqlBtchExeTxn" />
+    	ORDER BY A.BTCH_EXE_SEQNO DESC
+    	<include refid="COMMON.pagingPostSQL" />
+    </select>
+
+    <!--			
+    * Description : 배치실행이력 목록 개수 조회			
+    -->
+    <select id="selectCountBtchExeTxn" parameterType="kr.fasol.obix.admin.dto.biz.sy.BtchExeTxnQryDTO" resultType="Integer">
+    	SELECT COUNT(*) AS totalCount
+    	<include refid="sqlBtchExeTxn" />
+    </select>	
+    
+    <!--			
+    * Description : 배치실행내역 정보조회			
+    -->			
+    <select id="selectBtchExeTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.selectBtchExeTxn 배치실행내역 정보 조회 */	
+		SELECT BTCH_EXE_SEQNO	/* 배치실행일련번호 */
+		     , BTCH_JOB_ID	/* 배치작업ID */
+		     , BTCH_PRMT_VAL	/* 배치파라미터값 */
+		     , USER_ID	/* 사용자아이디 */
+		     , TAGET_TRT_CSCNT	/* 대상처리건수 */
+		     , BTCH_EXE_STUS_CD	/* 배치실행상태코드 */
+		     , BTCH_START_DTM	/* 배치시작일시 */
+		     , BTCH_FIN_DTM	/* 배치완료일시 */
+		     , SUCSS_YN	/* 성공여부 */
+		     , BTCH_ERR_CTNT	/* 배치오류내용 */
+		  FROM BTCH_EXE_TXN	
+		 WHERE 1=1	
+		   AND BTCH_EXE_SEQNO = #{btchExeSeqno}	/* 배치실행일련번호 */
+		   AND BTCH_JOB_ID = #{btchJobId}	/* 배치작업ID */
+    </select>			
+    			
+    <!--			
+    * Description : 배치실행내역 등록			
+    -->			
+	<insert id="insertBtchExeTxn" parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.insertBtchExeTxn 배치실행내역 등록*/
+		INSERT INTO BTCH_EXE_TXN	
+	       ( BTCH_JOB_ID ,	/* 배치작업ID */
+		     BTCH_PRMT_VAL ,	/* 배치파라미터값 */
+		     USER_ID ,	/* 사용자아이디 */
+		     TAGET_TRT_CSCNT ,	/* 대상처리건수 */
+		     BTCH_EXE_STUS_CD ,	/* 배치실행상태코드 */
+		     BTCH_START_DTM ,	/* 배치시작일시 */
+		     BTCH_FIN_DTM ,	/* 배치완료일시 */
+		     SUCSS_YN ,	/* 성공여부 */
+		     BTCH_ERR_CTNT	/* 배치오류내용 */
+	       )
+		VALUES (
+	         #{btchJobId} ,	/* 배치작업ID */
+	         #{btchPrmtVal} ,	/* 배치파라미터값 */
+	         #{userId} ,	/* 사용자아이디 */
+	         #{tagetTrtCscnt} ,	/* 대상처리건수 */
+	         #{btchExeStusCd} ,	/* 배치실행상태코드 */
+	         #{btchStartDtm} ,	/* 배치시작일시 */
+	         #{btchFinDtm} ,	/* 배치완료일시 */
+	         #{sucssYn} ,	/* 성공여부 */
+	         #{btchErrCtnt}	/* 배치오류내용 */
+	      )		
+	</insert>		
+
+	<!--		
+    * Description : 배치실행내역 수정			
+    -->			
+	<update id="updateBtchExeTxn" parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.updateBtchExeTxn 배치실행내역 수정*/	
+		UPDATE BTCH_EXE_TXN 	
+		   SET
+		       BTCH_PRMT_VAL = #{btchPrmtVal} ,
+		       USER_ID = #{userId} ,
+		       TAGET_TRT_CSCNT = #{tagetTrtCscnt} ,
+		       BTCH_EXE_STUS_CD = #{btchExeStusCd} ,
+		       BTCH_FIN_DTM = #{btchFinDtm} ,
+		       SUCSS_YN = #{sucssYn} ,
+		       BTCH_ERR_CTNT = #{btchErrCtnt}
+		 WHERE 1=1
+		   AND BTCH_EXE_SEQNO = #{btchExeSeqno}	/* 배치실행일련번호 */
+		   AND BTCH_JOB_ID = #{btchJobId}	/* 배치작업ID */
+			
+	</update>
+
+	<!--		
+    * Description : 배치실행내역 삭제			
+    -->			
+	<delete id="deleteBtchExeTxn" parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.deleteBtchExeTxn 배치실행내역 삭제*/	
+		DELETE 	
+		  FROM BTCH_EXE_TXN 	
+		 WHERE 1=1	
+		   AND BTCH_EXE_SEQNO = #{btchExeSeqno}	/* 배치실행일련번호 */
+		   AND BTCH_JOB_ID = #{btchJobId}	/* 배치작업ID */
+	</delete>		
+
+</mapper>

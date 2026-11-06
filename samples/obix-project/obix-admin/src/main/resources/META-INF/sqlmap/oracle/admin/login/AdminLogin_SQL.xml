@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : Admin 로그인
+-->
+<mapper namespace="kr.fasol.obix.admin.dao.admin.login.AdminLoginDAO">
+
+	<!--
+	*******************************************
+	* 로그인
+	*******************************************
+	-->
+
+    <!--
+    * Description : 로그인 사용자조회
+	* Create : 2023-03-17	정영탁	최초생성
+    -->
+    <select id="selectAdmUserBasByAuth"
+            parameterType="kr.fasol.obix.admin.dto.biz.cm.AdmUserBasSesDTO"
+            resultType="kr.fasol.obix.admin.dto.biz.cm.AdmUserBasSesDTO">
+		/*AdminLoginDAO.selectAdmUserBasByAuth 로그인 사용자조회 */
+		SELECT
+			   A.USER_ID
+			 , A.DESIG_IP
+			 , A.USER_PWD
+			 , A.ADM_USER_STUS_CD
+			 , A.USER_NM
+			 , A.CP_NO
+			 , A.EMAIL
+			 , A.BROFC_CD
+			 , A.LAST_PWD_CHNG_DT
+			 , A.PWD_ERR_NOTMS
+		  FROM ADM_USER_BAS A
+		 WHERE A.USER_ID = #{userId}
+    </select>
+
+
+	<!--
+	* Description : 로그인 이력 저장
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmLginTxn"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmLginTxnDTO">
+	   INSERT INTO ADM_LGIN_TXN
+			  (
+			  USER_ID
+			, LGIN_TMSP
+			, ADM_LGIN_RSLT_CD
+			, CONN_IP
+			  )
+	   VALUES (
+			  #{userId}
+			, SYSTIMESTAMP
+			, #{admLginRsltCd}
+			, #{connIp}
+			  )
+	</insert>
+	
+	<!--
+	* Description : 로그인 비밀번호 오류횟수 update
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<update id="updateAdmUserBasPwdErr"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		  SET PWD_ERR_NOTMS = (SELECT COALESCE(PWD_ERR_NOTMS, 0)+1 
+		 					   FROM ADM_USER_BAS
+		 					   WHERE USER_ID = #{userId})		
+				,LAST_CHNG_USER_ID = 'SYSTEM'
+				,LAST_CHNG_TMSP = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}  
+	</update>
+	<!-- 
+	* 비밀번호 오류횟수 0으로 초기화
+	* Create : 2023-03-17	정영탁	최초생성
+	 -->
+	<update id="updateAdmUserBasPwdInit"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		  SET PWD_ERR_NOTMS = 0
+				,LAST_CHNG_USER_ID = #{userId}
+				,LAST_CHNG_TMSP = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}  
+	</update>
+	
+	<!-- 
+	* 어드민사용자상태코드 update
+	* Create : 2023-03-17	정영탁	최초생성
+	 -->
+	<update id="updateAdmUserBasStusCd"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		  SET ADM_USER_STUS_CD = #{admUserStusCd}
+				,LAST_CHNG_USER_ID = 'SYSTEM'
+				,LAST_CHNG_TMSP = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}  
+	</update>
+
+	<!--
+	* Description : 사용자 사용자 상태 변경 내역 저장
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmUserStusChngTxn"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserStusChngTxnDTO">
+	    INSERT INTO ADM_USER_STUS_CHNG_TXN
+	        (
+	              USER_ID
+	            , BEF_USER_STUS_CD
+	            , ADM_USER_STUS_CD
+	            , CHNG_USER_ID
+	            , CHNG_TMSP
+	        )
+	    VALUES
+	        (
+	              #{userId}
+	            , #{befUserStusCd}
+	            , #{admUserStusCd}
+	            , #{chngUserId}
+	            , SYSTIMESTAMP
+	        )
+	</insert>
+
+	<!--
+	* Description : 사용자 설정정보 저장(이력)
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmUserBasHst"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+		INSERT INTO ADM_USER_BAS_HST
+	    SELECT
+	    		*
+	    FROM ADM_USER_BAS
+	    WHERE USER_ID = #{userId}
+	</insert>
+
+	<!--
+	* Description : 사용자 소속 메인그룹 정보 조회
+	* Create : 2021-10-06 정영탁	최초생성
+	-->
+	<select id="getAdmUserMainGroup" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.sy.AdmGroupBasQryDTO">
+		SELECT A.GROUP_ID
+		  FROM ADM_GROUP_USER_REL A
+		       INNER JOIN ADM_GROUP_BAS B ON B.GROUP_ID = A.GROUP_ID
+		WHERE A.USE_YN = 'Y'
+			AND B.USE_YN = 'Y'
+			AND B.GROUP_DV_CD = '10' /* 메인그룹 */
+			AND A.USER_ID = #{userId}
+	</select>
+
+	<!--
+	* Description : 로그인 사용자 메뉴 권한
+	* Create : 2021-07-01	정영탁	최초생성
+	-->
+	<select id="listUserAdmScrenTran" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO">
+		SELECT T.SCREN_TRAN_ID 
+				 , T.SCREN_TRAN_ID || '_LNB' AS SCREN_TRAN_LNB_ID
+				 , DECODE(T.UP_SCREN_TRAN_ID, NULL, '#', T.UP_SCREN_TRAN_ID || '_LNB') AS UP_SCREN_TRAN_ID
+				 , T.SCREN_TRAN_DV_CD
+				 , T.URL_ADDR
+				 , T.SCREN_TRAN_NM
+				 , T.SCREN_TRAN_LVEL
+				 , T.REPST_ORDR
+				 , T.MENU_REPST_YN
+				 , T.SSTV_INFO_YN
+		  FROM (
+						 SELECT A.*
+						   FROM ADM_SCREN_TRAN_BAS A
+						 WHERE A.USE_YN = 'Y'
+							 AND A.WHOL_ALLOW_YN = 'Y'
+				
+						 UNION
+				
+						SELECT A.*
+						  FROM ADM_SCREN_TRAN_BAS A
+						 INNER JOIN ADM_GROUP_ATH B
+							 ON B.GROUP_ID IN (SELECT GROUP_ID FROM ADM_GROUP_USER_REL WHERE USER_ID =#{userId} AND USE_YN = 'Y')
+							AND B.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						WHERE A.USE_YN = 'Y'
+							AND B.USE_YN = 'Y'
+				
+						 UNION
+				
+						SELECT A.*
+						  FROM ADM_SCREN_TRAN_BAS A
+						 INNER JOIN ADM_USER_ATH C
+							 ON C.USER_ID = #{userId}
+							AND C.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						WHERE A.USE_YN = 'Y'
+							AND C.USE_YN = 'Y'
+					   ) T
+		 START WITH T.SCREN_TRAN_LVEL = 0
+		CONNECT BY PRIOR T.SCREN_TRAN_ID = T.UP_SCREN_TRAN_ID
+		 ORDER SIBLINGS BY T.SCREN_TRAN_LVEL, T.REPST_ORDR
+	</select>
+
+	<!--
+	* Description : 시스템 관리자 전체 메뉴 권한
+	* Create : 2021-10-06	정영탁	최초생성
+	-->
+	<select id="listSysAdmScrenTran" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO">
+		SELECT T.SCREN_TRAN_ID 
+				 , T.SCREN_TRAN_ID || '_LNB' AS SCREN_TRAN_LNB_ID
+				 , DECODE(T.UP_SCREN_TRAN_ID, NULL, '#', T.UP_SCREN_TRAN_ID || '_LNB') AS UP_SCREN_TRAN_ID
+				 , T.SCREN_TRAN_DV_CD
+				 , T.URL_ADDR
+				 , T.SCREN_TRAN_NM
+				 , T.SCREN_TRAN_LVEL
+				 , T.REPST_ORDR
+				 , T.MENU_REPST_YN
+				 , T.SSTV_INFO_YN
+		  FROM ADM_SCREN_TRAN_BAS T
+		WHERE T.USE_YN = 'Y'
+		START WITH T.SCREN_TRAN_LVEL = 0
+		CONNECT BY PRIOR T.SCREN_TRAN_ID = T.UP_SCREN_TRAN_ID
+	   ORDER SIBLINGS BY T.SCREN_TRAN_LVEL, T.REPST_ORDR
+	</select>
+
+	<!--
+	* Description : 즐겨찾기 정보 조회
+	* Create : 2021-10-06	정영탁	최초생성
+	-->
+	<select id="getAdmUserFvrtDtl" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO"
+			resultType="kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO">
+		SELECT USER_ID
+			 , FVRT_CTNT
+		  FROM ADM_USER_FVRT_DTL
+		WHERE USER_ID = #{userId}
+	</select>
+
+
+	<!--
+	*******************************************
+	* 비밀번호 재설정
+	*******************************************
+	-->
+
+	<!--
+	* Description : 최근 5회 변경 비밀번호 중 동일 비밀번호 건수 가져오기
+	-->
+	<select id="getAdmUserSamePwdCnt" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO" resultType="int">
+		SELECT COALESCE(SUM(CASE WHEN USER_PWD = #{userPwd} THEN 1 ELSE 0 END), 0) AS CNT
+		  FROM (
+				SELECT USER_PWD
+				  FROM (
+						SELECT USER_PWD
+							 , CHNG_TMSP
+						  FROM ADM_USER_PWD_CHNG_TXN
+						 WHERE USER_ID = #{userId}
+
+						UNION ALL
+
+						SELECT USER_PWD
+							 , COALESCE(LAST_CHNG_TMSP, FRST_REGI_TMSP) AS FRST_REGI_TMSP
+						  FROM ADM_USER_BAS
+						 WHERE USER_ID = #{userId}
+						 AND COALESCE(ADM_USER_STUS_CD,'') != #{admUserStusCd}   /* 비밀번호 초기화의 경우, 체크 대상에서 제외 */
+						) S
+				 ORDER BY CHNG_TMSP DESC
+				) T
+		WHERE ROWNUM <![CDATA[ <= ]]> 5
+	</select>
+
+	<!--
+	* Description : 비밀번호 재설정
+	-->
+	<update id="updateAdmUserBasPwd" parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+		UPDATE ADM_USER_BAS
+		SET  USER_PWD = #{userPwd}
+			  , PWD_ERR_NOTMS = 0
+			  , LAST_PWD_CHNG_DT = TO_CHAR(CURRENT_DATE,'YYYYMMDD')
+			  , ADM_USER_STUS_CD = #{admUserStusCd}
+			  , LAST_CHNG_USER_ID = #{userId}
+			  , LAST_CHNG_TMSP = SYSTIMESTAMP
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<!--
+	* Description : 비밀번호 재설정 이력 생성
+	-->
+	<insert id="insertAdmUserPwdChngTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmUserPwdChngTxnDTO">
+	   INSERT INTO ADM_USER_PWD_CHNG_TXN
+				(
+					  USER_ID
+					, USER_PWD
+					, CHNG_TMSP
+				)
+	   VALUES
+				(
+					  #{userId}
+					, #{userPwd}
+					, SYSTIMESTAMP
+				)
+	</insert>
+
+
+</mapper>

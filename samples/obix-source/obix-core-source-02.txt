@@ -1,0 +1,5159 @@
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/BusinessTierClientBuilder.java =====
+package kr.fasol.obix.core.message.impl;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
+import kong.unirest.*;
+import kr.fasol.obix.core.config.BusinessTierHeaderInfoProvider;
+import kr.fasol.obix.core.message.config.HttpClientConstant;
+import kr.fasol.obix.core.message.config.HttpClientDefaultConfig;
+import kr.fasol.obix.core.util.DTOUtil;
+import kr.fasol.obix.core.util.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * BusinessTierClientBuilder는 Business Tier API에 대한 HTTP 요청을 구성하고 실행하기 위한 빌더 클래스입니다.
+ * 다양한 HTTP 메서드를 지원하고 요청에 대한 header, field, cookie 및 body content를 설정할 수 있습니다.
+ */
+@Slf4j
+public class BusinessTierClientBuilder {
+    private final UnirestInstance primaryInstance;
+    private final String internalUrl;
+    private final int readTimeout;
+    private final int connTimeout;
+    private final String proxyHost;
+    private final int proxyPort;
+    private final Gson gson;
+    private final Environment env;
+    private final BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider;
+    private HttpClientConstant.MethodType methodType = HttpClientConstant.MethodType.GET;
+    private String url = null;
+    private Map<String, String> headers = null;
+    private Map<String, Object> fields = null;
+    private String contentType = null;
+    private Cookie cookie = null;
+    private Object body = null;
+
+    /**
+     * 지정된 매개변수로 새 BusinessTierClientBuilder를 구성합니다.
+     *
+     * @param primaryInstance 요청을 만드는 데 사용할 Unirest 인스턴스
+     * @param msa MSA(Microservice Architecture) 구성
+     * @param gson JSON 처리를 위한 Gson 인스턴스
+     * @param env 속성에 액세스하기 위한 Spring Environment
+     * @param businessTierHeaderInfoProvider 비즈니스 계층 헤더 정보 제공자
+     * @param readTimeout HTTP 요청에 대한 읽기 시간 초과
+     * @param connTimeout HTTP 요청에 대한 연결 시간 초과
+     * @param proxyHost HTTP 요청에 사용할 프록시 호스트
+     * @param proxyPort HTTP 요청에 사용할 프록시 포트
+     */
+    public BusinessTierClientBuilder(UnirestInstance primaryInstance, HttpClientConstant.Msa msa, Gson gson, Environment env, BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider, int readTimeout, int connTimeout, String proxyHost, int proxyPort) {
+        this.primaryInstance = primaryInstance;
+        this.internalUrl = env.getProperty("http.client.business-tier." + msa.name().toLowerCase());
+        this.gson = gson;
+        this.env = env;
+        this.businessTierHeaderInfoProvider = businessTierHeaderInfoProvider;
+        this.readTimeout = readTimeout;
+        this.connTimeout = connTimeout;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
+    }
+    /**
+     * 요청에 대한 HTTP 메서드 유형을 설정합니다.
+     *
+     * @param methodType HTTP 메서드 유형
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder method(HttpClientConstant.MethodType methodType) {
+        this.methodType = methodType;
+        return this;
+    }
+    /**
+     * GET 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder get(String url) {
+        this.methodType = HttpClientConstant.MethodType.GET;
+        this.url = url;
+        return this;
+    }
+    /**
+     * POST 요청의 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder post(String url) {
+        this.methodType = HttpClientConstant.MethodType.POST;
+        this.url = url;
+        return this;
+    }
+    /**
+     * PUT 요청의 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder put(String url) {
+        this.methodType = HttpClientConstant.MethodType.PUT;
+        this.url = url;
+        return this;
+    }
+    /**
+     * DELETE 요청의 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder delete(String url) {
+        this.methodType = HttpClientConstant.MethodType.DELETE;
+        this.url = url;
+        return this;
+    }
+    /**
+     * PATCH 요청의 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder patch(String url) {
+        this.methodType = HttpClientConstant.MethodType.PATCH;
+        this.url = url;
+        return this;
+    }
+    /**
+     * 요청에 대한 헤더를 설정합니다.
+     *
+     * @param headers 설정할 헤더
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    @SuppressWarnings("unchecked")
+    public BusinessTierClientBuilder headers(Object headers) {
+        this.headers = DTOUtil.convertDTO(headers, HashMap.class);
+        return this;
+    }
+    /**
+     * 요청에 단일 헤더를 추가합니다.
+     *
+     * @param name 헤더의 이름
+     * @param value 헤더의 값
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder addHeader(String name, String value) {
+        if (this.headers == null) {
+            this.headers = new HashMap<>();
+        }
+        this.headers.put(name, value);
+        return this;
+    }
+    /**
+     * 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder url(String url) {
+        this.url = url;
+        return this;
+    }
+    /**
+     * 요청에 대한 필드를 설정합니다.
+     *
+     * @param params 설정할 필드
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    @SuppressWarnings("unchecked")
+    public BusinessTierClientBuilder fields(Object params) {
+        this.fields = DTOUtil.convertDTO(params, HashMap.class);
+        return this;
+    }
+    /**
+     * 요청에 단일 필드를 추가합니다.
+     *
+     * @param name 필드 이름
+     * @param value 필드 값
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder addField(String name, Object value) {
+        if (this.fields == null) {
+            this.fields = new HashMap<>();
+        }
+        this.fields.put(name, value);
+        return this;
+    }
+    /**
+     * 요청에 대한 콘텐츠 유형을 설정합니다.
+     *
+     * @param contentType 설정할 콘텐츠 유형
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder contentType(String contentType) {
+        this.contentType = contentType;
+        return this;
+    }
+    /**
+     * 요청에 대한 쿠키를 설정합니다.
+     *
+     * @param cookie 설정할 쿠키
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder cookie(Cookie cookie) {
+        this.cookie = cookie;
+        return this;
+    }
+    /**
+     * 요청에 단일 쿠키를 추가합니다.
+     *
+     * @param name 쿠키의 이름
+     * @param value 쿠키의 값
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder addCookie(String name, String value) {
+        if (this.cookie == null) {
+            this.cookie = new Cookie(name, value);
+        }
+        return this;
+    }
+    /**
+     * 요청의 본문 내용을 설정합니다.
+     *
+     * @param body 설정할 본문 내용
+     * @return BusinessTierClientBuilder의 현재 인스턴스
+     */
+    public BusinessTierClientBuilder body(Object body) {
+        this.body = body;
+        return this;
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행합니다.
+     */
+    public HttpClientResponse<Empty> call() {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        HttpResponse<Empty> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asEmpty();
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asEmpty();
+        } else {
+            httpResponse = requestBody(apiUrl).asEmpty();
+        }
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     * @return HTTP 응답
+     */
+    public HttpClientResponse<JsonNode> callJson() {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        HttpResponse<JsonNode> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asJson();
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asJson();
+        } else {
+            httpResponse = requestBody(apiUrl).asJson();
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param responseClass 응답 본문의 클래스 유형
+     * @return HTTP 응답
+     */
+    public <T> HttpClientResponse<T> call(Class<T> responseClass) {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        HttpResponse<T> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asObject(responseClass);
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asObject(responseClass);
+        } else {
+            httpResponse = requestBody(apiUrl).asObject(responseClass);
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param genericType 응답 본문의 클래스 유형
+     * @return HTTP 응답
+     */
+    public <T> HttpClientResponse<T> call(GenericType<T> genericType) {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        HttpResponse<T> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asObject(genericType);
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asObject(genericType);
+        } else {
+            httpResponse = requestBody(apiUrl).asObject(genericType);
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public CompletableFuture<HttpResponse<Empty>> asyncCall() {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asEmptyAsync();
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asEmptyAsync();
+        } else {
+            return requestBody(apiUrl).asEmptyAsync();
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public CompletableFuture<HttpResponse<JsonNode>> asyncCallJson() {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asJsonAsync();
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asJsonAsync();
+        } else {
+            return requestBody(apiUrl).asJsonAsync();
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param responseClass 응답 본문의 클래스 유형
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public <T> CompletableFuture<HttpResponse<T>> asyncCall(Class<T> responseClass) {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asObjectAsync(responseClass);
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asObjectAsync(responseClass);
+        } else {
+            return requestBody(apiUrl).asObjectAsync(responseClass);
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param genericType 응답 본문의 클래스 유형
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public <T> CompletableFuture<HttpResponse<T>> asyncCall(GenericType<T> genericType) {
+        String apiUrl = StringUtils.join(this.internalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asObjectAsync(genericType);
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asObjectAsync(genericType);
+        } else {
+            return requestBody(apiUrl).asObjectAsync(genericType);
+        }
+    }
+
+    /**
+     * 지정된 URL과 구성으로 GET 요청을 만듭니다.
+     *
+     * @param apiUrl GET 요청의 URL
+     * @return 구성된 GetRequest
+     */
+    private GetRequest getRequest(String apiUrl) {
+        GetRequest httpRequest = primaryInstance.get(apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequest.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequest.socketTimeout(this.readTimeout);
+        httpRequest.connectTimeout(this.connTimeout);
+        if (this.cookie != null) {
+            httpRequest.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequest);
+        httpRequest.headers(this.headers);
+        httpRequest.queryString(this.fields);
+
+        return httpRequest;
+    }
+
+    /**
+     * 지정된 URL 및 구성에 대한 필드가 있는 요청을 만듭니다.
+     *
+     * @param apiUrl 요청의 URL
+     * @return 구성된 MultipartBody
+     */
+    private MultipartBody requestFields(String apiUrl) {
+        HttpRequestWithBody httpRequestWithBody = primaryInstance.request(this.methodType.name(), apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequestWithBody.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequestWithBody.socketTimeout(this.readTimeout);
+        httpRequestWithBody.connectTimeout(this.connTimeout);
+        if (this.contentType != null) {
+            httpRequestWithBody.contentType(this.contentType);
+        }
+        if (this.cookie != null) {
+            httpRequestWithBody.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequestWithBody);
+        httpRequestWithBody.headers(this.headers);
+
+        return httpRequestWithBody.fields(this.fields);
+    }
+
+    /**
+     * 지정된 URL과 구성에 대한 본문이 있는 요청을 만듭니다.
+     *
+     * @param apiUrl 요청의 URL
+     * @return 구성된 RequestBodyEntity
+     */
+    private RequestBodyEntity requestBody(String apiUrl) {
+        HttpRequestWithBody httpRequestWithBody = primaryInstance.request(this.methodType.name(), apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequestWithBody.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequestWithBody.socketTimeout(this.readTimeout);
+        httpRequestWithBody.connectTimeout(this.connTimeout);
+        if (this.contentType != null) {
+            httpRequestWithBody.contentType(this.contentType);
+        }
+        if (this.cookie != null) {
+            httpRequestWithBody.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequestWithBody);
+        httpRequestWithBody.headers(this.headers);
+
+        String bodyJson = "";
+        try {
+            if (this.body != null) {
+                bodyJson = JsonUtil.ObjectToJson(this.body);
+            }
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage(), e);
+        }
+        return httpRequestWithBody.body(bodyJson);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/BusinessTierClientBuilder.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/ExternalClientBuilder.java =====
+package kr.fasol.obix.core.message.impl;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
+import kong.unirest.*;
+import kr.fasol.obix.core.config.BusinessTierHeaderInfoProvider;
+import kr.fasol.obix.core.message.config.HttpClientConstant;
+import kr.fasol.obix.core.message.config.HttpClientDefaultConfig;
+import kr.fasol.obix.core.util.DTOUtil;
+import kr.fasol.obix.core.util.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * ExternalClientBuilder는 외부 서비스의 API에 대한 HTTP 요청을 구성하고 실행하기 위한 빌더 클래스입니다.
+ * 다양한 HTTP 메서드를 지원하고 요청에 대한 header, field, cookie 및 body content를 설정할 수 있습니다.
+ */
+@Slf4j
+public class ExternalClientBuilder {
+    private final UnirestInstance primaryInstance;
+    private final String externalUrl;
+    private final int readTimeout;
+    private final int connTimeout;
+    private final String proxyHost;
+    private final int proxyPort;
+    private final Gson gson;
+    private final Environment env;
+    private final BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider;
+    private HttpClientConstant.MethodType methodType = HttpClientConstant.MethodType.GET;
+    private String url = null;
+    private Map<String, String> headers = null;
+    private Map<String, Object> fields = null;
+    private String contentType = null;
+    private Cookie cookie = null;
+    private Object body = null;
+    private HttpResponse<?> httpResponse = null;
+
+    /**
+     * 지정된 매개변수를 사용하여 새 ExternalClientBuilder를 구성합니다.
+     *
+     * @param primaryInstance 요청에 사용할 Unirest 인스턴스
+     * @param externalUrl HTTP 요청에 사용할 외부 URL
+     * @param gson JSON 처리를 위한 Gson 인스턴스
+     * @param env 속성에 액세스하기 위한 Spring 환경
+     * @param businessTierHeaderInfoProvider 비즈니스 계층 헤더 정보 제공자
+     * @param readTimeout HTTP 요청에 대한 읽기 시간 제한
+     * @param connTimeout HTTP 요청에 대한 연결 시간 초과
+     * @param proxyHost HTTP 요청에 사용할 프록시 호스트
+     * @param proxyPort HTTP 요청에 사용할 프록시 포트
+     */
+    public ExternalClientBuilder(UnirestInstance primaryInstance, String externalUrl, Gson gson, Environment env, BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider, int readTimeout, int connTimeout, String proxyHost, int proxyPort) {
+        this.primaryInstance = primaryInstance;
+        this.externalUrl = env.getProperty("http.client.external-url." + externalUrl);
+        this.gson = gson;
+        this.env = env;
+        this.businessTierHeaderInfoProvider = businessTierHeaderInfoProvider;
+        this.readTimeout = readTimeout;
+        this.connTimeout = connTimeout;
+        this.proxyHost = proxyHost;
+        this.proxyPort = proxyPort;
+    }
+    /**
+     * 요청에 대한 HTTP 메소드 유형을 설정합니다.
+     *
+     * @param methodType HTTP 메소드 유형
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder method(HttpClientConstant.MethodType methodType) {
+        this.methodType = methodType;
+        return this;
+    }
+    /**
+     * GET 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder get(String url) {
+        this.methodType = HttpClientConstant.MethodType.GET;
+        this.url = url;
+        return this;
+    }
+    /**
+     * POST 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder post(String url) {
+        this.methodType = HttpClientConstant.MethodType.POST;
+        this.url = url;
+        return this;
+    }
+    /**
+     * PUT 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder put(String url) {
+        this.methodType = HttpClientConstant.MethodType.PUT;
+        this.url = url;
+        return this;
+    }
+    /**
+     * DELETE 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder delete(String url) {
+        this.methodType = HttpClientConstant.MethodType.DELETE;
+        this.url = url;
+        return this;
+    }
+    /**
+     * PATCH 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder patch(String url) {
+        this.methodType = HttpClientConstant.MethodType.PATCH;
+        this.url = url;
+        return this;
+    }
+    /**
+     * 요청 헤더를 설정합니다.
+     *
+     * @param headers 설정할 헤더입니다.
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    @SuppressWarnings("unchecked")
+    public ExternalClientBuilder headers(Object headers) {
+        this.headers = DTOUtil.convertDTO(headers, HashMap.class);
+        return this;
+    }
+    /**
+     * 요청에 단일 헤더를 추가합니다.
+     *
+     * @param name 헤더 이름
+     * @param value 헤더 값
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder addHeader(String name, String value) {
+        if (this.headers == null) {
+            this.headers = new HashMap<>();
+        }
+        this.headers.put(name, value);
+        return this;
+    }
+    /**
+     * 요청에 대한 URL을 설정합니다.
+     *
+     * @param url 설정할 URL
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    public ExternalClientBuilder url(String url) {
+        this.url = url;
+        return this;
+    }
+    /**
+     * 요청에 대한 필드를 설정합니다.
+     *
+     * @param params 설정할 필드
+     * @externalClientBuilder의 현재 인스턴스를 반환합니다.
+     */
+    @SuppressWarnings("unchecked")
+    public ExternalClientBuilder fields(Object params) {
+        this.fields = DTOUtil.convertDTO(params, HashMap.class);
+        return this;
+    }
+    /**
+     * 요청에 단일 필드를 추가합니다.
+     *
+     * @param name 필드 이름
+     * @param value 필드 값
+     * @return ExternalClientBuilder의 현재 인스턴스
+     */
+    public ExternalClientBuilder addField(String name, Object value) {
+        if (this.fields == null) {
+            this.fields = new HashMap<>();
+        }
+        this.fields.put(name, value);
+        return this;
+    }
+    /**
+     * 요청에 대한 콘텐츠 유형을 설정합니다.
+     *
+     * @param contentType 설정할 콘텐츠 유형
+     * @return ExternalClientBuilder의 현재 인스턴스
+     */
+    public ExternalClientBuilder contentType(String contentType) {
+        this.contentType = contentType;
+        return this;
+    }
+    /**
+     * 요청에 대한 쿠키를 설정합니다.
+     *
+     * @param cookie 설정할 쿠키
+     * @return ExternalClientBuilder의 현재 인스턴스
+     */
+    public ExternalClientBuilder cookie(Cookie cookie) {
+        this.cookie = cookie;
+        return this;
+    }
+    /**
+     * 요청에 단일 쿠키를 추가합니다.
+     *
+     * @param name 쿠키의 이름
+     * @param value 쿠키의 값
+     * @return ExternalClientBuilder의 현재 인스턴스
+     */
+    public ExternalClientBuilder addCookie(String name, String value) {
+        if (this.cookie == null) {
+            this.cookie = new Cookie(name, value);
+        }
+        return this;
+    }
+    /**
+     * 요청의 본문 내용을 설정합니다.
+     *
+     * @param body 설정할 본문 내용
+     * @return ExternalClientBuilder의 현재 인스턴스
+     */
+    public ExternalClientBuilder body(Object body) {
+        this.body = body;
+        return this;
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행합니다.
+     */
+    public HttpClientResponse<Empty> call() {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        HttpResponse<Empty> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asEmpty();
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asEmpty();
+        } else {
+            httpResponse = requestBody(apiUrl).asEmpty();
+        }
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     * @return HTTP 응답
+     */
+    public HttpClientResponse<JsonNode> callJson() {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        HttpResponse<JsonNode> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asJson();
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asJson();
+        } else {
+            httpResponse = requestBody(apiUrl).asJson();
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param responseClass 응답 본문의 클래스 유형
+     * @return HTTP 응답
+     */
+    public <T> HttpClientResponse<T> call(Class<T> responseClass) {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        HttpResponse<T> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asObject(responseClass);
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asObject(responseClass);
+        } else {
+            httpResponse = requestBody(apiUrl).asObject(responseClass);
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 동기적으로 실행하고 응답을 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param genericType 응답 본문의 클래스 유형
+     * @return HTTP 응답
+     */
+    public <T> HttpClientResponse<T> call(GenericType<T> genericType) {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        HttpResponse<T> httpResponse;
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            httpResponse = getRequest(apiUrl).asObject(genericType);
+        } else if (this.fields != null) {
+            httpResponse = requestFields(apiUrl).asObject(genericType);
+        } else {
+            httpResponse = requestBody(apiUrl).asObject(genericType);
+        }
+
+        log.debug("HTTP Response: {}", httpResponse.getBody());
+
+        return HttpClientResponse.of(httpResponse);
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public CompletableFuture<HttpResponse<Empty>> asyncCall() {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asEmptyAsync();
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asEmptyAsync();
+        } else {
+            return requestBody(apiUrl).asEmptyAsync();
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public CompletableFuture<HttpResponse<JsonNode>> asyncCallJson() {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asJsonAsync();
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asJsonAsync();
+        } else {
+            return requestBody(apiUrl).asJsonAsync();
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param responseClass 응답 본문의 클래스 유형
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public <T> CompletableFuture<HttpResponse<T>> asyncCall(Class<T> responseClass) {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asObjectAsync(responseClass);
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asObjectAsync(responseClass);
+        } else {
+            return requestBody(apiUrl).asObjectAsync(responseClass);
+        }
+    }
+
+    /**
+     * HTTP 요청을 비동기적으로 실행하고 응답의 CompletableFuture를 반환합니다.
+     *
+     * @param <T> 응답 본문의 유형
+     * @param genericType 응답 본문의 클래스 유형
+     * @return HTTP 응답의 CompletableFuture
+     */
+    public <T> CompletableFuture<HttpResponse<T>> asyncCall(GenericType<T> genericType) {
+        String apiUrl = StringUtils.join(this.externalUrl, this.url);
+
+        if (this.methodType == HttpClientConstant.MethodType.GET) {
+            return getRequest(apiUrl).asObjectAsync(genericType);
+        } else if (this.fields != null) {
+            return requestFields(apiUrl).asObjectAsync(genericType);
+        } else {
+            return requestBody(apiUrl).asObjectAsync(genericType);
+        }
+    }
+
+    /**
+     * 지정된 URL과 구성으로 GET 요청을 만듭니다.
+     *
+     * @param apiUrl GET 요청의 URL
+     * @return 구성된 GetRequest
+     */
+    private GetRequest getRequest(String apiUrl) {
+        GetRequest httpRequest = primaryInstance.get(apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequest.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequest.socketTimeout(this.readTimeout);
+        httpRequest.connectTimeout(this.connTimeout);
+        if (this.cookie != null) {
+            httpRequest.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequest);
+        httpRequest.headers(this.headers);
+        httpRequest.queryString(this.fields);
+
+        return httpRequest;
+    }
+
+    /**
+     * 지정된 URL 및 구성에 대한 필드가 있는 요청을 만듭니다.
+     *
+     * @param apiUrl 요청의 URL
+     * @return 구성된 MultipartBody
+     */
+    private MultipartBody requestFields(String apiUrl) {
+        HttpRequestWithBody httpRequestWithBody = primaryInstance.request(this.methodType.name(), apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequestWithBody.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequestWithBody.socketTimeout(this.readTimeout);
+        httpRequestWithBody.connectTimeout(this.connTimeout);
+        if (this.contentType != null) {
+            httpRequestWithBody.contentType(this.contentType);
+        }
+        if (this.cookie != null) {
+            httpRequestWithBody.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequestWithBody);
+        httpRequestWithBody.headers(this.headers);
+
+        return httpRequestWithBody.fields(this.fields);
+    }
+
+    /**
+     * 지정된 URL과 구성에 대한 본문이 있는 요청을 만듭니다.
+     *
+     * @param apiUrl 요청의 URL
+     * @return 구성된 RequestBodyEntity
+     */
+    private RequestBodyEntity requestBody(String apiUrl) {
+        HttpRequestWithBody httpRequestWithBody = primaryInstance.request(this.methodType.name(), apiUrl);
+        if (StringUtils.isNotBlank(this.proxyHost)) {
+            httpRequestWithBody.proxy(this.proxyHost, this.proxyPort);
+        }
+        httpRequestWithBody.socketTimeout(this.readTimeout);
+        httpRequestWithBody.connectTimeout(this.connTimeout);
+        if (this.contentType != null) {
+            httpRequestWithBody.contentType(this.contentType);
+        }
+        if (this.cookie != null) {
+            httpRequestWithBody.cookie(this.cookie);
+        }
+
+        HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpRequestWithBody);
+        httpRequestWithBody.headers(this.headers);
+
+        String bodyJson = "";
+        try {
+            if (this.body != null) {
+                bodyJson = JsonUtil.ObjectToJson(this.body);
+            }
+        } catch (JsonProcessingException e) {
+            log.error(e.getMessage(), e);
+        }
+        return httpRequestWithBody.body(bodyJson);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/ExternalClientBuilder.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/HttpClientResponse.java =====
+package kr.fasol.obix.core.message.impl;
+
+import com.google.gson.GsonBuilder;
+import kong.unirest.*;
+import kr.fasol.obix.core.base.Response;
+import kr.fasol.obix.core.message.exception.HttpClientApiException;
+
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+public interface HttpClientResponse<T> extends HttpResponse<T> {
+
+    public static <T> HttpClientResponse<T> of(HttpResponse<T> httpResponse) {
+        return new HttpClientResponse<T>() {
+            @Override
+            public int getStatus() {
+                return httpResponse.getStatus();
+            }
+
+            @Override
+            public String getStatusText() {
+                return httpResponse.getStatusText();
+            }
+
+            @Override
+            public Headers getHeaders() {
+                return httpResponse.getHeaders();
+            }
+
+            @Override
+            public T getBody() {
+                return httpResponse.getBody();
+            }
+
+            @Override
+            public Optional<UnirestParsingException> getParsingError() {
+                return httpResponse.getParsingError();
+            }
+
+            @Override
+            public <V> V mapBody(Function<T, V> function) {
+                return httpResponse.mapBody(function);
+            }
+
+            @Override
+            public <V> HttpResponse<V> map(Function<T, V> function) {
+                return httpResponse.map(function);
+            }
+
+            @Override
+            public HttpResponse<T> ifSuccess(Consumer<HttpResponse<T>> consumer) {
+                return httpResponse.ifSuccess(consumer);
+            }
+
+            @Override
+            public HttpResponse<T> ifFailure(Consumer<HttpResponse<T>> consumer) {
+                return httpResponse.ifFailure(consumer);
+            }
+
+            @Override
+            public <E> HttpResponse<T> ifFailure(Class<? extends E> aClass, Consumer<HttpResponse<E>> consumer) {
+                return httpResponse.ifFailure(aClass, consumer);
+            }
+
+            @Override
+            public boolean isSuccess() {
+                return httpResponse.isSuccess();
+            }
+
+            @Override
+            public <E> E mapError(Class<? extends E> aClass) {
+                return httpResponse.mapError(aClass);
+            }
+
+            @Override
+            public Cookies getCookies() {
+                return httpResponse.getCookies();
+            }
+
+            @Override
+            public HttpRequestSummary getRequestSummary() {
+                return null;
+            }
+        };
+    }
+
+    default T get() {
+        return this.getBody();
+    }
+    default T orElseThrowGet() throws HttpClientApiException {
+        if (this.isSuccess()) {
+            return this.getBody();
+        }
+        Response<?> errorResponse = this.getErrorResponse();
+        throw new HttpClientApiException(errorResponse, this.getStatus());
+    }
+    default <X extends Throwable> T orElseThrowGet(Supplier<? extends X> exceptionSupplier) throws X {
+        if (this.isSuccess()) {
+            return this.getBody();
+        }
+        throw exceptionSupplier.get();
+    }
+
+    default Response<?> getErrorResponse() {
+        if (!this.isSuccess()) {
+            Optional<UnirestParsingException> parsingError = this.getParsingError();
+            Response<?> errorResponse = null;
+            if (parsingError.isPresent()) {
+                final String body = parsingError.get().getOriginalBody();
+                errorResponse = new GsonBuilder().create().fromJson(body, Response.class);
+            }
+            return errorResponse;
+        }
+        return Response.SUCCESS;
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/HttpClientResponse.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/WebClientBuilder.java =====
+package kr.fasol.obix.core.message.impl;
+
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
+
+/**
+ * WebClient API 호출 서비스 Builder
+ */
+public class WebClientBuilder {
+
+    private final WebClient webClient;
+    private HttpMethod methodType = HttpMethod.GET;
+    private String url = null;
+    private HttpHeaders headers = null;
+    private MultiValueMap<String, String> fields = null;
+    private String contentType = null;
+    private MultiValueMap<String, String> cookie = null;
+    private Object body = null;
+
+    /**
+     * WebClientBuilder 생성자
+     *
+     * @param webClient WebClient 인스턴스
+     */
+    public WebClientBuilder(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    /**
+     * HTTP 메서드 설정
+     *
+     * @param methodType HTTP 메서드 타입
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder method(HttpMethod methodType) {
+        this.methodType = methodType;
+        return this;
+    }
+
+    /**
+     * GET 요청 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder get(String url) {
+        this.methodType = HttpMethod.GET;
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * POST 요청 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder post(String url) {
+        this.methodType = HttpMethod.POST;
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * PUT 요청 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder put(String url) {
+        this.methodType = HttpMethod.PUT;
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * DELETE 요청 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder delete(String url) {
+        this.methodType = HttpMethod.DELETE;
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * PATCH 요청 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder patch(String url) {
+        this.methodType = HttpMethod.PATCH;
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * HTTP 헤더 설정
+     *
+     * @param headers HTTP 헤더
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder headers(HttpHeaders headers) {
+        this.headers = headers;
+        return this;
+    }
+
+    /**
+     * HTTP 헤더 추가
+     *
+     * @param name   헤더 이름
+     * @param values 헤더 값
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder addHeader(String name, String... values) {
+        if (this.headers == null) {
+            this.headers = new HttpHeaders();
+        }
+        this.headers.put(name, Arrays.asList(values));
+        return this;
+    }
+
+    /**
+     * 요청 URL 설정
+     *
+     * @param url 요청 URL
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder url(String url) {
+        this.url = url;
+        return this;
+    }
+
+    /**
+     * 요청 필드 설정
+     *
+     * @param params 요청 필드
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder fields(MultiValueMap<String, String> params) {
+        this.fields = params;
+        return this;
+    }
+
+    /**
+     * 요청 필드 추가
+     *
+     * @param name   필드 이름
+     * @param values 필드 값
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder addField(String name, String... values) {
+        if (this.fields == null) {
+            this.fields = new LinkedMultiValueMap<>(3);
+        }
+        this.fields.put(name, Arrays.asList(values));
+        return this;
+    }
+
+    /**
+     * Content-Type 설정
+     *
+     * @param contentType Content-Type 값
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder contentType(String contentType) {
+        this.contentType = contentType;
+        return this;
+    }
+
+    /**
+     * 쿠키 설정
+     *
+     * @param cookie 쿠키 값
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder cookie(MultiValueMap<String, String> cookie) {
+        this.cookie = cookie;
+        return this;
+    }
+
+    /**
+     * 쿠키 추가
+     *
+     * @param name  쿠키 이름
+     * @param value 쿠키 값
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder addCookie(String name, String value) {
+        if (this.cookie == null) {
+            this.cookie = new LinkedMultiValueMap<>(3);
+        }
+        this.cookie.add(name, value);
+        return this;
+    }
+
+    /**
+     * 요청 본문 설정
+     *
+     * @param body 요청 본문
+     * @return WebClientBuilder 인스턴스
+     */
+    public WebClientBuilder body(Object body) {
+        this.body = body;
+        return this;
+    }
+
+    /**
+     * WebClient 요청 생성
+     *
+     * @return WebClient.RequestBodySpec 인스턴스
+     */
+    private WebClient.RequestBodySpec createWebClientRequest() {
+        return webClient
+                .method(this.methodType)
+                .uri(uriBuilder -> uriBuilder
+                        .path(this.url)
+                        .queryParams(this.fields)
+                        .build())
+                .contentType(this.contentType != null ? MediaType.valueOf(this.contentType) : MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> {
+                    if (this.headers != null) {
+                        httpHeaders.addAll(this.headers);
+                    }
+                })
+                .cookies(cookies -> {
+                    if (this.cookie != null) {
+                        cookies.addAll(this.cookie);
+                    }
+                });
+    }
+
+    /**
+     * WebClient 응답 생성
+     *
+     * @return WebClient.ResponseSpec 인스턴스
+     */
+    private WebClient.ResponseSpec createWebClientResponse() {
+        if (this.methodType == HttpMethod.GET) {
+            return createWebClientRequest().retrieve();
+        } else if (this.fields != null) {
+            return createWebClientRequest().bodyValue(this.fields).retrieve();
+        } else {
+            return createWebClientRequest().bodyValue(this.body).retrieve();
+        }
+    }
+
+    /**
+     * 동기 호출
+     *
+     * @param classType 응답 타입
+     * @param <T>       응답 타입 제네릭
+     * @return 응답 객체
+     */
+    public <T> T call(Class<T> classType) {
+        return createWebClientResponse().bodyToMono(classType).block();
+    }
+
+    /**
+     * 동기 호출
+     *
+     * @param elementTypeRef 응답 타입 참조
+     * @param <T>            응답 타입 제네릭
+     * @return 응답 객체
+     */
+    public <T> T call(ParameterizedTypeReference<T> elementTypeRef) {
+        return createWebClientResponse().bodyToMono(elementTypeRef).block();
+    }
+
+    /**
+     * 비동기 호출
+     *
+     * @param classType 응답 타입
+     * @param <T>       응답 타입 제네릭
+     * @return Mono 응답 객체
+     */
+    public <T> Mono<T> asyncCall(Class<T> classType) {
+        return createWebClientResponse().bodyToMono(classType);
+    }
+
+    /**
+     * 비동기 호출
+     *
+     * @param elementTypeRef 응답 타입 참조
+     * @param <T>            응답 타입 제네릭
+     * @return Mono 응답 객체
+     */
+    public <T> Mono<T> asyncCall(ParameterizedTypeReference<T> elementTypeRef) {
+        return createWebClientResponse().bodyToMono(elementTypeRef);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/impl/WebClientBuilder.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/WebClientAdaptor.java =====
+package kr.fasol.obix.core.message;
+
+import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import kr.fasol.obix.core.config.BusinessTierHeaderInfoProvider;
+import kr.fasol.obix.core.message.config.HttpClientConstant;
+import kr.fasol.obix.core.message.config.HttpClientDefaultConfig;
+import kr.fasol.obix.core.message.impl.WebClientBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.SslProvider;
+import reactor.netty.transport.ProxyProvider;
+
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : F/W > 메시지 서비스 > WebClient 호출 서비스
+ * 프로그램명 : WebClient 호출 서비스
+ * 설명 :
+ * 예제 :
+ * <pre>
+ *    Response<?> response = webClientAdaptor.businessTier(HttpClientConstant.Msa.BATCH)
+ *        .post("/system/jobLauncher.json")
+ *        .body(Map.of("btchJobId", "BATCHTESTJOB"))
+ *        .call(Response.class);
+ * </pre>
+ *
+ * 클래스 : WebClientAdaptor.java
+ * 작성자 : 정영탁
+ * 작성일 : 2024. 11. 20.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2024. 11. 20         정영탁          최초생성
+ * --------------------------------------------------------------------
+ * @see org.springframework.web.reactive.function.client.WebClient
+ */
+@Slf4j
+@Component
+public class WebClientAdaptor {
+    private final Environment env;
+    private final BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider;
+    private final HttpClient httpClient;
+
+    private WebClientAdaptor(Environment env, BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider) {
+        this.env = env;
+        this.businessTierHeaderInfoProvider = businessTierHeaderInfoProvider;
+        int readTimeout = env.getProperty("http.client.config.read-timeout", Integer.class, 100_000);
+        int connTimeout = env.getProperty("http.client.config.connect-timeout", Integer.class, 3000);
+        String proxyHost = env.getProperty("http.client.config.proxy-host");
+        int proxyPort = env.getProperty("http.client.config.proxy-port", Integer.class, -1);
+        Boolean verifySsl = env.getProperty("http.client.config.verify-ssl", Boolean.class, Boolean.TRUE);
+
+        // HttpClient 설정
+        this.httpClient = HttpClient.create()
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connTimeout)
+                .responseTimeout(Duration.ofMillis(readTimeout))
+                .doOnConnected(conn -> conn
+                        .addHandlerLast(new ReadTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS))
+                        .addHandlerLast(new WriteTimeoutHandler(readTimeout, TimeUnit.MILLISECONDS)));
+
+        // Proxy 설정
+        if (StringUtils.isNotBlank(proxyHost)) {
+            httpClient.proxy(ops -> ops.type(ProxyProvider.Proxy.HTTP).host(proxyHost).port(proxyPort));
+        }
+
+        // SSL 인증서 무시 설정
+        if (!verifySsl) {
+            try {
+                // TrustManagerFactory를 기본값으로 설정 (모든 인증서를 신뢰)
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init((KeyStore) null);
+
+                // SslContextBuilder를 사용하여 SslContext 생성
+                SslContext sslContext = SslContextBuilder.forClient()
+                        .trustManager(trustManagerFactory) // 신뢰 관리자 설정
+                        .build();
+
+                // SslProvider를 사용하여 SSL 설정 구성
+                SslProvider sslProvider = SslProvider.builder()
+                        .sslContext(sslContext)
+                        .build();
+
+                httpClient.secure(sslContextSpec -> sslContextSpec.sslContext(sslProvider.getSslContext()));
+            } catch (NoSuchAlgorithmException | KeyStoreException | SSLException e) {
+                log.error("SSL 인증서 무시 설정 중 오류가 발생했습니다.", e);
+            }
+        }
+    }
+
+    /**
+     * Business Tier 호출
+     */
+    public WebClientBuilder businessTier(HttpClientConstant.Msa msa) {
+        WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(this.httpClient))
+                .defaultHeaders(httpHeaders -> {
+                    HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpHeaders);
+                })
+                .baseUrl(Objects.requireNonNull(this.env.getProperty("http.client.business-tier." + msa.name().toLowerCase())))
+                .build();
+
+        return new WebClientBuilder(webClient);
+    }
+
+    /**
+     * 외부 URL 호출
+     */
+    public WebClientBuilder external(String externalUrl) {
+        WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(this.httpClient))
+                .defaultHeaders(httpHeaders -> {
+                    HttpClientDefaultConfig.setDefaultHeader(this.businessTierHeaderInfoProvider, httpHeaders);
+                })
+                .baseUrl(Objects.requireNonNull(this.env.getProperty("http.client.external-url." + externalUrl)))
+                .build();
+
+        return new WebClientBuilder(webClient);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/message/WebClientAdaptor.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/AppMessageUtil.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.servlet.http.HttpServletRequest;
+import kr.fasol.obix.core.config.MessageSourceFileAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.support.RequestContextUtils;
+
+import java.util.Locale;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 공통 > Util > 메시지 properties 조회
+ * 프로그램명 :메시지 properties 조회
+ * 설명 :
+ *
+ * 클래스 : ErrorMessageUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 8.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 8.         정영탁          최초생성
+ */
+@Component
+public class AppMessageUtil {
+
+	/**
+	 * MessageSourceFileAccessor 인스턴스
+	 */
+	private static MessageSourceFileAccessor messageSourceFileAccessor;
+
+	/**
+	 * AppMessageUtil 생성자
+	 *
+	 * @param accessor MessageSourceFileAccessor 인스턴스
+	 */
+	@Autowired
+	public AppMessageUtil(MessageSourceFileAccessor accessor) {
+		messageSourceFileAccessor = accessor;
+	}
+
+	/**
+	 * 메시지를 조회합니다.
+	 *
+	 * @param code 메시지 코드
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(String code) {
+		return getMessage(code, new String[]{});
+	}
+
+	/**
+	 * 메시지를 조회합니다.
+	 *
+	 * @param code 메시지 코드
+	 * @param args 메시지 인자
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(String code, Object[] args) {
+		return messageSourceFileAccessor.getMessage(code, args);
+	}
+
+	/**
+	 * 요청에 따라 메시지를 조회합니다.
+	 *
+	 * @param request HttpServletRequest 객체
+	 * @param code    메시지 코드
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(HttpServletRequest request, String code) {
+		return getMessage(request, code, new String[]{});
+	}
+
+	/**
+	 * 요청에 따라 메시지를 조회합니다.
+	 *
+	 * @param request HttpServletRequest 객체
+	 * @param code    메시지 코드
+	 * @param args    메시지 인자
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(HttpServletRequest request, String code, Object[] args) {
+		Locale locale = RequestContextUtils.getLocale(request);
+		return messageSourceFileAccessor.getMessage(code, args, locale);
+	}
+
+	/**
+	 * 기본 메시지를 포함하여 메시지를 조회합니다.
+	 *
+	 * @param code           메시지 코드
+	 * @param defaultMessage 기본 메시지
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(String code, String defaultMessage) {
+		return getMessage(code, new String[]{}, defaultMessage);
+	}
+
+	/**
+	 * 기본 메시지를 포함하여 메시지를 조회합니다.
+	 *
+	 * @param code           메시지 코드
+	 * @param args           메시지 인자
+	 * @param defaultMessage 기본 메시지
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(String code, Object[] args, String defaultMessage) {
+		return messageSourceFileAccessor.getMessage(code, args, defaultMessage);
+	}
+
+	/**
+	 * 요청과 기본 메시지를 포함하여 메시지를 조회합니다.
+	 *
+	 * @param request        HttpServletRequest 객체
+	 * @param code           메시지 코드
+	 * @param defaultMessage 기본 메시지
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(HttpServletRequest request, String code, String defaultMessage) {
+		return getMessage(request, code, new String[]{}, defaultMessage);
+	}
+
+	/**
+	 * 요청과 기본 메시지를 포함하여 메시지를 조회합니다.
+	 *
+	 * @param request        HttpServletRequest 객체
+	 * @param code           메시지 코드
+	 * @param args           메시지 인자
+	 * @param defaultMessage 기본 메시지
+	 * @return 메시지 문자열
+	 */
+	public static String getMessage(HttpServletRequest request, String code, Object[] args, String defaultMessage) {
+		Locale locale = RequestContextUtils.getLocale(request);
+		return messageSourceFileAccessor.getMessage(code, args, defaultMessage, locale);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/AppMessageUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ControllerUtils.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.bind.ServletRequestUtils;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.UrlPathHelper;
+
+import java.util.Map;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > Util > Controller의 공통 유틸
+ * 프로그램명 : Controller의 공통 유틸
+ * 설명 :
+ * <p>
+ * 클래스 : ControllerUtils.java
+ * 작성자 : 정영탁
+ * 작성일 : 2024. 11. 22.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2024. 11. 22.         정영탁          최초생성
+ */
+@UtilityClass
+public class ControllerUtils {
+
+	private static final UrlPathHelper urlPathHelper = new UrlPathHelper();
+
+	// ---------------------------------------------------------- Helper Methods : View
+	/**
+	 * RequestMapping을 파싱하여 기본 ViewName을 반환
+	 */
+	public String getDefaultViewName(HttpServletRequest request) {
+		String requestUri = urlPathHelper.getRequestUri(request);
+		if (requestUri.indexOf('.', requestUri.lastIndexOf('/')) > -1) {
+			requestUri = requestUri.substring(0, requestUri.lastIndexOf('.'));
+		}
+
+		return requestUri;
+	}
+
+	/**
+	 * 설명 : view로 redirection
+	 * @param viewResource 이동할 URL (예: main.do)
+	 */
+	public ModelAndView getRedirectView(String viewResource) {
+		RedirectView view = new RedirectView(viewResource);
+		view.setEncodingScheme("UTF-8");
+		return new ModelAndView(view);
+	}
+
+	/**
+	 * 설명 : view로 redirection
+	 * @param viewName 이동할 URL (예: main.do)
+	 * @param model request parameter
+	 */
+	public ModelAndView getRedirectView(String viewName, Map<String, ?> model) {
+		RedirectView view = new RedirectView(viewName);
+		view.setEncodingScheme("UTF-8");
+		return new ModelAndView(view, model);
+	}
+
+	// ---------------------------------------------------------- ServletRequestUtils Delegator
+	// Boolean
+	public Boolean getBooleanParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getBooleanParameter(request, name);
+	}
+
+	public boolean getBooleanParameter(ServletRequest request, String name, boolean defaultVal) {
+		return ServletRequestUtils.getBooleanParameter(request, name, defaultVal);
+	}
+
+	public boolean[] getBooleanParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getBooleanParameters(request, name);
+	}
+
+	// Double
+	public Double getDoubleParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getDoubleParameter(request, name);
+	}
+
+	public double getDoubleParameter(ServletRequest request, String name, double defaultVal) {
+		return ServletRequestUtils.getDoubleParameter(request, name, defaultVal);
+	}
+
+	public double[] getDoubleParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getDoubleParameters(request, name);
+	}
+
+	// Float
+	public Float getFloatParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getFloatParameter(request, name);
+	}
+
+	public float getFloatParameter(ServletRequest request, String name, float defaultVal) {
+		return ServletRequestUtils.getFloatParameter(request, name, defaultVal);
+	}
+
+	public float[] getFloatParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getFloatParameters(request, name);
+	}
+
+	// Integer
+	public Integer getIntParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getIntParameter(request, name);
+	}
+
+	public int getIntParameter(ServletRequest request, String name, int defaultVal) {
+		return ServletRequestUtils.getIntParameter(request, name, defaultVal);
+	}
+
+	public int[] getIntParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getIntParameters(request, name);
+	}
+
+	// Long
+	public Long getLongParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getLongParameter(request, name);
+	}
+
+	public long getLongParameter(ServletRequest request, String name, long defaultVal) {
+		return ServletRequestUtils.getLongParameter(request, name, defaultVal);
+	}
+
+	public long[] getLongParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getLongParameters(request, name);
+	}
+
+	// String
+	public String getStringParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getStringParameter(request, name);
+	}
+
+	public String getStringParameter(ServletRequest request, String name, String defaultVal) {
+		String value = ServletRequestUtils.getStringParameter(request, name, defaultVal);
+		if (StringUtils.isEmpty(value)) {
+			return defaultVal;
+		}
+		return value;
+	}
+
+	public String[] getStringParameters(ServletRequest request, String name) {
+		return ServletRequestUtils.getStringParameters(request, name);
+	}
+
+	// Required Boolean
+	public boolean getRequiredBooleanParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredBooleanParameter(request, name);
+	}
+
+	public boolean[] getRequiredBooleanParameters(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredBooleanParameters(request, name);
+	}
+
+	// Required Double
+	public double getRequiredDoubleParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredDoubleParameter(request, name);
+	}
+
+	public double[] getRequiredDoubleParameters(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredDoubleParameters(request, name);
+	}
+
+	// Required Float
+	public float getRequiredFloatParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredFloatParameter(request, name);
+	}
+
+	public float[] getRequiredFloatParameters(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredFloatParameters(request, name);
+	}
+
+	// Required Integer
+	public int getRequiredIntParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredIntParameter(request, name);
+	}
+
+	public int[] getRequiredIntParameters(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredIntParameters(request, name);
+	}
+
+	// Required String
+	public String getRequiredStringParameter(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredStringParameter(request, name);
+	}
+
+	public String[] getRequiredStringParameters(ServletRequest request, String name) throws ServletRequestBindingException {
+		return ServletRequestUtils.getRequiredStringParameters(request, name);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ControllerUtils.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/CryptoJsUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > CryptoJS를 이용한 암복호화 유틸
+ * 프로그램명 : CryptoJS를 이용한 암복호화 유틸
+ * 설명 :
+ *
+ * 클래스 : CryptoJsUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2022. 10. 13.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2022. 10. 13.         정영탁          최초생성
+ */
+@UtilityClass
+public class CryptoJsUtil {
+
+    /**
+     * AES-256을 이용하여 암호화
+     * @param plaintext 암호화할 문자열
+     * @param passphrase 암복호화 비밀번호
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES(String plaintext, String passphrase) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    	if (StringUtils.isBlank(plaintext) || StringUtils.isBlank(passphrase)) {
+            return "";
+        }
+
+        final int keySize = 256;
+        final int ivSize = 128;
+
+        // 텍스트를 Base64 형식으로 디코딩
+        byte[] plaintextBytes = plaintext.getBytes(StandardCharsets.UTF_8);
+
+        // Salt를 구한다. (Salted__ 시작되는 문자열)
+        byte[] stBytes = "Salted__".concat(DateUtil.getCurrentDate(DateUtil.FORMATTER_HH_MM_SS)).getBytes(StandardCharsets.UTF_8);
+        byte[] saltBytes = Arrays.copyOfRange(stBytes, 8, 16);
+
+        // 비밀번호와 Salt에서 Key와 IV값을 가져옴.
+        byte[] key = new byte[keySize / 8];
+        byte[] iv = new byte[ivSize / 8];
+        EvpKDF(passphrase.getBytes(StandardCharsets.UTF_8), keySize, ivSize, saltBytes, key, iv);
+
+        // 암호화
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+        byte[] receovedCiphertextBytes = cipher.doFinal(plaintextBytes);
+
+        // 암호화된 텍스트 (Salt값과 암호화된 텍스트를 합한다.)
+        byte[] ciphertextBytes = new byte[stBytes.length + receovedCiphertextBytes.length];
+        System.arraycopy(stBytes, 0, ciphertextBytes, 0, stBytes.length);
+        System.arraycopy(receovedCiphertextBytes, 0, ciphertextBytes, stBytes.length, receovedCiphertextBytes.length);
+
+        // 암호화 문자열을 Base64 형식으로 인코딩
+        return Base64.encodeBase64String(ciphertextBytes);
+    }
+
+    /**
+     * AES-256을 이용하여 복호화
+     * @param ciphertext 복호화할 문자열
+     * @param passphrase 암복호화 비밀번호
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES(String ciphertext, String passphrase) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    	if (StringUtils.isBlank(ciphertext) || StringUtils.isBlank(passphrase)) {
+            return "";
+        }
+
+        final int keySize = 256;
+        final int ivSize = 128;
+
+        // 텍스트를 Base64 형식으로 디코딩
+        byte[] ctBytes = Base64.decodeBase64(ciphertext.getBytes(StandardCharsets.UTF_8));
+
+        // Salt를 구한다. (생략된 8비트는 Salted__ 시작되는 문자열)
+        byte[] saltBytes = Arrays.copyOfRange(ctBytes, 8, 16);
+
+        // 암호화된 텍스트 (Salt값 이후가 암호화된 텍스트)
+        byte[] ciphertextBytes = Arrays.copyOfRange(ctBytes, 16, ctBytes.length);
+
+        // 비밀번호와 Salt에서 Key와 IV값을 가져옴.
+        byte[] key = new byte[keySize / 8];
+        byte[] iv = new byte[ivSize / 8];
+        EvpKDF(passphrase.getBytes(StandardCharsets.UTF_8), keySize, ivSize, saltBytes, key, iv);
+
+        // 복호화
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+        byte[] recoveredPlaintextBytes = cipher.doFinal(ciphertextBytes);
+
+        return new String(recoveredPlaintextBytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * OpenSSL KDF
+     */
+    private static byte[] EvpKDF(byte[] password, int keySize, int ivSize, byte[] salt, byte[] resultKey, byte[] resultIv) throws NoSuchAlgorithmException {
+    	return EvpKDF(password, keySize, ivSize, salt, 1, "MD5", resultKey, resultIv);
+    }
+    /**
+     * OpenSSL KDF
+     */
+    private static byte[] EvpKDF(byte[] password, int keySize, int ivSize, byte[] salt, int iterations, String hashAlgorithm, byte[] resultKey, byte[] resultIv) throws NoSuchAlgorithmException {
+    	keySize = keySize / 32;
+    	ivSize = ivSize / 32;
+    	int targetKeySize = keySize + ivSize;
+    	byte[] derivedBytes = new byte[targetKeySize * 4];
+    	int numberOfDerivedWords = 0;
+    	byte[] block = null;
+    	MessageDigest hasher = MessageDigest.getInstance(hashAlgorithm);
+    	while (numberOfDerivedWords < targetKeySize) {
+    		if (block != null) {
+    			hasher.update(block);
+    		}
+    		hasher.update(password);
+    		// Salting
+    		block = hasher.digest(salt);
+    		hasher.reset();
+    		// Iterations : 키 스트레칭(key stretching)
+    		for (int i = 1; i < iterations; i++) {
+    			block = hasher.digest(block);
+    			hasher.reset();
+    		}
+    		System.arraycopy(block, 0, derivedBytes, numberOfDerivedWords * 4, Math.min(block.length, (targetKeySize - numberOfDerivedWords) * 4));
+    		numberOfDerivedWords += block.length / 4;
+    	}
+    	System.arraycopy(derivedBytes, 0, resultKey, 0, keySize * 4);
+    	System.arraycopy(derivedBytes, keySize * 4, resultIv, 0, ivSize * 4);
+    	return derivedBytes; // key + iv
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/CryptoJsUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/DateUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.Months;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > 날짜 처리를 위한 Util
+ * 프로그램명 : 날짜 처리를 위한 Util
+ * 설명 : 
+ *
+ * @Class  DateUtil.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+@UtilityClass
+public class DateUtil {
+
+    /**
+     * java8에서 권장하는 일자/시간 관련 함수를 사용
+     */
+    public static final String FORMATTER_YYYY = "yyyy";
+    public static final String FORMATTER_YYYYMM = "yyyyMM";
+    public static final String FORMATTER_YYYYMMDD = "yyyyMMdd";
+    public static final String FORMATTER_YYYY_MM_DD = "yyyy.MM.dd";
+    public static final String FORMATTER_DD = "dd";
+    public static final String FORMATTER_YYYY_MM_DD_HH_MM = "yyyy.MM.dd HH:mm";
+    public static final String FORMATTER_YYYY_MM_DD_HH_MM_SS = "yyyy.MM.dd HH:mm:ss";
+    public static final String FORMATTER_HH_MM = "HH:mm";
+    public static final String FORMATTER_HH_MM_SS = "HH:mm:ss";
+    public static final String FORMATTER_HHMMSSSSS = "HHmmssSSS";
+    public static final String FORMATTER_HHMMSSSS = "HHmmssSS";
+    public static final String FORMATTER_HHMMSS = "HHmmss";
+    public static final String FORMATTER_YYYYMMDDHHMMSSSS = "yyyyMMddHHmmssSS";
+    public static final String FORMATTER_YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
+    public static final long MILLIS_PER_DAY = 86400000L;
+
+    /**
+     * 오늘 년월일 구하기
+     */
+    public static String getCurrentDate() {
+        return getCurrentDate(FORMATTER_YYYYMMDD);
+    }
+
+    public static String getCurrentDate(String pattern) {
+        String newPattern = StringUtils.defaultIfBlank(pattern, FORMATTER_YYYYMMDD);
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(newPattern);
+        return LocalDateTime.now().format(formatter);
+    }
+
+    /**
+     * 현재시간(yyyyMMddHHmmss)
+     */
+    public static String getCurrentDateTime() {
+        return getCurrentDate(FORMATTER_YYYYMMDDHHMMSS);
+    }
+
+    /**
+     * 현재의 시분초
+     */
+    public static String getCurrentTime() {
+        return getCurrentTime("");
+    }
+
+    /**
+     * 현재의 시분초
+     */
+    public static String getCurrentTime(String separator) {
+        Calendar cal = Calendar.getInstance();
+        return String.format("%02d%s%02d%s%02d", cal.get(Calendar.HOUR_OF_DAY), separator, cal.get(Calendar.MINUTE), separator, cal.get(Calendar.SECOND));
+    }
+
+    public static String getString(Date date, String format) {
+        if (date == null) {
+            return null;
+        }
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+        return simpleDateFormat.format(date);
+    }
+
+    /**
+     * 현재연도를 가져온다.
+     */
+    public static int getCurrentYear() {
+        return Calendar.getInstance().get(Calendar.YEAR);
+    }
+
+    /**
+     * 현재 월을 가져온다.
+     */
+    public static int getCurrentMonth() {
+        return Calendar.getInstance().get(Calendar.MONTH) + 1;
+    }
+
+    /**
+     * 현재 일을 가져온다.
+     */
+    public static int getCurrentDay() {
+        return Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+    }
+
+    /**
+     * 현재 월의 마지막 일을 가져온다.
+     */
+    public static int getCurrentLastDayByMonth() {
+        return Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    /**
+     * 문자열 날짜를 DateTime 형식으로 변환
+     */
+    public static DateTime getDateTime(String dateStr, String format) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+        return fmt.parseDateTime(dateStr);
+        //DateTime dt = fmt.withZoneUTC().parseDateTime(dateStr);
+        //return dt.withZoneRetainFields(DateTimeZone.getDefault());
+    }
+
+    /**
+     * 날짜를 Long타입으로 리턴한다.
+     */
+    public static long getMillis(int year, int month, int day) {
+        return (new DateTime(year, month, day, 0, 0, 0, 0)).getMillis();
+    }
+
+    /**
+     * 날짜를 Long 타입으로 리턴한다.
+     */
+    public static long getMillis(String dateStr, String format) {
+        return getDateTime(dateStr, format).getMillis();
+
+    }
+
+    /**
+     * 날짜를 Date타입으로 리턴한다.
+     */
+    public static Date getDate(int year, int month, int day) {
+        return (new DateTime(year, month, day, 0, 0, 0, 0)).toDate();
+    }
+
+    /**
+     * 날짜를 Date 타입으로 리턴한다.
+     */
+    public static Date getDate(String dateStr, String format) {
+        return getDateTime(dateStr, format).toDate();
+    }
+
+    /**
+     * 날짜를 Calendar 타입으로 리턴한다.
+     */
+    public static Calendar getCalendar(int year, int month, int date) {
+        return (new DateTime(year, month, date, 0, 0, 0, 0)).toCalendar(null);
+    }
+
+    /**
+     * 날짜를 Calendar 타입으로 리턴한다.
+     */
+    public static Calendar getCalendar(String dateStr, String format) {
+        return getDateTime(dateStr, format).toCalendar(null);
+    }
+
+    /**
+     * 날짜를 Calendar 타입으로 리턴한다.(UTC)
+     */
+    public static Calendar getCalendarUTC(String dateStr, String format) {
+        return getDateTime(dateStr, format).toDateTime(DateTimeZone.UTC).toCalendar(null);
+    }
+
+    /**
+     * yyyyMMdd의 Calendar를 제공한다.
+     */
+    public static Calendar getCalendar(String yyyyMMdd) {
+        int year = Integer.parseInt(yyyyMMdd.substring(0, 4));
+        int month = Integer.parseInt(yyyyMMdd.substring(4, 6));
+        int day = Integer.parseInt(yyyyMMdd.substring(6, 8));
+        return getCalendar(year, month, day);
+    }
+
+    /**
+     * 시간에 대한 셋팅
+     */
+    public static String getTime(String format) {
+        if (StringUtils.isBlank(format)) {
+            return "";
+        }
+        DateTime dt = new DateTime();
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(format.equals("A") ? "a" : format);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘날짜 리턴(UTC)
+     * 예) getToday("yyyy-MM-dd a hh:mm:ss") ==> 2007-06-28 오후 05:37:46
+     */
+    public static String getTodayUTC(String format) {
+        if (StringUtils.isBlank(format)) {
+            return "";
+        }
+        DateTime dt = new DateTime(DateTimeZone.UTC);
+        format = format.replace("Y", "y");
+        format = format.replace("D", "d");
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘날짜 리턴 예) getToday("yyyy-MM-dd a hh:mm:ss") ==> 2007-06-28 오후 05:37:46
+     */
+    public static String getToday(String format) {
+        if (StringUtils.isBlank(format)) {
+            return "";
+        }
+        DateTime dt = new DateTime();
+        format = format.replace("Y", "y");
+        format = format.replace("D", "d");
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(format);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘날짜 리턴(YYYYMMDD)
+     */
+    public static String getToday() {
+        return getToday("YYYYMMDD");
+    }
+
+    /**
+     * 현재요일을 리턴한다.
+     *
+     * @param locale
+     *            Locale.ENGLISH, Locale.KOREA
+     * @param flag
+     *            true = 짤은 요일명, false = 긴 요일명
+     */
+    public static String getWeekText(Locale locale, boolean flag) {
+        DateTime dt = new DateTime();
+        DateTime.Property pDoW = dt.dayOfWeek();
+        return (flag ? pDoW.getAsShortText(locale) : pDoW.getAsText(locale));
+    }
+
+    /**
+     * 지정된 날짜에 대한 현재요일을 리턴한다. 지정된 날짜의 형식은 반드시 "yyyyMMdd"를 지켜야 한다.
+     *
+     * @param date
+     * @param locale
+     *            Locale.ENGLISH, Locale.KOREA
+     * @param flag
+     *            true = 짤은 요일명, false = 긴 요일명
+     */
+    public static String getWeekText(String date, Locale locale, boolean flag) {
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        DateTime.Property pDoW = dt.dayOfWeek();
+        return (flag ? pDoW.getAsShortText(locale) : pDoW.getAsText(locale));
+    }
+
+    /**
+     * 현재요일을 숫자를 리턴한다.
+     *
+     * @param date
+     * @return int [1.일 ... 7.토]
+     */
+    public static int getWeek(String date) {
+        return getDateTime(date, "yyyyMMdd").getDayOfWeek() + 1;
+    }
+
+    /**
+     * 오늘부터 year, month, day까지의 날짜 수
+     */
+    public static int daysBetween(int year, int month, int day) {
+        DateTime dt = new DateTime();
+        DateTime sdt = new DateTime(year, month, day, 0, 0, 0, 0);
+        return Days.daysBetween(sdt.toLocalDateTime(), dt.toLocalDateTime()).getDays();
+    }
+
+    /**
+     * 두 날짜사이의 일수차이 구함
+     */
+    public static int daysBetween(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay) {
+        DateTime sdt = new DateTime(startYear, startMonth, startDay, 0, 0, 0, 0);
+        DateTime edt = new DateTime(endYear, endMonth, endDay, 0, 0, 0, 0);
+        return Days.daysBetween(sdt.toLocalDateTime(), edt.toLocalDateTime()).getDays();
+    }
+
+    /**
+     * 두 날짜사이의 일수차이 구함
+     */
+    public static int daysBetween(String startDate, String endDate) {
+        int year = Integer.parseInt(startDate.substring(0, 4));
+        int month = Integer.parseInt(startDate.substring(4, 6));
+        int day = Integer.parseInt(startDate.substring(6));
+
+        int year2 = Integer.parseInt(endDate.substring(0, 4));
+        int month2 = Integer.parseInt(endDate.substring(4, 6));
+        int day2 = Integer.parseInt(endDate.substring(6));
+
+        return daysBetween(year, month, day, year2, month2, day2);
+    }
+
+    /**
+     * 오늘부터 year, month, day까지의 날짜 수
+     */
+    public static int daysBetween(String date) {
+        if (!isValidDate(date)) {
+            return -1;
+        }
+
+        int[] parsedDate = parseDate(date);
+        return daysBetween(parsedDate[0], parsedDate[1], parsedDate[2]);
+    }
+
+    private static boolean isValidDate(String date) {
+        return date != null && date.length() == 8;
+    }
+
+    private static int[] parseDate(String date) {
+        return new int[] {
+                Integer.parseInt(date.substring(0, 4)),
+                Integer.parseInt(date.substring(4, 6)),
+                Integer.parseInt(date.substring(6))
+        };
+    }
+
+    /**
+     * 오늘부터 year, month, day까지의 월수 수
+     */
+    public static int monthsBetween(int year, int month) {
+        DateTime dt = new DateTime();
+        DateTime sdt = new DateTime(year, month, 1, 0, 0, 0, 0);
+
+        return Months.monthsBetween(sdt.toLocalDateTime(), dt.toLocalDateTime()).getMonths();
+    }
+
+    /**
+     * 두 날짜사이의 월수 구함
+     */
+    public static int monthsBetween(int startYear, int startMonth, int endYear, int endMonth) {
+        DateTime sdt = new DateTime(startYear, startMonth, 1, 0, 0, 0, 0);
+        DateTime edt = new DateTime(endYear, endMonth, 1, 0, 0, 0, 0);
+
+        return Months.monthsBetween(sdt.toLocalDateTime(), edt.toLocalDateTime()).getMonths();
+    }
+
+    /**
+     * 두 날짜사이의 월수 구함
+     * YYYYMM, YYYYMMDD
+     */
+    public static int monthsBetween(String startDate, String endDate) {
+        int[] start = parseAndValidateDate(startDate);
+        int[] end = parseAndValidateDate(endDate);
+
+        if (start == null || end == null) {
+            return 0;
+        }
+
+        return monthsBetween(start[0], start[1], end[0], end[1]);
+    }
+
+    private static int[] parseAndValidateDate(String date) {
+        if (!isValidDate(date)) {
+            return null;
+        }
+        return splitDateInt(date);
+    }
+
+    /**
+     * 오늘부터 year, month, day까지의 월수 수
+     * YYYYMM, YYYYMMDD 헝
+     */
+    public static int monthsBetween(String date) {
+        if (date == null || date.length() < 6) {
+            return -1;
+        }
+
+        return monthsBetween(Integer.parseInt(date.substring(0, 4)), Integer.parseInt(date.substring(4, 6)));
+    }
+
+    /**
+     * 달의 날 수를 계산한다.(해당년 해당월의 말일을 구해서 리턴)
+     */
+    public static int getMonthDays(int year, int month) {
+        DateTime dt = new DateTime(year, month, 1, 0, 0, 0, 0);
+        dt = dt.plusMonths(1);
+        dt = dt.minusDays(1);
+        return dt.getDayOfMonth();
+    }
+
+    /**
+     * 입력한 날짜와 오늘의 날짜 비교
+     * @param date
+     * @return 이전 날짜면 -1, 당일이면 0, 이후 날짜이면 1
+     */
+    public static int daysCompareTo(String date) {
+        if (date == null || date.length() != 8) {
+            return -1;
+        }
+
+        Calendar today = Calendar.getInstance();
+    	DateTime sdt = new DateTime(Integer.parseInt(date.substring(0, 4)), Integer.parseInt(date.substring(4, 6)), Integer.parseInt(date.substring(6)), 0, 0, 0, 0);
+        DateTime edt = new DateTime(today.get(Calendar.YEAR), today.get(Calendar.MONTH) + 1, today.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+        return sdt.compareTo(edt);
+    }
+    
+    /**
+     * 시작 날짜와 종 종료  날짜 비교
+     * @param startDate
+     * @param endDate
+     * @return 이전 날짜면 -1, 당일이면 0, 이후 날짜이면 1
+     */
+    public static int daysCompareTo(String startDate, String endDate) {
+        if ((startDate == null || startDate.length() != 8) || (endDate == null || endDate.length() != 8))
+            return -1;
+
+    	DateTime sdt = new DateTime(Integer.parseInt(startDate.substring(0, 4)), Integer.parseInt(startDate.substring(4, 6)), Integer.parseInt(startDate.substring(6)), 0, 0, 0, 0);
+        DateTime edt = new DateTime(Integer.parseInt(endDate.substring(0, 4)), Integer.parseInt(endDate.substring(4, 6)), Integer.parseInt(endDate.substring(6)), 0, 0, 0, 0);
+
+        return sdt.compareTo(edt);
+    }
+
+    /**
+     * 오늘부터 year 만큼의 년을 뺀 날짜 리턴
+     */
+    public static String minusYears(int year) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.minusYears(year);
+        return fmt.print(dt);
+    }
+    
+    /**
+     * 오늘부터 year 만큼의 년을 뺀 날짜 리턴
+     */
+    public static String minusYears(int year, String pattern) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(StringUtils.defaultIfBlank(pattern, "yyyyMMdd"));
+        DateTime dt = new DateTime();
+        dt = dt.minusYears(year);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 month 만큼의 월을 뺀 날짜 리턴
+     */
+    public static String minusMonths(int month) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.minusMonths(month);
+        return fmt.print(dt);
+    }
+    
+    /**
+     * 오늘부터 minusMonths 만큼의 년을 뺀 날짜 리턴
+     */
+    public static String minusMonths(int month, String pattern) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(StringUtils.defaultIfBlank(pattern, "yyyyMMdd"));
+        DateTime dt = new DateTime();
+        dt = dt.minusMonths(month);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 week 만큼의 주을 뺀 날짜 리턴
+     */
+    public static String minusWeeks(int week) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.minusWeeks(week);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 day 만큼의 날짜를 뺀 날짜 리턴
+     */
+    public static String minusDays(int day) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.minusDays(day);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 year 만큼의 년을 뺀 날짜 리턴
+     */
+    public static String minusYears(String date, int year) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.minusYears(year);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 month 만큼의 월을 뺀 날짜 리턴
+     */
+    public static String minusMonths(String date, int month) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.minusMonths(month);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 week 만큼의 주을 뺀 날짜 리턴
+     */
+    public static String minusWeeks(String date, int week) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.minusWeeks(week);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 day 만큼의 날짜를 뺀 날짜 리턴
+     */
+    public static String minusDays(String date, int day) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.minusDays(day);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 year 만큼의 년을 더한 날짜 리턴
+     */
+    public static String plusYears(int year) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.plusYears(year);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 month 만큼의 월을 더한 날짜 리턴
+     */
+    public static String plusMonths(int month) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.plusMonths(month);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 week 만큼의 주을 더한 날짜 리턴
+     */
+    public static String plusWeeks(int week) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.plusWeeks(week);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 오늘부터 day 만큼의 날짜를 더한 날짜 리턴
+     */
+    public static String plusDays(int day) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = new DateTime();
+        dt = dt.plusDays(day);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 year 만큼의 년을 더한 날짜 리턴
+     */
+    public static String plusYears(String date, int year) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.plusYears(year);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 month 만큼의 월을 더한 날짜 리턴
+     */
+    public static String plusMonths(String date, int month) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.plusMonths(month);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 week 만큼의 주을 더한 날짜 리턴
+     */
+    public static String plusWeeks(String date, int week) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.plusWeeks(week);
+        return fmt.print(dt);
+    }
+
+    /**
+     * 특정날짜로부터 day 만큼의 날짜를 더한 날짜 리턴
+     */
+    public static String plusDays(String date, int day) {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyyMMdd");
+        DateTime dt = getDateTime(date, "yyyyMMdd");
+        dt = dt.plusDays(day);
+        return fmt.print(dt);
+    }
+
+    /**
+     * yyyyMMdd를 yyyy, mm, dd로 분리해서 String[3]로 제공한다. String[0]는 년, String[1]은 월,
+     * String[2] 일.
+     */
+    public static String[] splitDateStr(String yyyyMMdd) {
+        String[] strDate = new String[3];
+        strDate[0] = yyyyMMdd.substring(0, 4);
+        strDate[1] = yyyyMMdd.substring(4, 6);
+        strDate[2] = yyyyMMdd.substring(6);
+        return strDate;
+    }
+
+    /**
+     * yyyyMMdd를 yyyy, mm, dd로 분리해서 int[3]로 제공한다. int[0]는 년, int[1]은 월, int[2]
+     * 일.
+     */
+    public static int[] splitDateInt(String yyyyMMdd) {
+        String[] strDate = splitDateStr(yyyyMMdd);
+        int[] intDate = new int[3];
+        intDate[0] = Integer.parseInt(strDate[0]);
+        intDate[1] = Integer.parseInt(strDate[1]);
+        intDate[2] = Integer.parseInt(strDate[2]);
+        return intDate;
+    }
+
+    /**
+     * 'yyyyMMdd' 포맷으로 문자열을 제공한다.
+     */
+    public static String formatYMD8(int year, int month, int day) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(year);
+        if (month < 10)
+            sb.append("0");
+        sb.append(month);
+        if (day < 10)
+            sb.append("0");
+        sb.append(day);
+        return sb.toString();
+    }
+
+    /**
+     * yyyyMMdd의 전일을 제공한다.
+     */
+    public static String previousDate(String yyyyMMdd) {
+        int[] intDate = splitDateInt(yyyyMMdd);
+        int day = intDate[2];
+        int month = intDate[1];
+        int year = intDate[0];
+
+        if (day > 1) {
+            return formatYMD8(year, month, day - 1);
+        } else {
+            return handleEndOfMonth(year, month);
+        }
+    }
+
+    private static String handleEndOfMonth(int year, int month) {
+        if (month > 1) {
+            month -= 1;
+        } else {
+            year -= 1;
+            month = 12;
+        }
+        Calendar cal = DateUtil.getCalendar(year, month, 1);
+        int lastDayOfPreviousMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        return formatYMD8(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, lastDayOfPreviousMonth);
+    }
+
+    /**
+     * String 과 infmt, outfmt 을 받아 날짜를 출력해준다.
+     * <p>
+     * ex) getFormatDate("20080901","yyyyMMdd","yyyy-MM-dd") -> 2008-09-01
+     * </p>
+     */
+    public static String getFormatDate(String date, String infmt, String outfmt) {
+        try {
+            // date 형식이 infmt 에 맞지 않다면 date 를 infmt 에 맞추어줌.
+            StringBuffer sDate = new StringBuffer(date);
+            int len = date.length();
+
+            if (StringUtils.equals(infmt, "yyyyMMddHHmm") && len < 12) {
+                for (int i = len; i < 12; i++) {
+                    sDate.append("0");
+                }
+            } else if (StringUtils.equals(infmt, "yyyyMMddHHmmss") && len < 14) {
+                for (int i = len; i < 14; i++) {
+                    sDate.append("0");
+                }
+            } else if (StringUtils.equals(infmt, "yyyyMMdd") && len > 8) {
+            	sDate.setLength(8);
+            }
+
+            SimpleDateFormat sdf = new SimpleDateFormat(infmt, Locale.US);
+            Date d = sdf.parse(sDate.toString());
+            sdf.applyPattern(outfmt);
+
+            return sdf.format(d);
+        } catch (ParseException e) {
+            return "";
+        }
+    }
+
+    /**
+     * 현재 시간을 포맷에 맞추어 내용을 수정
+     * @param pattern 날자 포맷 정의, String 형식으로 출력
+     * @return 포맷팅된 문자열 출력
+     */
+	public static String getCurrentDateTime(@NonNull String pattern) {
+		String newPattern = (StringUtils.isBlank(pattern)) ? FORMATTER_YYYY_MM_DD_HH_MM_SS : pattern;
+		java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(newPattern);
+		return LocalDateTime.now().format(formatter);
+	}
+
+    /**
+     * 현재 일자 (년.월.일) 정보를 가져옴
+     * @param pattern
+     * @param addYear
+     * @param addMonth
+     * @param addDay
+     * @return
+     */
+    public static String getCurrentDate(@NonNull String pattern, int addYear, int addMonth, int addWeek, int addDay) {
+        String newPattern = StringUtils.defaultIfBlank(pattern, DateUtil.FORMATTER_YYYY_MM_DD);
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern(newPattern);
+        return LocalDate.now()
+                .plusYears(addYear)
+                .plusMonths(addMonth)
+                .plusWeeks(addWeek)
+                .plusDays(addDay)
+                .format(formatter);
+    }
+
+    /**
+     * 만 나이 계산
+     * @param resno 주민등록번호
+     * @return 만 나이
+     */
+    public static int getAmericanAge(@NonNull String resno) {
+    	if (resno.length() < 13 || !StringUtils.isNumeric(resno)) {
+    		return 0;
+    	}
+
+		String birthDate = extractBirthDateFromResno(resno);
+
+    	LocalDate now = LocalDate.now();
+        return calculateAgeFromBirthdate(now, birthDate);
+    }
+
+    /**
+     * 만 나이 계산
+     * @param resno 주민등록번호
+     * @param baseDt  기준일 - isBlank 이면 오늘
+     * @return 만 나이
+     */
+    public static int getAmericanAge(@NonNull String resno, @NonNull String baseDt) {
+        if (resno.length() < 13 || !StringUtils.isNumeric(resno)) {
+            return 0;
+        }
+
+        String birthDate = extractBirthDateFromResno(resno);
+
+        if (StringUtils.isBlank(baseDt)) {
+            baseDt = DateUtil.getCurrentDate(DateUtil.FORMATTER_YYYYMMDD);
+        }
+
+        Date dt = DateUtil.getDate(baseDt, DateUtil.FORMATTER_YYYYMMDD);
+        LocalDate now = dt.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        return calculateAgeFromBirthdate(now, birthDate);
+    }
+
+    private static String extractBirthDateFromResno(String resno) {
+        String sexType = resno.substring(6, 7);
+        String centuryPrefix;
+
+        if ("1".equals(sexType) || "2".equals(sexType) || "5".equals(sexType) || "6".equals(sexType)) {
+            centuryPrefix = "19";
+        } else if ("9".equals(sexType) || "0".equals(sexType)) {
+            centuryPrefix = "18";
+        } else {
+            centuryPrefix = "20";
+        }
+
+        return centuryPrefix.concat(resno.substring(0, 6));
+    }
+
+    private static int calculateAgeFromBirthdate(LocalDate now, String birthDate) {
+        LocalDate parseBirthDate = LocalDate.parse(birthDate, java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        int age = now.minusYears(parseBirthDate.getYear()).getYear();
+
+        // 생일이 지났는지 판단하여, 나이 보정
+        if (parseBirthDate.plusYears(age).isAfter(now)) {
+            age = age - 1;
+        }
+
+        return age;
+    }
+
+    /**
+     * String DateTime => LocalDateTime 타입으로 변환하여 가져오기
+     * @param dateTime
+     * @return 예) 2022-06-10T15:53:23
+     * @throws ParseException 
+     */
+    public static String convertLocalDateTime(@NonNull String dateTime) throws ParseException {
+    	SimpleDateFormat toDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    	Date dateParse = toDateFormat.parse(dateTime);
+    	
+		SimpleDateFormat toSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String dateFormat = toSimpleDateFormat.format(dateParse);
+		
+		java.time.format.DateTimeFormatter toDateTimeFormat = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+		return java.time.LocalDateTime.parse(dateFormat, toDateTimeFormat).toString();
+    }
+    
+    /**
+     * 현재시간 LocalDateTime 타입으로 가져오기
+     * @return 예) 2022-06-10T15:53:23
+     */
+    public static String getNowLocalDateTime() {
+		LocalDateTime result = LocalDateTime.now();
+		return result.toString().substring(0, 19);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/DateUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/DTOUtil.java =====
+package kr.fasol.obix.core.util;
+
+import com.google.common.base.CaseFormat;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > DTO 간 데이터 전달을 위한
+ * 설명 :
+ *
+ * @Class   DTOUtil.class
+ * @author  정영탁
+ * @since   2017-07-31
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일        수정자                수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-31   정영탁  최초생성
+ */
+@Slf4j
+@UtilityClass
+public class DTOUtil {
+	private static final ModelMapper modelMapper;
+
+	static {
+		modelMapper = new ModelMapper();
+		modelMapper.getConfiguration()
+				.setSkipNullEnabled(true)
+				.setMatchingStrategy(MatchingStrategies.STRICT);
+	}
+
+	/**
+	 * srcObj의 각 필드의 값을 복사한 tgtClass의 새로운 인스턴스를 생성한다.
+	 * tgtClass의 필드 명을 기준으로 srcObj에서 값을 복사한다.
+	 */
+	public static <I, O> O convertDTO(I srcObj, Class<O> tgtClass) {
+		if (srcObj == null ) {
+			return null;
+		}
+		return modelMapper.map(srcObj, tgtClass);
+	}
+
+	/**
+	 * srcObj 리스트의 값을 복사한 tgtClass 타입의 List를 생성한다.
+	 * tgtClass의 필드 명을 기준으로 srcObj에서 값을 복사한다.
+	 */
+	public static <I, O> List<O> convertDTOList(List<I> srcObjList, Class<O> tgtClass) {
+		if (srcObjList == null ) {
+			return null;
+		}
+		
+		List<O> list = new ArrayList<>();
+		for (I srcObj : srcObjList) {
+			list.add(convertDTO(srcObj, tgtClass));
+		}
+
+		return list;
+	}
+
+	/**
+	 * srcObj의 각 필드의 값을 tgtObj의 각 필드의 값으로 overwrite복사한 인스턴스를 생성한다.
+	 * srcObj, tgtObj는 각 DTO의 생성된 인스턴스이다.
+	 */
+	public static <I, O> O copyDTO(I srcObj, O tgtObj) {
+		if (srcObj == null ) {
+			return null;
+		}
+
+		modelMapper.map(srcObj, tgtObj);
+
+		return tgtObj;
+	}
+
+	/**
+	 * 여러개의 srcObj의 각 필드의 값을 복사한 tgtClass의 새로운 인스턴스를 생성한다.
+	 * tgtClass의 필드 명을 기준으로 srcObj에서 값을 복사한다.
+	 */
+	public static <I, O> O mergeDTO(List<I> srcObjList, Class<O> tgtClass) {
+		if (srcObjList == null ) {
+			return null;
+		}
+
+		O out = null;
+		try {
+			out = tgtClass.getDeclaredConstructor().newInstance();
+			for (I srcObj : srcObjList) {
+				modelMapper.map(srcObj, out);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+		return out;
+	}
+
+	/**
+	 * srcObj의 각 필드의 값을 복사한 tgtClass의 새로운 인스턴스를 생성한다.
+	 * tgtClass의 필드 명을 기준으로 srcObj에서 값을 복사한다.
+	 */
+	public static <I, O> O convertMap(I srcObj, Class<O> tgtClass) {
+		if (srcObj == null ) {
+			return null;
+		}
+
+        //init gson
+        Gson gson = new GsonBuilder()
+                .setFieldNamingStrategy(f -> CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, f.getName()))
+                .create();
+
+        O out = null;
+		try {
+			out = gson.fromJson(gson.toJson(srcObj), tgtClass);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+		return out;
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/DTOUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/EnvironmentUtil.java =====
+package kr.fasol.obix.core.util;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > Properties 파일 내용 조회
+ * 프로그램명 : Properties 파일 내용 조회
+ * 설명 : 
+ *
+ * @Class  EnvironmentUtil.class
+ * @author  정영탁
+ * @since   2017-09-08
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-09-08        정영탁    최초생성
+ */
+@Component
+public class EnvironmentUtil {
+
+    private static Environment environment;
+
+    @Autowired
+    public EnvironmentUtil(Environment env) {
+        environment = env;
+    }
+
+    public static boolean containsProperty(String key) {
+        return environment.containsProperty(key);
+    }
+
+    public static String getProperty(String key) {
+        return environment.getProperty(key);
+    }
+
+    public static String getProperty(String key, String defaultValue) {
+        return environment.getProperty(key, defaultValue);
+    }
+
+    public static <T> T getProperty(String key, Class<T> targetType) {
+        return environment.getProperty(key, targetType);
+    }
+
+    public static <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+        return environment.getProperty(key, targetType, defaultValue);
+    }
+
+    public static String getRequiredProperty(String key) throws IllegalStateException {
+        return environment.getRequiredProperty(key);
+    }
+
+    public static <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
+        return environment.getRequiredProperty(key, targetType);
+    }
+
+    public static String resolvePlaceholders(String text) {
+        return environment.resolvePlaceholders(text);
+    }
+
+    public static String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+        return environment.resolveRequiredPlaceholders(text);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/EnvironmentUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ExcelUtil.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.enums.ExcelConstant;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.ContentDisposition;
+import org.springframework.web.util.HtmlUtils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : F/W > 공통 유틸 > 엑셀파일 생성 유틸
+ * 프로그램명 : 엑셀 파일 생성 유틸
+ * 설명 : 엑셀 파일을 생성하는 유틸리티 클래스
+ *
+ * @Class  ExcelUtil.class
+ * @author  정영탁
+ * @since   2017-08-16
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-08-16        정영탁    최초생성
+ */
+public class ExcelUtil {
+
+    private Workbook workbook;
+    private Map<String, Object> model;
+    private HttpServletResponse response;
+    private HttpServletRequest request;
+
+    private static final String FONT_NAME = "Malgun Gothic";
+
+    /**
+     * 엑셀 파일을 생성합니다.
+     *
+     * @throws Exception 예외 발생 시
+     */
+    public static void createExcel(Workbook workbook, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ExcelUtil excelUtil = new ExcelUtil(workbook, model, request, response);
+        excelUtil.createExcel();
+    }
+
+    /**
+     * ExcelUtil 생성자
+     *
+     * @param workbook 엑셀 워크북 객체
+     * @param model 데이터 모델
+     * @param request HTTP 요청 객체
+     * @param response HTTP 응답 객체
+     */
+    private ExcelUtil(Workbook workbook, Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) {
+        this.workbook = workbook;
+        this.model = model;
+        this.request = request;
+        this.response = response;
+    }
+
+    /**
+     * 엑셀 파일을 생성합니다.
+     *
+     * @throws Exception 예외 발생 시
+     */
+    private void createExcel() throws Exception {
+        setFileName(response, getFileName());
+        Sheet sheet = workbook.createSheet();
+
+        if(ExcelConstant.EXCEL_DOWNLOAD_TABLE.equals(getDownloadType())) {
+            createData(sheet, getDataList());
+        } else if(ExcelConstant.EXCEL_DOWNLOAD_CUSTOM.equals(getDownloadType())) {
+            createData(sheet, getDataList(), 1);
+        } else {
+            createData(sheet, getHeader(), getDataList());
+        }
+    }
+
+    /**
+     * 제목 스타일을 반환합니다.
+     *
+     * @return 제목 스타일
+     */
+    private CellStyle getTitleStyle() {
+        Font headerFont = workbook.createFont();
+        headerFont.setFontName(FONT_NAME);
+        headerFont.setFontHeightInPoints((short) 11);
+        headerFont.setColor(HSSFColor.HSSFColorPredefined.BLACK.getIndex());
+        headerFont.setBold(true);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        setBorder(headerStyle, BorderStyle.THIN);
+        headerStyle.setFillForegroundColor(HSSFColor.HSSFColorPredefined.BLUE_GREY.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setAlignment(HorizontalAlignment.LEFT);
+        headerStyle.setFont(headerFont);
+
+        return headerStyle;
+    }
+
+    /**
+     * 헤더 스타일을 반환합니다.
+     *
+     * @return 헤더 스타일
+     */
+    private CellStyle getHeaderStyle() {
+        Font headerFont = workbook.createFont();
+        headerFont.setFontName(FONT_NAME);
+        headerFont.setFontHeightInPoints((short) 10);
+        headerFont.setColor(HSSFColor.HSSFColorPredefined.BLACK.getIndex());
+        headerFont.setBold(true);
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        setBorder(headerStyle, BorderStyle.THIN);
+        headerStyle.setFillForegroundColor(HSSFColor.HSSFColorPredefined.LIGHT_YELLOW.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setFont(headerFont);
+
+        return headerStyle;
+    }
+
+    /**
+     * 데이터 스타일을 반환합니다.
+     *
+     * @return 데이터 스타일
+     */
+    private CellStyle getDataStyle() {
+        Font font = workbook.createFont();
+        font.setFontName(FONT_NAME);
+        font.setFontHeightInPoints((short) 10);
+
+        CellStyle style = workbook.createCellStyle();
+        setBorder(style, BorderStyle.THIN);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setFont(font);
+
+        return style;
+    }
+
+    /**
+     * 다운로드 타입을 반환합니다.
+     *
+     * @return 다운로드 타입
+     */
+    private String getDownloadType() {
+        return (String)model.get(ExcelConstant.EXCEL_DOWNLOAD_TYPE);
+    }
+
+    /**
+     * 파일 이름을 반환합니다.
+     *
+     * @return 파일 이름
+     */
+    private String getFileName() {
+        return (String)model.get(ExcelConstant.EXCEL_FILE_NAME);
+    }
+
+    /**
+     * 헤더 정보를 반환합니다.
+     *
+     * @return 헤더 정보
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, String> getHeader() {
+        return (Map<String, String>)model.get(ExcelConstant.EXCEL_HEAD);
+    }
+
+    /**
+     * 데이터 리스트를 반환합니다.
+     *
+     * @return 데이터 리스트
+     */
+    private List<?> getDataList() {
+        return (List<?>) model.get(ExcelConstant.EXCEL_DATA);
+    }
+
+    /**
+     * 포맷 정보를 반환합니다.
+     *
+     * @return 포맷 정보
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, String> getFormat() {
+        return (Map<String, String>)model.get(ExcelConstant.EXCEL_FORMAT);
+    }
+
+    /**
+     * 파일 이름을 설정합니다.
+     *
+     * @param response HTTP 응답 객체
+     * @param fileName 파일 이름
+     */
+    private void setFileName(HttpServletResponse response, String fileName) {
+        if(fileName == null || fileName.isEmpty()) {
+            fileName = ExcelConstant.EXCEL_DEFAULT_FILE_NAME + DateUtil.getToday(DateUtil.FORMATTER_YYYYMMDDHHMMSS);
+        }
+
+        String newFileName = setFileExtension(fileName);
+
+        response.setHeader("Content-Disposition", ContentDisposition.builder("attachment").filename(newFileName, StandardCharsets.UTF_8).build().toString());
+        response.setHeader("Content-Transfer-Encoding", "binary");
+    }
+
+    /**
+     * 파일 확장자를 설정합니다.
+     *
+     * @param fileName 파일 이름
+     * @return 확장자가 추가된 파일 이름
+     */
+    private String setFileExtension(String fileName) {
+        String newFileName = fileName;
+        if (workbook instanceof XSSFWorkbook) {
+            newFileName += ".xlsx";
+        } else if (workbook instanceof SXSSFWorkbook) {
+            newFileName += ".xlsx";
+        } else if (workbook instanceof HSSFWorkbook) {
+            newFileName += ".xls";
+        }
+        return newFileName;
+    }
+
+    /**
+     * 헤더를 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param header 헤더 정보
+     * @param cellStyle 셀 스타일
+     */
+    @SuppressWarnings("deprecation")
+    private void createHeader(Sheet sheet, Map<String, String> header, CellStyle cellStyle) {
+        Row row = sheet.createRow(0);
+        int cellIdx = 0;
+
+        for (String key : header.keySet()) {
+            Cell cell = row.createCell(cellIdx++);
+            cell.setCellStyle(cellStyle);
+            cell.setCellType(CellType.STRING);
+            cell.setCellValue(header.get(key));
+        }
+    }
+
+    /**
+     * 데이터를 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param object 데이터 객체
+     * @param row 행 객체
+     * @param header 헤더 정보
+     * @param format 포맷 정보
+     * @param cellStyle 셀 스타일
+     * @throws IllegalAccessException 예외 발생 시
+     * @throws InvocationTargetException 예외 발생 시
+     */
+    @SuppressWarnings("deprecation")
+    private void createData(Sheet sheet, Object object, Row row, Map<String, String> header, Map<String, String> format, CellStyle cellStyle) throws IllegalAccessException, InvocationTargetException {
+        String methodName = null;
+        int cellIdx = 0;
+        Object value = null;
+        String cellValue = null;
+        Cell cell;
+        CellType cellType = CellType.STRING;
+
+        for (String key : header.keySet()) {
+            methodName = "get" + key.substring(0,1).toUpperCase() + key.substring(1);
+
+            try {
+                if (object instanceof Map) {
+                    value = ((Map<?, ?>) object).get(key);
+                } else {
+                    value = MethodUtils.invokeMethod(object, true, methodName);
+                }
+
+                if(value == null) {
+                    cellValue = "";
+                } else {
+                    if (ExcelConstant.EXCEL_FORMAT_MONEY.equals(format.get(key))) {
+                        if (value instanceof BigDecimal t) {
+                            t = t.setScale(0, RoundingMode.HALF_UP);
+                            cellValue = t.toPlainString();
+                        } else if (value instanceof BigInteger t) {
+                            cellValue = new String(t.toByteArray());
+                        } else {
+                            cellValue = String.valueOf(value);
+                        }
+                        cellType = CellType.NUMERIC;
+                    } else if(ExcelConstant.EXCEL_FORMAT_DATETIME.equals(format.get(key))) {
+                        if (value instanceof Date) {
+                            cellValue = DateUtil.getString((Date)value, DateUtil.FORMATTER_YYYY_MM_DD_HH_MM);
+                        } else {
+                            cellValue = DateUtil.getFormatDate(String.valueOf(value), DateUtil.FORMATTER_YYYYMMDDHHMMSS, DateUtil.FORMATTER_YYYY_MM_DD_HH_MM);
+                        }
+                    } else if(ExcelConstant.EXCEL_FORMAT_DATE.equals(format.get(key))) {
+                        cellValue = FormatUtil.formatDate(String.valueOf(value), "-");
+                    } else if(ExcelConstant.EXCEL_FORMAT_TIME.equals(format.get(key))) {
+                        cellValue = FormatUtil.formatTime(String.valueOf(value), ":");
+                    } else if(ExcelConstant.EXCEL_FORMAT_TIME_NO_SECOND.equals(format.get(key))) {
+                        String v = String.valueOf(value);
+                        if (v != null && v.length() < 6) v = v + "00";
+                        cellValue = DateUtil.getFormatDate(v, DateUtil.FORMATTER_HHMMSS, DateUtil.FORMATTER_HH_MM);
+                    } else if(ExcelConstant.EXCEL_FORMAT_INTEREST.equals(format.get(key))) {
+                        cellValue = FormatUtil.formatInterest(String.valueOf(value));
+                    } else if(ExcelConstant.EXCEL_FORMAT_ACNO.equals(format.get(key))) {
+                        cellValue = FormatUtil.formatAcno(String.valueOf(value), false);
+                    } else {
+                        cellValue = HtmlUtils.htmlUnescape(String.valueOf(value));
+                    }
+                }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                cellValue = "";
+            }
+
+            cell = row.createCell(cellIdx);
+            cell.setCellStyle(cellStyle);
+            cell.setCellType(cellType);
+
+            if (ExcelConstant.EXCEL_FORMAT_MONEY.equals(format.get(key)) && StringUtils.isNotBlank(cellValue)) {
+                DataFormat df = workbook.createDataFormat();
+                cellStyle.setDataFormat(df.getFormat("#,##0"));
+                cell.setCellValue(new BigDecimal(cellValue).doubleValue());
+            } else {
+                cell.setCellValue(cellValue);
+            }
+
+            cellIdx++;
+        }
+    }
+
+    /**
+     * 데이터를 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param dataList 데이터 리스트
+     * @throws Exception 예외 발생 시
+     */
+    private void createData(Sheet sheet, List<?> dataList) throws Exception {
+        CellStyle headStyle = getHeaderStyle();
+        CellStyle style = getDataStyle();
+        int columnCnt = 0;
+
+        int rowSize = dataList.size();
+        for (int i = 0; i < rowSize; i++) {
+            List<?> list = (List<?>) dataList.get(i);
+            if (i == 0) {
+                columnCnt = list.size();
+                createRow(sheet, list, i, headStyle);
+            } else {
+                createRow(sheet, list, i, style);
+            }
+        }
+
+        if (!(workbook instanceof SXSSFWorkbook)) {
+            for (int i = 0; i < columnCnt; i++) {
+                sheet.autoSizeColumn(i, true);
+            }
+        }
+    }
+
+    /**
+     * 데이터를 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param dataList 데이터 리스트
+     * @param titleNum 제목 번호
+     * @throws Exception 예외 발생 시
+     */
+    private void createData(Sheet sheet, List<?> dataList, int titleNum) throws Exception {
+        CellStyle titleStyle = getTitleStyle();
+        CellStyle headStyle = getHeaderStyle();
+        CellStyle style = getDataStyle();
+        int columnCnt = 0;
+
+        int rowSize = dataList.size();
+        int idx = 0;
+        for (int i = 0; i < rowSize; i++) {
+            List<?> list = (List<?>) dataList.get(i);
+            if (list != null) {
+                if (list.size() == 1) {
+                    idx = i + titleNum;
+                    createRow(sheet, list, i, titleStyle);
+                } else if (idx == i) {
+                    columnCnt = list.size();
+                    createRow(sheet, list, i, headStyle);
+                } else {
+                    createRow(sheet, list, i, style);
+                }
+            }
+        }
+
+        if (!(workbook instanceof SXSSFWorkbook)) {
+            for (int i = 0; i < columnCnt; i++) {
+                sheet.autoSizeColumn(i, true);
+            }
+        }
+    }
+
+    /**
+     * 데이터를 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param header 헤더 정보
+     * @param dataList 데이터 리스트
+     * @throws Exception 예외 발생 시
+     */
+    private void createData(Sheet sheet, Map<String, String> header, List<?> dataList) throws Exception {
+        CellStyle headStyle = getHeaderStyle();
+        CellStyle style = getDataStyle();
+
+        createHeader(sheet, header, headStyle);
+
+        List<?> list = getDataList();
+        if (list != null && !list.isEmpty()) {
+            for (int i = 0; i < list.size(); i++) {
+                createData(sheet, list.get(i), sheet.createRow(i + 1), header, getFormat(), style);
+            }
+        }
+
+        if (!(workbook instanceof SXSSFWorkbook)) {
+            for (int i = 0; i < header.size(); i++) {
+                sheet.autoSizeColumn(i, true);
+            }
+        }
+    }
+
+    /**
+     * 행을 생성합니다.
+     *
+     * @param sheet 엑셀 시트 객체
+     * @param cellList 셀 리스트
+     * @param rowNum 행 번호
+     * @param cellStyle 셀 스타일
+     * @throws Exception 예외 발생 시
+     */
+    @SuppressWarnings("deprecation")
+    private void createRow(Sheet sheet, List<?> cellList, int rowNum, CellStyle cellStyle) throws Exception {
+        int size = cellList.size();
+        Row row = sheet.createRow(rowNum);
+        Cell cell;
+
+        for (int i = 0; i < size; i++) {
+            cell = row.createCell(i);
+            cell.setCellStyle(cellStyle);
+            cell.setCellType(CellType.STRING);
+            cell.setCellValue(HtmlUtils.htmlUnescape((String) cellList.get(i)));
+        }
+    }
+
+    /**
+     * 셀 스타일에 테두리를 설정합니다.
+     *
+     * @param style 셀 스타일
+     * @param borderStyle 테두리 스타일
+     */
+    private void setBorder(CellStyle style, BorderStyle borderStyle) {
+        style.setBorderBottom(borderStyle);
+        style.setBorderTop(borderStyle);
+        style.setBorderLeft(borderStyle);
+        style.setBorderRight(borderStyle);
+    }
+}
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ExcelUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/FileZipUtil.java =====
+package kr.fasol.obix.core.util;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > 파일 압축(ZIP) 유틸
+ * 프로그램명 : 파일 압축(ZIP) 유틸
+ * 설명 :
+ *
+ * 클래스 : FileZipUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 11. 2.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 11. 2.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class FileZipUtil {
+
+	/**
+	 * 파일을 압축하여 반환
+	 * @param fileList 압축할 파일 목록
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToFileZip(List<File> fileList) throws Exception {
+		List<InputStream> inputStreamList = new ArrayList<>();
+		List<String> filenameList = new ArrayList<>();
+
+		for (File file : fileList) {
+			if (file.isFile()) {
+				InputStream inputStream = null;
+				try {
+					inputStream = new FileInputStream(file);
+					inputStreamList.add(inputStream);
+					filenameList.add(file.getName());
+				} catch (IOException e) {
+					log.error(e.getMessage());
+				} catch (Exception e) {
+					log.error(e.getMessage());
+				}
+			}
+		}
+
+		return saveToZip(inputStreamList, filenameList);
+	}
+
+	/**
+	 * 파일을 압축하여 반환
+	 * @param fileList 압축할 파일 목록
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToMultipartFileZip(List<MultipartFile> fileList) throws Exception {
+		
+		List<InputStream> inputStreamList = new ArrayList<>();
+		List<String> filenameList = new ArrayList<>();
+
+		for (MultipartFile file : fileList) {
+			inputStreamList.add(file.getInputStream());
+			filenameList.add(file.getOriginalFilename());
+		}
+
+		return saveToZip(inputStreamList, filenameList);
+	}
+
+	/**
+	 * 파일을 압축하여 반환
+	 * @param inputStream 압축할 파일
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToZip(InputStream inputStream, String filename) throws Exception {
+		List<InputStream> inputStreamList = new ArrayList<>();
+		List<String> filenameList = new ArrayList<>();
+		inputStreamList.add(inputStream);
+		filenameList.add(filename);
+		return saveToZip(inputStreamList, filenameList);
+	}
+
+	/**
+	 * 파일을 압축하여 반환
+	 * @param inputStreamList 압축할 파일 목록
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToZip(List<InputStream> inputStreamList, List<String> filenameList) throws Exception {
+    	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+		if (inputStreamList == null || filenameList == null || inputStreamList.size() != filenameList.size()) {
+			log.error("## [saveToZip] 입력값이 상이합니다.");
+			return byteArrayOutputStream.toByteArray();
+		}
+
+		ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream);
+
+		int length;
+		ZipEntry ze;
+		byte[] buf = new byte[8 * 1024];
+
+		try {
+			for (int i = 0; i < inputStreamList.size(); i++) {
+				InputStream inputStream = inputStreamList.get(i);
+				String filename = filenameList.get(i);
+
+				ze = new ZipEntry(filename);
+				zos.putNextEntry(ze);
+
+				while ((length = inputStream.read(buf, 0, buf.length)) >= 0) {
+					zos.write(buf, 0, length);
+				}
+				inputStream.close();
+				zos.closeEntry();
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			if (zos != null)
+				zos.close();
+		}
+
+		return byteArrayOutputStream.toByteArray();
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(File zippedFile) throws IOException {
+		unzip(zippedFile, Charset.defaultCharset().name());
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(File zippedFile, String charsetName) throws IOException {
+		unzip(zippedFile, zippedFile.getParentFile(), charsetName);
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(File zippedFile, File destDir) throws IOException {
+		InputStream inputStream = null;
+		try {
+			inputStream = new FileInputStream(zippedFile);
+			unzip(inputStream, destDir, Charset.defaultCharset().name());
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(File zippedFile, File destDir, String charsetName) throws IOException {
+		InputStream inputStream = null;
+		try {
+			inputStream = new FileInputStream(zippedFile);
+			unzip(inputStream, destDir, charsetName);
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(InputStream is, File destDir) throws IOException {
+		unzip(is, destDir, Charset.defaultCharset().name());
+	}
+
+	/**
+	 * 압축 해제
+	 */
+	public static void unzip(InputStream is, File destDir, String charsetName) throws IOException {
+		ZipInputStream zis = null;
+		ZipEntry entry;
+		String name;
+		File target;
+		int nWritten = 0;
+		BufferedOutputStream bos = null;
+		byte[] buf = new byte[1024 * 8];
+
+		try {
+			zis = new ZipInputStream(is, Charset.forName(charsetName));
+			while ((entry = zis.getNextEntry()) != null) {
+				name = entry.getName();
+				target = new File(destDir, name);
+				if (entry.isDirectory()) {
+					target.mkdirs();
+				} else {
+					target.createNewFile();
+					try {
+						bos = new BufferedOutputStream(new FileOutputStream(target));
+						while ((nWritten = zis.read(buf)) >= 0) {
+							bos.write(buf, 0, nWritten);
+						}
+					} catch (IOException e) {
+						log.error(e.getMessage());
+					} catch (Exception e) {
+						log.error(e.getMessage());
+					} finally {
+						if (bos != null)
+							bos.close();
+					}
+				}
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			if (zis != null)
+				zis.close();
+		}
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src) throws IOException {
+		zip(src, Charset.defaultCharset().name(), true);
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src, boolean includeSrc) throws IOException {
+		zip(src, Charset.defaultCharset().name(), includeSrc);
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src, String charSetName, boolean includeSrc) throws IOException {
+		zip(src, src.getParentFile(), charSetName, includeSrc);
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src, OutputStream os) throws IOException {
+		zip(src, os, Charset.defaultCharset().name(), true);
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src, File destDir, String charSetName, boolean includeSrc) throws IOException {
+		String fileName = src.getName();
+		if (!src.isDirectory()) {
+			int pos = fileName.lastIndexOf(".");
+			if (pos > 0) {
+				fileName = fileName.substring(0, pos);
+			}
+		}
+		fileName += ".zip";
+
+		File zippedFile = new File(destDir, fileName);
+		if (!zippedFile.exists())
+			zippedFile.createNewFile();
+		
+		OutputStream outputStream = null;
+		try {
+			outputStream = new FileOutputStream(zippedFile);
+			zip(src, outputStream, charSetName, includeSrc);
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			if (outputStream != null) {
+				outputStream.close();
+			}
+		}
+	}
+
+	/**
+	 * 압축
+	 */
+	public static void zip(File src, OutputStream os, String charsetName, boolean includeSrc) throws IOException {
+		ZipOutputStream zos = new ZipOutputStream(os, Charset.forName(charsetName));
+		FileInputStream fis = null;
+
+		int length;
+		ZipEntry ze;
+		byte[] buf = new byte[8 * 1024];
+		String name;
+
+		try {
+			Stack<File> stack = new Stack<File>();
+			File root;
+			if (src.isDirectory()) {
+				if (includeSrc) {
+					stack.push(src);
+					root = src.getParentFile();
+				} else {
+					File[] fs = src.listFiles();
+					for (int i = 0; i < fs.length; i++) {
+						stack.push(fs[i]);
+					}
+					root = src;
+				}
+			} else {
+				stack.push(src);
+				root = src.getParentFile();
+			}
+
+			while (!stack.isEmpty()) {
+				File f = stack.pop();
+				name = toPath(root, f);
+				if (f.isDirectory()) {
+					File[] fs = f.listFiles();
+					for (int i = 0; i < fs.length; i++) {
+						if (fs[i].isDirectory())
+							stack.push(fs[i]);
+						else
+							stack.add(0, fs[i]);
+					}
+				} else {
+					ze = new ZipEntry(name);
+					zos.putNextEntry(ze);
+					try {
+						fis = new FileInputStream(f);
+						while ((length = fis.read(buf, 0, buf.length)) >= 0) {
+							zos.write(buf, 0, length);
+						}
+					} catch (IOException e) {
+						log.error(e.getMessage());
+					} catch (Exception e) {
+						log.error(e.getMessage());
+					}
+					finally {
+						if (fis != null)
+							fis.close();
+					}
+					zos.closeEntry();
+				}
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			zos.close();
+		}
+	}
+
+	/**
+	 * GZip 압축
+	 */
+	public static void compressGzip(File src, OutputStream os) throws IOException {
+		GZIPOutputStream gos = new GZIPOutputStream(os);
+		FileInputStream fis = new FileInputStream(src);
+
+		try {
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = fis.read(buf)) != -1) {
+				gos.write(buf, 0, len);
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			gos.close();
+			fis.close();
+		}
+	}
+
+	/**
+	 * GZip 압축 해제
+	 */
+	public static void decompressGzip(String srcFilename, String destFilename) throws IOException {
+		InputStream inputStream = null;
+		File destDir = null;
+		try {
+			inputStream = new FileInputStream(srcFilename);
+			destDir = new File(destFilename);
+			decompressGzip(inputStream, destDir);
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+	}
+	/**
+	 * GZip 압축 해제
+	 */
+	public static void decompressGzip(InputStream is, File destDir) throws IOException {
+		GZIPInputStream gis = new GZIPInputStream(is);
+		FileOutputStream fos = new FileOutputStream(destDir);
+
+		try {
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = gis.read(buf)) != -1) {
+				fos.write(buf, 0, len);
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		} finally {
+			fos.close();
+			gis.close();
+		}
+	}
+
+	private static String toPath(File root, File dir) {
+		String path = dir.getAbsolutePath();
+		path = path.substring(root.getAbsolutePath().length()).replace(File.separatorChar, '/');
+		if (path.startsWith("/"))
+			path = path.substring(1);
+		if (dir.isDirectory() && !path.endsWith("/"))
+			path += "/";
+		return path;
+	}
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/FileZipUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/FormatUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RegExUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > Format 관련 Util (형식 변환)
+ * 프로그램명 : Format 관련 Util (형식 변환)
+ * 설명 :
+ *
+ * @Class  FormatUtil.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+@UtilityClass
+public class FormatUtil {
+
+    /**
+     * 날짜 포맷 기본
+     */
+    public static final DateTimeFormatter FORMATTER_YYYY = DateTimeFormatter.ofPattern("yyyy");
+    public static final DateTimeFormatter FORMATTER_YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
+    public static final DateTimeFormatter FORMATTER_YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    public static final DateTimeFormatter FORMATTER_DD = DateTimeFormatter.ofPattern("dd");
+    public static final DateTimeFormatter FORMATTER_YYYY_MM_DD_HH_MM = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    public static final DateTimeFormatter FORMATTER_HH_MM_SS = DateTimeFormatter.ofPattern("HH:mm:ss");
+    public static final DateTimeFormatter FORMATTER_HHMMSSSSS = DateTimeFormatter.ofPattern("HHmmssSSS");
+    public static final DateTimeFormatter FORMATTER_HHMMSSSS = DateTimeFormatter.ofPattern("HHmmssSS");
+    public static final DateTimeFormatter FORMATTER_HHMMSS = DateTimeFormatter.ofPattern("HHmmss");
+    public static final DateTimeFormatter FORMATTER_YYYYMMDDHHMMSSSS = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSS");
+    public static final DateTimeFormatter FORMATTER_YYYYMMDDHHMMSSSSS = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    public static final DateTimeFormatter FORMATTER_YYYYMMDDHHMMSS = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    public static final NumberFormat FORMATTER_NUMBER_THOUSANDS = NumberFormat.getInstance();
+
+    // 전화번호 포맷
+    public static final String FORMATTER_PHONE_NUMBER = "(01[016789]{1}|02|0[3-9]{1}[0-9]{1})-([0-9]{3,4})-([0-9]{4})";
+
+    public static final String DEFAULT_DELIMITER_DATE = ".";
+    public static final String DEFAULT_DELIMITER_TIME = ":";
+    /**
+     * 특수 문자열
+     */
+    public static final String DEFAUlT_SPECIAL_KEY = "!,*&^%$#@~;|>+";
+
+
+    /**
+     * 원하는 형식에 맞춰 문자열 포맷팅 변환.
+     * <p>
+     * <pre>
+     * "123-45-67890" = formatStringDelimiter("1234567890", "-", new int[]{3,2,5});
+     * </pre>
+     *
+     * @param str        문자열
+     * @param delimiter  삽입될 문자열
+     * @param num        삽입될 문자열간 길이
+     */
+    public static String formatStringDelimiter(String str, String delimiter, int[] num) {
+        if (StringUtils.isBlank(str)) {
+            return "";
+        }
+        if (null == num || num.length == 1) {
+            return str;
+        }
+        int size = num.length;
+        StringBuilder stringBuilder = new StringBuilder();
+        int index = 0;
+        for (int i = 0; i < size; i++) {
+            stringBuilder.append(str.subSequence(index, index + num[i]));
+            if (i != size - 1) {
+                stringBuilder.append(delimiter);
+            }
+            index += num[i];
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * 사업자번호, 주민번호 포맷팅.
+     * <p>
+     * <pre>
+     * "123456-1234567" = formatNO("1234561234567", false);
+     * "123456-*******" = formatNO("1234561234567", true);
+     *
+     * "123-45-6789" = formatNO("1234567890", false);
+     * "123-45-6789" = formatNO("1234567890", true); (X)
+     * </pre>
+     *
+     * @param no 주민번호 또는 사업자 번호
+     */
+    public static String formatNO(String no) {
+        return formatNO(no, true);
+    }
+    /**
+     * 사업자번호, 주민번호 포맷팅.
+     * <p>
+     * <pre>
+     * "123456-1234567" = formatNO("1234561234567", false);
+     * "123456-*******" = formatNO("1234561234567", true);
+     *
+     * "123-45-67890" = formatNO("1234567890", false);
+     * "123-45-67890" = formatNO("1234567890", true); (X)
+     * </pre>
+     *
+     * @param no 주민번호 또는 사업자 번호
+     * @param mask 주민번호 뒷자리 마스킹 여부
+     */
+    public static String formatNO(String no, boolean mask) {
+
+        if (StringUtils.isBlank(no)) {
+            return "";
+        }
+        StringBuffer sb = new StringBuffer(no.trim());
+        if (sb.length() == 10) { // 10자리 포멧
+            sb.insert(3, "-").insert(6, "-");
+        } else if (sb.length() == 13) {
+            if (sb.charAt(0) == '0' && sb.charAt(6) == '0' && sb.charAt(7) == '0') { // 13자리 포멧
+                sb.deleteCharAt(0);
+                sb.deleteCharAt(5);
+                sb.deleteCharAt(5);
+                sb.insert(3, "-").insert(6, "-");
+            } else { // 개인사업자 주민번호
+                sb.insert(6, "-");
+                if (mask) {
+                    sb.replace(7, 14, "*******");
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 금액 문자열을 comma 표시 여부와 소수점 표시 여부를 확인하여 format된 문자열로 반환한다.
+     * <p>
+     * <ui>
+     * <li> 금액 문자열이 음수(-)이면 반환된 값에도 음수(-)가 붙는다.</li>
+     * <li> 금액 문자열에 소숫점이 있고 point 값이 있다면 둘 중 큰 숫자만큼 소수점 자리가 나온다.</li>
+     * <li> 금액 문자열에 소숫점이 있고 point 값이 0이라면 금액 문자열의 소숫점이하가 0이면 절삭처리한다. 하지만 값이 있다면 절삭하지 않는다.</li>
+     * </ui>
+     * <pre>
+     * 	"121,564,899.231" = formatMoney("0121564899.231", true, 0)
+     * 	"121,564,899.231" = formatMoney("0121564899.231", true, 2)
+     * 	"121564899.231" = formatMoney("0121564899.231", false, 2)
+     * 	"121,564,899.2310" = formatMoney("0121564899.231", true, 4)
+     * 	"121564899.2310" = formatMoney("0121564899.231", false, 4)
+     * 	"-121,564,899.2310" = formatMoney("-0121564899.231", true, 4)
+     * 	"-121564899.2310" = formatMoney("-0121564899.231", false, 4)
+     * </pre>
+     *
+     * @param money  금액
+     * @param comma  금액 표시시 천단위 구분자(,) 삽입여부
+     * @param point  소수점의 자릿수
+     */
+    public static String formatMoney(String money, boolean comma, int point) {
+        String pattern;
+        if (comma) {
+            pattern = "#,##0";
+        } else {
+            pattern = "###0";
+        }
+        int index = money.lastIndexOf('.');
+        if (point < 1) {
+            pattern += ".";
+            index = money.length() - (index + 1);
+            pattern += StringUtils.repeat('#', Math.max(index, 1));
+        } else {
+            pattern += ".";
+            if (index < 0) {
+                pattern += StringUtils.repeat('0', point);
+            } else {
+                index = money.length() - (index + 1);
+                pattern += StringUtils.repeat('0', NumberUtils.max(index, point, 1));
+            }
+        }
+        DecimalFormat decimalFormat = new DecimalFormat(pattern);
+        double lAmt = Double.parseDouble(money.trim());
+        return decimalFormat.format(lAmt);
+    }
+
+    public static String formatMoney( @NonNull String money ) {
+        return formatMoney(money, true, 0);
+    }
+
+
+    /**
+     * 이자율을 포맷에 맞추어 전달하는 함수
+     * 소수점 둘째자리까지 맞추어서 표시함
+     * <p>
+     * <pre>
+     * 	"5.00" = formatMoney("5")
+     * 	"12.25" = formatMoney("12.25")
+     * </pre>
+     * @param interest 이자율
+     * @return
+     */
+    public static String formatInterest(String interest )
+    {
+        String pattern = "#0.00";
+        DecimalFormat decimalFormat = new DecimalFormat(pattern);
+        double lAmt = Double.parseDouble(interest.trim());
+        return decimalFormat.format(lAmt);
+    }
+
+    /**
+     * 숫자에서 콤마 등 특수문자 제거 ( 소숫점, 마이너스기호 제외 )
+     * <p>
+     * <pre>
+     * "112000" = getNumberUnformat("112,000");
+     * </pre>
+     * @param money 금액
+     */
+    public static String getNumberUnformat(String money) {
+        String result = RegExUtils.removePattern(money, "[^0-9-+.]");
+        if ("".equals(result)) {
+            result = "0";
+        }
+        return result;
+    }
+
+    /**
+     * <pre>
+     * 숫자를 제외한 문자 제거
+     * </pre>
+     * @param str : 포멧대상 문자열
+     * @return 포멧된 문자열
+     */
+    public static String getOnlyNumFormat(String str) {
+        return RegExUtils.removePattern(str, "[^0-9]");
+    }
+
+    /**
+     * 날짜 8자리를 구분자(.)를 넣어서 반환.
+     * <p>
+     * <pre>
+     * "2013.01.31" = formatDate("20130131", DEFAULT_DELIMITER_DATE);
+     * "2013/01/31" = formatDate("20130131", "/");
+     * </pre>
+     * @param str (yyyymmdd)
+     */
+    public static String formatDate(String str, String delimiter) {
+        if (StringUtils.isBlank(str)) {
+            return "";
+        }
+        if (str.length() != 8) {
+            return str;
+        }
+        if ((str.equals("00000000")) || (str.equals("       0"))) {
+            return "";
+        }
+        return str.substring(0, 4) + delimiter + str.substring(4, 6) + delimiter + str.substring(6, 8);
+    }
+
+    /**
+     * 시분초 6자리를 구분자(:)를 넣어서 반환.
+     * <p>
+     * <pre>
+     * "16:45:55" = formatTime("164555", DEFAULT_DELIMITER_TIME);
+     * "16-45-55" = formatTime("164555", ":");
+     * </pre>
+     * @param str (HHMMSS)
+     * @return String (HH:MM:SS)
+     */
+    public static String formatTime(String str, String delimiter) {
+        if (StringUtils.isBlank(str)) {
+            return "";
+        }
+        if (str.length() != 6) {
+            return str;
+        }
+        return str.substring(0, 2) + delimiter + str.substring(2, 4) + delimiter + str.substring(4, 6);
+    }
+
+    /**
+     * 특수 문자 포함여부 체크.
+     * <p>
+     * <pre>
+     * 지정된 Key가 없으면 Character제공 특수문자 체크하고 Key가 있으면 해당 키를 체크
+     * </pre>
+     * @param str   문자 조합
+     */
+    public static boolean isSpecialKey(String str) {
+        return isSpecialKey(str, null);
+    }
+
+    /**
+     * 특수 문자 포함여부 체크
+     * <p>
+     * <pre>
+     * 지정된 Key가 없으면 Character제공 특수문자 체크하고 Key가 있으면 해당 키를 체크
+     * </pre>
+     * @param str   문자 조합
+     * @param keys  문자 키 (default key = "!,*&^%$#@~;|>+")
+     */
+    public static boolean isSpecialKey(String str, String keys) {
+        boolean bReturn = false;
+
+        if (keys == null) {
+            char cCharAt;
+            for (int i = 0; i < str.length(); i++) {
+                cCharAt = str.charAt(i);
+                if (!Character.isJavaIdentifierPart(cCharAt)) {
+                    bReturn = true;
+                    break;
+                }
+            }
+        } else {
+            String newKeys = StringUtils.defaultIfBlank(keys, DEFAUlT_SPECIAL_KEY);
+            str = StringUtils.defaultIfBlank(str, "");
+            for (int i = 0; i < newKeys.length(); i++) {
+                if (str.indexOf(newKeys.charAt(i)) > -1) {
+                    bReturn = true;
+                    break;
+                }
+            }
+        }
+        return bReturn;
+    }
+
+    /**
+     * 카드번호 중간8자리 *표처리.
+     * <p>
+     *<pre>
+     *	"1234-****-****-1234" = formatCardNoWithAsterisk("1234567856781234");
+     *	"1234-****-****-1234" = formatCardNoWithAsterisk("1234-5678-5678-1234");
+     *</pre>
+     * @param cardNo  카드번호(16자리)
+     * @return String  카드번호 (1111-****-****-1111)
+     */
+    public static String formatCardNoWithAsterisk(String cardNo) {
+
+        String newCardNo = StringUtils.defaultIfBlank(cardNo, "");
+        newCardNo = newCardNo.replaceAll("[-]", "");
+
+        if (newCardNo.length() == 16) {
+        	newCardNo = newCardNo.substring(0, 4) + "-****-****-" + newCardNo.substring(12, 16);
+        }
+        return newCardNo;
+    }
+
+    /**
+     * 유효기간 *표처리.
+     * <p>
+     *<pre>
+     *	"20**-*2" = formatCardValidDateWithAsterisk("201302");
+     *	"20**-*2" = formatCardValidDateWithAsterisk("2013-02");
+     *</pre>
+     * @param validDate  유효기간(6자리)
+     * @return String  유효기간 (11**-1*)
+     */
+    public static String formatCardValidDateWithAsterisk(String validDate) {
+
+        String newValidDate = StringUtils.defaultIfBlank(validDate, "");
+        newValidDate = newValidDate.replaceAll("[-]", "");
+
+        if (newValidDate.length() == 6) {
+            newValidDate = newValidDate.substring(0, 2) + "**-*" + newValidDate.substring(5, 6);
+        }
+        return newValidDate;
+    }
+
+    /**
+     * 전화번호의 마지막 번호를 마스킹.
+     * <p>
+     * 뒷 4자리 마스킹 처리<br>
+     * 입력값이 형식에 안 맞으면 "" 값을 리턴한다.
+     * <pre>
+     * ex) 010-1111-2222 -> 010-1111-****
+     * </pre>
+     */
+    public static String formatPhoneNumberWithAsterisk(String phoneNumber) {
+        if (StringUtils.isBlank(phoneNumber) || phoneNumber.length() <= 4) {
+            return "";
+        }
+        int index = phoneNumber.length();
+        return phoneNumber.substring(0, index - 4) + "****";
+    }
+
+    /**
+     * email 주소를 마스킹.
+     * <p>
+     * 뒤 4자리 마스킹 처리<br>
+     * 입력값이 형식에 안 맞으면 "" 값을 리턴한다.
+     * <pre>
+     * ex) aaabbcc@email.com -> aaab***@email.com
+     * </pre>
+     */
+    public static String formatEMailWithAsterisk(String email) {
+        if (StringUtils.isBlank(email)) {
+            return "";
+        }
+        int index = email.indexOf('@');
+        if (index < 1) {
+            return "";
+        }
+        String[] emailArr = email.split("@");
+        if (index > 4) {
+        	return emailArr[0].substring(0, 4) + StringUtils.repeat("*", emailArr[0].length() - 4) + "@" + emailArr[1];
+        } else {
+            return StringUtils.repeat("*", index) + "@" + emailArr[1];
+        }
+    }
+
+    /**
+     * 인터넷 주소 항목을 마스킹.
+     * <p>
+     * ipV4 : 17~24 비트 영역<br>
+     * ipV6 : 113~128 비트 영역<br>
+     * 입력값이 형식에 안 맞으면 "" 값을 리턴한다.
+     * <pre>
+     * ex) 123.123.123.123 -> 123.123.***.123
+     *     21DA:00D3:0000:2F3B:02AA:00FF:FE28:9C5A -> 21DA:00D3:0000:2F3B:02AA:00FF:FE28:****
+     * </pre>
+     */
+    public static String formatIPWithAsterisk(String ip) {
+        if (StringUtils.isBlank(ip)) {
+            return "";
+        }
+        if (ip.indexOf('.') > -1) {// ip4
+            String temp[] = ip.split("[.]");
+            if (temp.length == 4) {
+                temp[2] = "***";
+                return StringUtils.join(temp, ".");
+            } else {
+                return "";
+            }
+        } else if (ip.indexOf(':') > -1) {// ip6
+            String temp[] = ip.split("[:]");
+            if (temp.length == 8) {
+                temp[7] = "****";
+                return StringUtils.join(temp, ":");
+            } else {
+                return "";
+            }
+        }
+        return "";
+    }
+
+    /**
+     * UTF-8 인코딩으로 byte 수에 맞춰 문자열 잘라내는 메소드
+     * 한글이 바이트 수에 걸쳐서 깨지는 경우 해당 한글 문자를 생략한다.
+     */
+    public static String cutWordUtf8(String word, int byteLength) {
+    	String newWord = new String(word);
+        try {
+            double MAX_UTF8_CHAR_LENGTH = 4.0;
+            if (newWord.length() > byteLength) {
+                newWord = newWord.substring(0, byteLength);
+            }
+            if (newWord.length() > byteLength / MAX_UTF8_CHAR_LENGTH) {
+                int residual;
+                residual = newWord.getBytes("UTF-8").length - byteLength;
+                if (residual > 0) {
+                    int tempResidual = residual, start, end = newWord.length();
+                    while (tempResidual > 0) {
+                        start = end - ((int) Math.ceil((double) tempResidual / MAX_UTF8_CHAR_LENGTH));
+                        tempResidual = tempResidual - newWord.substring(start, end).getBytes("UTF-8").length;
+                        end = start;
+                    }
+                    newWord = newWord.substring(0, end);
+                }
+            }
+            return newWord;
+        } catch (UnsupportedEncodingException e) {
+        	log.error(e.getMessage(), e);
+        }
+        return newWord;
+    }
+
+    /**
+     * 계좌 번호를 포매팅하기 위한 함수
+     * 길이와 숫자만 들어왔는지 여부만 체크한다.
+     * 사용법
+     * <p/>
+     * <pre>
+     *     FormatUtil.formatAcno("32861211234567", false ) => "328-61-21-1234567"
+     *     FormatUtil.formatAcno("32861211234567", true ) =>  "328-61-**-*******"
+     * </pre>
+     * @param acno
+     * @return
+     */
+	public static String formatAcno(@NonNull String acno, boolean isMask) {
+		final int LENGTH_ACNO = 14;
+
+		if (StringUtils.isBlank(acno))
+			return "";
+
+		String str = acno.replace("-", "").trim();
+		if (LENGTH_ACNO != str.length() || !StringUtils.isNumeric(str)) {
+			log.error("잘못된 계좌번호");
+			return acno;
+		}
+
+		if (isMask) {
+			// 첫 5자리만 표시: 나머진 * 표시
+			str = str.substring(0, 5) + StringUtils.repeat('*', LENGTH_ACNO - 5);
+		}
+
+		return FormatUtil.formatStringDelimiter(str, "-", new int[] { 3, 2, 2, 7 });
+	}
+
+    /**
+     * 타사에서도 사용하기 위한 계좌번호 포맷팅 함수
+     * - 타사인 경우 포맷팅 없이 계좌 번호 그대로 출력
+     * @param bnkCode
+     * @param acno
+     * @param isMask
+     * @return
+     */
+	public static String formatAcno(@NonNull String bnkCode, @NonNull String acno, boolean isMask) {
+		if (StringUtils.isBlank(acno))
+			return "";
+		String str = acno.replace("-", "").trim();
+		if (!StringUtils.isNumeric(str)) {
+			log.error("잘못된 계좌번호");
+			return acno;
+		}
+
+		if (isMask) {
+			// 첫 4자리만 표시: 나머진 * 표시
+			str = str.substring(0, 4) + StringUtils.repeat('*', str.length() - 4);
+		}
+
+		return str;
+	}
+
+    /**
+     * 사업자 등록번호 포맷팅을 위한 함수
+     * 길이와 숫자만 들어왔는지 여부만 체크한다.
+     * <p/>
+     * <pre>
+     *     FormatUtil.formatBisno("1234567890") => "123-45-67890"
+     * </pre>
+     * @param bisno
+     * @return
+     */
+    public static String formatBisno( @NonNull String bisno  )
+    {
+        final int LENGTH_BISNO = 10;
+
+        if ( StringUtils.isBlank( bisno )) return "";
+        String str = bisno.replace("-", "").trim();
+        if( LENGTH_BISNO != str.length() || !StringUtils.isNumeric( str ) ) {
+            log.error("잘못된 사업자등록번호");
+            return bisno;
+        }
+        return FormatUtil.formatStringDelimiter( str, "-", new int[]{3,2,5}) ;
+    }
+
+    /**
+     * 주민번호 포맷팅 함수
+     * 길이와 숫자만 들어왔는지 여부만 체크한다.
+     * 예) FormatUtil.formatRnno("1234561234567", false ) => "123456-1234567"
+     * 예) FormatUtil.formatRnno("1234561234567", true  ) => "123456-1******"
+     * @param rnno 주민번호 ( 13 자리 )
+     * @param isMask 마스크 여부
+     * @return
+     */
+    public static String formatRnno( @NonNull String rnno , boolean isMask )
+    {
+        final int LENGTH_RNNO = 13;
+
+        if ( StringUtils.isBlank( rnno )) return "";
+        String str = rnno.replace("-", "").trim();
+        if( LENGTH_RNNO != str.length() || !StringUtils.isNumeric( str ) ) {
+            log.error("잘못된 주민번호");
+            return rnno;
+        }
+
+        if(isMask)
+        {
+            str = str.substring(0,7) + StringUtils.repeat("*",6);
+        }
+
+        return FormatUtil.formatStringDelimiter( str, "-", new int[]{6,7}) ;
+    }
+
+    /**
+     * 전화번호를 포맷팅한 문자열로 리턴한다.
+     * 전화번호 검증은 숫자여부와 최소 길이여부만 체크한다.
+     * <p/>
+     * <pre>
+     * FormatUtil.formatPhone("1231234", false);     => "123-1234"
+     * FormatUtil.formatPhone("12341234", true);     => "1234-****"
+     * FormatUtil.formatPhone("0212341234", false);  => "02-1234-1234"
+     * FormatUtil.formatPhone("021231234", false);   => "02-123-1234"
+     * FormatUtil.formatPhone("03112341234", true);  => "031-1234-****"
+     * FormatUtil.formatPhone("0311231234", false);  => "031-123-1234"
+     * </pre>
+     * @param phoneno 전화번호
+     * @param isMask 마스킹 여부
+     * @return
+     */
+    public static String formatPhone(@NonNull String phoneno, boolean isMask )
+    {
+        String str = phoneno.replace("-", "").trim();
+
+        if ( StringUtils.isBlank( str ) ) return "";
+        if( 7 > str.length() || !StringUtils.isNumeric( str ) ) {
+            log.error("잘못된 전화번호");
+            return phoneno;
+        }
+
+        int len = str.length();
+        String result = null;
+
+        // 지역 번호 없는 경우
+        if( len == 7 )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{3,4}) ;
+        // 지역 번호 없고 앞자리가 4자리인 경우
+        else if( len == 8 )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{4,4}) ;
+        // 서울(02) 이고 전화번호 앞자리가 3자리인 경우
+        else if( len == 9 && str.startsWith("02") )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{2,3,4}) ;
+        // 서울 이고, 전화번호 앞자리가 4자리인 경우
+        else if( len == 10 && str.startsWith("02") )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{2,4,4}) ;
+        // 전화번호 앞자리가 3자리인 경우, 지역 번호 포함
+        else if( len == 10 && !str.startsWith("02") )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{3,3,4}) ;
+        // 전화번호 앞자리가 4자리인 경우, 지역 번호 포함
+        else if( len == 11 && !str.startsWith("02") )
+            result = FormatUtil.formatStringDelimiter( str, "-", new int[]{3,4,4}) ;
+        else {
+            log.error("잘못된 전화번호");
+            return phoneno;
+        }
+
+
+        // 마스킹 여부 확인
+        if( isMask )
+        {
+            Matcher matcher = Pattern.compile( FORMATTER_PHONE_NUMBER ).matcher(result);
+            if( matcher.find() ) {
+                String replaceTaget = matcher.group(2);
+                String maskStr = StringUtils.repeat('*', replaceTaget.length());
+
+                result = result.replaceFirst(replaceTaget, maskStr );
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * email 주소를 마스킹.
+     * <p>
+     * email ID 앞 3자리 제외 마스킹 처리<br>
+     * 입력값이 형식에 안 맞으면 "" 값을 리턴한다.
+     * <pre>
+     * ex) aaabbcc@email.com -> aaa****@email.com
+     * </pre>
+     */
+    public static String formatEmail(@NonNull String email, boolean mask )
+    {
+        if ( StringUtils.isBlank( email )) return "";
+
+        // email 검증 안 넣음
+        if( mask )
+        {
+            String[] tokens = email.split("@");
+            String emailId = tokens[0];
+            String emailAdder = tokens[1];
+
+            if( emailId.length() < 4 )
+            {
+                emailId = StringUtils.repeat('*', emailId.length() );
+            }
+            else {
+                emailId = emailId.substring(0,3) + StringUtils.repeat('*', emailId.length()-3);
+            }
+            return emailId + "@" + emailAdder;
+        }
+
+        return email;
+    }
+
+    /**
+     * 패스워드 길이만큼 '*' 표시함
+     * <p/>
+     * <pre>
+     *     ****** -> FormatUtil.formatPassword( "123456" )
+     * </pre>
+     *
+     * @param password
+     * @return
+     */
+    public static String formatPassword( @NonNull String password )
+    {
+        return StringUtils.repeat("*", password.length());
+    }
+
+    /**
+     * 고객 이름 마스킹
+     * 홍길동 -> 홍**동
+     * 맨앞 글자와 맨 뒤 글자만 표시 중간은 **
+     */
+    public static String getMaskedUserName( String name )
+    {
+        if( StringUtils.isBlank(name) )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        // (사) (유) (주) 제거
+        String newName = name.replaceAll("\\((.*?)\\)", "");
+
+        if( StringUtils.isBlank(newName) )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        String first =  String.valueOf(newName.charAt(0));
+        String last =  (newName.length() > 1)? String.valueOf(newName.charAt(newName.length()-1)) : StringUtils.EMPTY;
+        String middleToken = StringUtils.repeat("*", Math.min(2, Math.max(1, newName.length()-2)) ); // 최소 1개 최대 2개만 별표 표시
+
+        String maskedName = first + middleToken + last;
+        return maskedName;
+    }
+
+    /**
+     * 사용자 ID
+     * -> UserID 첫 5자 표시 나머지는 *
+     * @param userId
+     * @return
+     */
+    public static String getMaskedUserId( String userId )
+    {
+        String maskedUserId;
+
+
+        if( StringUtils.isBlank( userId ) )
+        {
+            maskedUserId = StringUtils.EMPTY;
+        }
+        else {
+            String newUserId = userId.trim();
+            if( newUserId.length() > 5)
+                maskedUserId = newUserId.substring(0,5) + StringUtils.repeat("*", newUserId.length() - 5);
+            else {
+                maskedUserId = newUserId.charAt(0) + StringUtils.repeat("*", newUserId.length()-1);
+            }
+        }
+        return maskedUserId;
+    }
+
+
+    /**
+     * OTP 시리얼 번호 마스킹
+     * 12345678 -> 1234****
+     * @param serialNo
+     * @return
+     */
+    public static String getMaskedOtpSerialNo( String serialNo )
+    {
+        String maskedSerialNo;
+
+        if( StringUtils.isBlank( serialNo) )
+        {
+            maskedSerialNo = StringUtils.EMPTY;
+        }
+        else {
+            String newSerialNo = serialNo.trim();
+            if( newSerialNo.length() > 4 )
+                maskedSerialNo = newSerialNo.substring(0,4) + StringUtils.repeat("*", newSerialNo.length() - 4 );
+            else
+                maskedSerialNo = newSerialNo.charAt(0) + StringUtils.repeat("*", newSerialNo.length()-1);
+        }
+        return maskedSerialNo;
+    }
+    
+    /**
+     * str값이 숫자로만 이루어진지 체크해준다. 음수양수 둘다체크해준다.
+     * @param str 형태의 숫자 문자열
+     */
+    public static boolean isIntegerType(String str) {
+    	String FORMAT_NUMBER_PATTERN = "[0-9-]+";
+    	return str.matches(FORMAT_NUMBER_PATTERN);
+    }
+    
+    /**
+     * str값이 숫자로만 이루어진지 체크해준다. 음수양수 둘다체크해준다.
+     * @param str 형태의 숫자 문자열
+     */
+    public static boolean isDecimalType(String str) {
+    	String FORMAT_NUMBER_PATTERN = "[0-9-.]+";
+    	return str.matches(FORMAT_NUMBER_PATTERN);
+    }
+    
+	/**
+	 *  Json BigDecimal 변환시 null , "" 체크위한 로직
+	*/
+    public static BigInteger getBigIntegerValue(String str) {
+		BigInteger bigInteger = new BigInteger("0");
+		if(null == str || str == "") {
+			return bigInteger;
+		}
+		if(isDecimalType(str) == true) {
+			bigInteger = new BigDecimal(str).toBigInteger();
+		}
+		return bigInteger;
+	}
+    
+	/**
+	 *  Json BigDecimal 변환시 null , "" 체크위한 로직
+	*/
+    public static BigDecimal getBigDecimalValue(String str) {
+		BigDecimal bigDecimal = new BigDecimal(0);
+		if(null == str || str == "") {
+			return bigDecimal;
+		}
+		if(isDecimalType(str) == true) {
+			bigDecimal = new BigDecimal(str);
+		}
+		return bigDecimal;
+	}
+
+	/**
+	 * 숫자외에 다른 값들을 전부 공백으로 변환.
+	 * @param str
+	 * @return
+	 */
+	public static String formatingNumber(String str) {
+		if(null == str || "" == str) {
+			return "";
+		}
+		String FORMAT_NUMBER_PATTERN = "[^0-9]+";
+    	return str.replaceAll(FORMAT_NUMBER_PATTERN, "");
+    }
+	
+	/**
+	 * 숫자외에 다른 값들을 전부 공백으로 변환.
+	 * @param str
+	 * @return
+	 */
+	public static String formatingDecimal(String str) {
+		if(null == str || "" == str) {
+			return "";
+		}
+		String FORMAT_NUMBER_PATTERN = "[^0-9.]+";
+    	return str.replaceAll(FORMAT_NUMBER_PATTERN, "");
+    }
+
+
+	/**
+	 * 농협은행+농협중앙회 계좌번호 체계에 따른 기관코드 반환
+	 * @param acno 계좌번호
+	 * @return 기관코드(011=농협은행, 012=농협중앙회)
+	 */
+	public static String getCheckNHBankCd(String bankCd, String acno) {
+		// 011,012가 아닐경우 농협은행이 아니므로, 입력된 은행코드를 그대로 반환
+		if (!StringUtils.equalsAny(bankCd, "011", "012")) {
+			return bankCd;
+		}
+
+		if (StringUtils.isBlank(acno)) {
+			return bankCd;
+		}
+
+		// 농협은행,농협중앙회 기관코드 분류(계좌번호 패턴에 따른 분류)
+		String newBankCd = "011";
+		int len = acno.length();
+		if (len == 10) {
+			if (StringUtils.equalsAny(acno.substring(9,10), "9")) {
+				newBankCd = "012";
+			}
+		} else if (len == 13) {
+			if (StringUtils.equalsAny(acno.substring(12,13), "3", "4", "5", "9")) {
+				newBankCd = "012";
+			}
+		} else if (len == 14) {
+			if (StringUtils.equalsAny(acno.substring(0,3), "790", "791")) {
+				newBankCd = "011";
+			} else if (StringUtils.equalsAny(acno.substring(0,3), "792")) {
+				newBankCd = "012";
+			} else if (StringUtils.equalsAny(acno.substring(6,8), "64", "65")) {
+				newBankCd = "011";
+			} else if (StringUtils.equalsAny(acno.substring(6,8), "66", "67")) {
+				newBankCd = "012";
+			} else {
+				newBankCd = "012";
+			}
+		}
+		
+		return newBankCd;
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/FormatUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/GuidContext.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+/**
+ * GUID 관리
+ */
+@Component
+@Slf4j
+@Getter
+public class GuidContext {
+    private String guid;
+    private String childGuid;
+
+    /**
+     * GUID 설정
+     */
+    public void setGuid(String guid) {
+        // GUID가 비어있는 경우에만 GUID를 저장해야 함.(기존값을 변경하면 안됨.)
+        if (!StringUtils.hasLength(this.guid)) this.guid = guid;
+    }
+
+    /**
+     * GUID 강제 재설정
+     */
+    public void setEnforceGuid(String guid) {
+    	// GUID 강제 재설정
+        this.guid = guid;
+    }
+
+    /**
+     * ChildGuild 생성
+     */
+    public void createChildGuid() {
+        // GUID를 사용하기 전에 처리. childGuid가 없으면 현재 guid가 childGuid. 있으면 guid의 hop을 붙여 childGuid를 생성.
+        if (!StringUtils.hasLength(childGuid)) {
+            childGuid = guid;
+        } else if (StringUtils.hasLength(guid)) {
+        	childGuid = GuidUtil.getGuidKey(guid) + GuidUtil.getGuidHop(childGuid);
+        } else {
+            childGuid = GuidUtil.getGuidKey(GuidUtil.createGuid()) + GuidUtil.getGuidHop(childGuid);
+        }
+    }
+
+    /**
+     * ChildGuild 생성
+     */
+    public synchronized void createNewChildGuid() {
+        childGuid = GuidUtil.getGuidKey(GuidUtil.createGuid()) + GuidUtil.getGuidHop(guid);
+    }
+
+    /**
+     * 시스템경로번호(NextHop) 재설정
+     */
+    public synchronized void setNextHop(String guid) {
+        log.debug("prev guid info this.guid: {}, this.childGuid: {}, guid: {}", this.guid, this.childGuid, guid);
+
+        // 보낸 GUID와 되돌아온 GUID의 Unique Key가 같아야 함. 그렇지 않으면 안됨.
+        if (GuidUtil.getGuidKey(childGuid).equals(GuidUtil.getGuidKey(guid))) {
+            this.guid = GuidUtil.nextGuid(GuidUtil.getGuidKey(this.guid) + GuidUtil.getGuidHop(guid));
+            this.childGuid = GuidUtil.nextGuid(guid);
+        } else {
+            log.debug("Guid Process Error... childGuid: {}, guid: {}", childGuid, guid);
+            this.guid = GuidUtil.nextGuid(this.guid);
+            this.childGuid = GuidUtil.nextGuid(this.childGuid);
+        }
+
+        log.debug("next guid info this.guid: {}, this.childGuid: {}, guid: {}", this.guid, this.childGuid, guid);
+    }
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/GuidContext.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/GuidUtil.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.annotation.Nonnull;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * GUID 생성 규칙
+ * GUID(36자리) = 일자(8) + 전문생성시간(9) + 채널코드(3) + 채널ID(7) + 일련번호(6) + 시스템경로번호(3)
+ * <p>
+ * 전문작성일자(8): 거래일자 (YYYYMMDD)
+ * 전문작성시각(6): 거래시각 (hhmmssSSS)
+ * 채널코드(3): MCI에서 구분하는 채널구분코드
+ * 채널ID(7): 채널에서 서버 및 인스턴스 구분할 수 있는 값. 서버번호(5) + WAS Instance번호(2)
+ * 일련번호(6)
+ * 시스템경로번호(3): 증분
+ */
+@Slf4j
+@UtilityClass
+public class GuidUtil {
+
+    private static final String DEFAULT_CHNL_CD_S3 = "OBX";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HHmmssSSS");
+    private static final AtomicInteger MESG_SEQ_NO_COUNTER = new AtomicInteger(1);
+    private static final String SYS_PATH_NO_S3 = "001";
+
+    private static final String CHANNEL_SERVER_ID = StringUtils.leftPad(StringUtils.right(System.getProperty("application.name", getHostname()), 7), 7, "0").toUpperCase();
+
+    public String createGuid() {
+        final LocalDateTime now = LocalDateTime.now();
+
+        final StringBuilder guidBuilder = new StringBuilder();
+        guidBuilder.append(now.format(DATE_FORMATTER));
+        guidBuilder.append(now.format(TIME_FORMATTER));
+        guidBuilder.append(DEFAULT_CHNL_CD_S3);
+        guidBuilder.append(CHANNEL_SERVER_ID);
+        guidBuilder.append(String.format("%06d", getAndIncrement(MESG_SEQ_NO_COUNTER) % 1000_000));
+        guidBuilder.append(SYS_PATH_NO_S3); // 생성시에는 001부터
+        return guidBuilder.toString();
+    }
+
+    public String nextGuid(String guid) {
+        final String nextGuid = getGuidKey(guid) + StringUtils.leftPad(String.valueOf(Integer.parseInt(getGuidHop(guid)) + 1), 3, "0");
+        log.debug("guid: {}, nextGuid: {}", guid, nextGuid);
+        return nextGuid;
+    }
+
+    private String getHostname() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.error(e.getMessage(), e);
+        }
+        return "Unknown";
+    }
+
+	// 정수형 오버플로우 방지
+    private int getAndIncrement(AtomicInteger seqnoCounter) {
+        int incrementValue = 0;
+        int curInt = seqnoCounter.get();
+        try {
+            incrementValue = seqnoCounter.getAndIncrement();
+            if (incrementValue < 0) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            incrementValue = 0;
+            seqnoCounter.set(incrementValue);
+        }
+        return curInt;
+    }
+
+    /**
+     * GUID 에서 앞의 33자리 Unique Key 추출
+     *
+     * @param guid
+     * @return
+     */
+    public String getGuidKey(@Nonnull String guid) {
+        return (guid.length() > 33) ? guid.substring(0, 33) : guid;
+    }
+
+    /**
+     * GUID 에서 뒤의 3자리 Hop 추출
+     *
+     * @param guid
+     * @return
+     */
+    public String getGuidHop(@Nonnull String guid) {
+        return (guid.length() == 36) ? guid.substring(33, 36) : SYS_PATH_NO_S3;
+    }
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/GuidUtil.java =====

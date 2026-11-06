@@ -1,0 +1,92 @@
+buildscript {
+    ext {
+        springBootVersion = '3.5.0'
+        springVersion = '6.2.7'     // 5.x.x ==> JDK 8~21, 6.0.x ==> JDK 17~21, 6.1.x => JDK 17~23
+        tomcatVersion = '10.1.40'    // 10.1.x ==> JDK 11 and later, 11.0.x ==> JDK 21 and later
+        feignVersion = '13.6'
+        springCloudRelease = '2024.0.0' // 3.4.x ==> 2024.0.x
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:3.3"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.6"
+    }
+}
+
+allprojects {
+    group = 'kr.fasol.obix'
+    version = '3.3.5-SNAPSHOT'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+
+    repositories {
+        mavenCentral()
+    }
+
+
+    dependencies {
+
+        // lombok
+        compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.38'
+        annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.38'
+
+        implementation "org.springframework.boot:spring-boot:$springBootVersion"
+        implementation group: 'org.springframework.session', name: 'spring-session-core', version: '3.5.0'
+        implementation "org.springframework:spring-context-support:$springVersion"
+
+        implementation group: 'org.springframework.boot', name: 'spring-boot-autoconfigure', version: "$springBootVersion"
+
+        // rootProject
+        implementation group: 'com.fasterxml', name: 'classmate', version: '1.7.0'
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.18.3'
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.3'
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.18.3'
+        implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.18.3'
+        implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.3'
+        implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-parameter-names', version: '2.18.3'
+
+        implementation group: 'com.google.code.gson', name: 'gson', version: '2.13.0'
+        implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
+        implementation group: 'org.jdom', name: 'jdom2', version: '2.0.6.1'
+        implementation group: 'org.json', name: 'json', version: '20250107'
+
+        implementation group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
+        implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
+        implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.5.0-M3'
+        implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
+        implementation group: 'commons-codec', name: 'commons-codec', version: '1.18.0'
+        implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.2.2'
+        implementation group: 'joda-time', name: 'joda-time', version: '2.14.0'
+
+        // log
+        implementation group: 'ch.qos.logback', name: 'logback-core', version: '1.5.18'
+        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.5.18'
+        implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.24.3'
+        implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.24.3'
+        implementation group: 'org.jboss.logging', name: 'jboss-logging', version: '3.6.1.Final'
+
+        // for logback condition
+        implementation group: 'org.codehaus.janino', name: 'janino', version: '3.1.12'
+
+        // Annotation
+        compileOnly "org.springframework.boot:spring-boot-devtools:$springBootVersion"
+
+        // TEST
+        testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: "$springBootVersion"
+        testImplementation group: 'org.springframework.security', name: 'spring-security-test', version: '6.4.4'
+
+    }
+}

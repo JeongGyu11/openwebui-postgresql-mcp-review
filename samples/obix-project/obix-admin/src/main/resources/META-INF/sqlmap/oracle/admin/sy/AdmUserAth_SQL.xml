@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민사용자권한			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmUserAthDAO">
+  
+	<!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 정보 조회
+    -->
+	<select id="listAllAdmUserAthTree" 
+		parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthTreeDTO"
+		resultType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthTreeDTO">
+		SELECT A.SCREN_TRAN_ID
+			 , A.SCREN_TRAN_NM
+			 , COALESCE(A.UP_SCREN_TRAN_ID,'#') AS UP_SCREN_TRAN_ID
+			 , A.SCREN_TRAN_LVEL
+			 , A.SCREN_TRAN_DV_CD
+			 , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'SCREN_TRAN_DV_CD' AND CD_VAL = A.SCREN_TRAN_DV_CD AND USE_YN = 'Y') AS SCREN_TRAN_DV_CD_NM
+			 , A.URL_ADDR
+			 , CASE WHEN A.WHOL_ALLOW_YN = 'Y' THEN 'A'
+	 			    WHEN B.GROUP_ID IS NOT NULL THEN 'G'
+	                WHEN C.USER_ID IS NOT NULL THEN 'U'
+	 				ELSE 'N' 
+	 				END AS MENU_AUTH_CD 		
+		  FROM ADM_SCREN_TRAN_BAS A
+		  LEFT OUTER JOIN ADM_GROUP_ATH B
+			ON B.GROUP_ID IN (SELECT GROUP_ID FROM ADM_GROUP_USER_REL WHERE USER_ID = #{userId} AND USE_YN='Y')
+		   AND B.USE_YN = 'Y'
+		   AND B.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+		  LEFT OUTER JOIN ADM_USER_ATH C
+			ON C.USER_ID = #{userId}
+		   AND C.USE_YN = 'Y'
+		   AND C.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+		 WHERE A.USE_YN = 'Y'
+		 START WITH A.SCREN_TRAN_LVEL = 0
+	   CONNECT BY PRIOR A.SCREN_TRAN_ID = A.UP_SCREN_TRAN_ID
+		 ORDER SIBLINGS BY A.REPST_ORDR, A.SCREN_TRAN_ID
+    </select>
+    
+    <!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 정보 초기화
+    -->
+    <update id="resetAdmUserAth"
+    			   parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+	    	UPDATE ADM_USER_ATH
+			   SET USE_YN = 'N'
+			    , LAST_CHNG_USER_ID = #{lastChngUserId}
+				, LAST_CHNG_TMSP = SYSTIMESTAMP
+			 WHERE USER_ID = #{userId}
+	</update>
+
+	<!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 정보 저장
+    -->
+    <insert id="mergeBulkAdmUserAth"
+    			 parameterType="map">
+		MERGE INTO ADM_USER_ATH R1
+			USING(
+			<foreach collection="list" item="item" separator="union" open="" close="" >
+		        	SELECT #{item.userId} AS userId
+        						, #{item.screnTranId} AS screnTranId
+        						, #{item.frstRegiUserId} AS frstRegiUserId
+			        			, #{item.lastChngUserId} AS lastChngUserId
+			        FROM DUAL
+			</foreach>
+					) T1
+			   ON (R1.USER_ID = T1.userId AND R1.SCREN_TRAN_ID = T1.screnTranId)
+			 WHEN MATCHED THEN
+				  UPDATE SET
+		                     R1.USE_YN = 'Y'
+						   , R1.LAST_CHNG_USER_ID = T1.lastChngUserId
+						   , R1.LAST_CHNG_TMSP = SYSTIMESTAMP
+				  WHERE R1.USE_YN = 'N'
+			 WHEN NOT MATCHED THEN
+				  INSERT ( 
+							 USER_ID
+						   , SCREN_TRAN_ID
+		                   , USE_YN
+						   , FRST_REGI_USER_ID
+		                   , FRST_REGI_TMSP
+						    )
+				  VALUES (
+							 T1.userId
+						   , T1.screnTranId
+						   , 'Y'
+		                   , T1.frstRegiUserId
+						   , SYSTIMESTAMP
+						   )
+    </insert>
+
+    <!--			
+    * Description : 어드민사용자권한 정보조회			
+    -->			
+    <select id="selectAdmUserAth"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+		/*AdmUserAthDAO.selectAdmUserAth 어드민사용자권한 정보 조회 */	
+		SELECT USER_ID	/* 사용자아이디 */
+			 , SCREN_TRAN_ID	/* 화면거래아이디 */
+			 , USE_YN	/* 사용여부 */
+			 , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+			 , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+			 , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+			 , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_USER_ATH	
+		 WHERE 1=1	
+		   AND USER_ID = #{btchJobCd}	/* 사용자아이디 */
+		   AND SCREN_TRAN_ID = #{screnTranId}	/* 화면거래아이디 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민사용자권한 등록			
+    -->			
+	<insert id="insertAdmUserAth" parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+		/*AdmUserAthDAO.insertAdmUserAth 어드민사용자권한 등록*/	
+		INSERT INTO ADM_USER_ATH	
+	       ( USER_ID	/* 사용자아이디 */
+			 , SCREN_TRAN_ID	/* 화면거래아이디 */
+			 , USE_YN	/* 사용여부 */
+			 , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+			 , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+	       )		
+		VALUES ( #{userId} ,
+	         #{screnTranId} ,
+	         #{useYn} ,
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         SYSTIMESTAMP	/* 최초등록타임스탬프 */	
+	      )		
+	</insert>
+		
+    <!--			
+    * Description : 어드민사용자권한 이력 저장			
+    -->			
+	<insert id="insertAdmUserAthHst" parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+		/*AdmUserAthDAO.insertAdmUserAthHst 어드민사용자권한 이력 저장*/	
+		INSERT INTO ADM_USER_ATH_HST
+		SELECT *
+		FROM ADM_USER_ATH
+		WHERE 1=1
+		AND USER_ID = #{userId}
+		AND USE_YN = 'Y'
+	</insert>
+			
+	<!--		
+    * Description : 어드민사용자권한 수정			
+    -->			
+	<update id="updateAdmUserAth" parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+		/*AdmUserAthDAO.updateAdmUserAth 어드민사용자권한 수정*/	
+		UPDATE ADM_USER_ATH 	
+		   SET	
+		   <if test='userId != "" and userId != null'> 	
+			   USER_ID = #{userId} ,
+	       </if>		
+		   <if test='screnTranId != "" and screnTranId != null'> 	
+		       SCREN_TRAN_ID = #{screnTranId} ,
+	       </if>		
+		   <if test='useYn != "" and useYn != null'> 	
+		       USE_YN = #{useYn} ,
+	       </if>		
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,
+		       LAST_CHNG_TMSP	 = SYSTIMESTAMP
+		 WHERE AND USER_ID = #{btchJobCd}	/* 사용자아이디 */
+		   AND SCREN_TRAN_ID = #{screnTranId}	/* 화면거래아이디 */
+			
+	</update>		
+			
+	<!--		
+    * Description : 어드민사용자권한 삭제			
+    -->			
+	<delete id="deleteAdmUserAth" parameterType="kr.fasol.obix.common.dto.entity.AdmUserAthDTO">
+		/*AdmUserAthDAO.deleteAdmUserAth 어드민사용자권한 삭제*/	
+		DELETE 	
+		  FROM ADM_USER_ATH 	
+		 WHERE 1=1
+		 	AND USER_ID = #{btchJobCd}	/* 사용자아이디 */
+		   AND SCREN_TRAN_ID = #{screnTranId}	/* 화면거래아이디 */
+	</delete>		
+
+
+    <!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 목록 조회
+    -->
+	<select id="listAdmUserAth"
+			     parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO"
+			     resultType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO">
+		<include refid="COMMON.pagingPreSQL" />
+			SELECT 
+					   T.USER_ID
+				     , T.USER_NM
+				     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_USER_STUS_CD' AND CD_VAL = T.ADM_USER_STUS_CD AND USE_YN = 'Y') AS ADM_USER_STUS_NM
+				     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_LCLS_CD' AND CD_VAL = T.ADM_BZWK_LCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_LCLS_NM
+				     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_MCLS_CD' AND CD_VAL = T.ADM_BZWK_MCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_MCLS_NM
+				     , T.SCREN_TRAN_ID
+				     , T.SCREN_TRAN_NM
+				     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'SCREN_TRAN_DV_CD' AND CD_VAL = T.SCREN_TRAN_DV_CD AND USE_YN = 'Y') AS SCREN_TRAN_DV_NM
+				     , T.SSTV_INFO_YN
+			  FROM (
+			        SELECT U.USER_ID
+				         , U.USER_NM
+				         , U.ADM_USER_STUS_CD
+				         , S.*
+			          FROM ADM_SCREN_TRAN_BAS S
+			         INNER JOIN ADM_USER_BAS U
+			            ON S.WHOL_ALLOW_YN = 'Y'
+			         WHERE S.USE_YN = 'Y'
+			         
+			        UNION
+			        
+			        SELECT U.USER_ID
+				         , U.USER_NM
+				         , U.ADM_USER_STUS_CD
+				         , S.*
+			          FROM ADM_SCREN_TRAN_BAS S
+			         INNER JOIN ADM_GROUP_ATH A
+			            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+			           AND A.USE_YN = 'Y'
+			         INNER JOIN ADM_GROUP_USER_REL R
+			            ON R.GROUP_ID = A.GROUP_ID
+			           AND R.USE_YN = 'Y'
+			         INNER JOIN ADM_USER_BAS U
+			            ON U.USER_ID = R.USER_ID
+			         WHERE S.USE_YN = 'Y'
+			         
+			         UNION
+			         
+			        SELECT U.USER_ID
+				         , U.USER_NM
+				         , U.ADM_USER_STUS_CD
+				         , S.*
+			          FROM ADM_SCREN_TRAN_BAS S
+			         INNER JOIN ADM_USER_ATH A
+			            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+			           AND A.USE_YN = 'Y'
+			         INNER JOIN ADM_USER_BAS U
+			            ON U.USER_ID = A.USER_ID
+			         WHERE S.USE_YN = 'Y'
+			        ) T
+			 WHERE 1=1
+			<if test="userId != null and userId != ''">
+				AND T.USER_ID LIKE '%' || #{userId} || '%'
+			</if>
+			<if test="userNm != null and userNm != ''">
+				AND T.USER_NM LIKE '%' || #{userNm} || '%'
+			</if>
+			<if test="screnTranId != null and screnTranId != ''">
+				AND T.SCREN_TRAN_ID || T.SCREN_TRAN_NM LIKE '%' || #{screnTranId} || '%'
+			</if>
+			<if test="admBzwkLclsCd != null and admBzwkLclsCd != ''">
+				AND T.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd}
+			</if>
+			<if test="admBzwkMclsCd != null and admBzwkMclsCd != ''">
+				AND T.ADM_BZWK_MCLS_CD = #{admBzwkMclsCd}
+			</if>	 
+			<if test="!'Y'.toString().equals(includeTranYn)">
+				AND T.SCREN_TRAN_DV_CD NOT IN ('20', '22', '23')
+			</if>
+			 ORDER BY T.USER_ID, T.SCREN_TRAN_ID
+		<include refid="COMMON.pagingPostSQL" />
+    </select>
+    
+    <!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 목록 전체 조회
+    -->
+	<select id="listAllAdmUserAth"
+			     parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO"
+			     resultType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO">
+		    SELECT 
+		    			   T.USER_ID
+					     , T.USER_NM
+					     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_USER_STUS_CD' AND CD_VAL = T.ADM_USER_STUS_CD AND USE_YN = 'Y') AS ADM_USER_STUS_NM
+					     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_LCLS_CD' AND CD_VAL = T.ADM_BZWK_LCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_LCLS_NM
+					     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'ADM_BZWK_MCLS_CD' AND CD_VAL = T.ADM_BZWK_MCLS_CD AND USE_YN = 'Y') AS ADM_BZWK_MCLS_NM
+					     , T.SCREN_TRAN_ID
+					     , T.SCREN_TRAN_NM
+					     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'SCREN_TRAN_DV_CD' AND CD_VAL = T.SCREN_TRAN_DV_CD AND USE_YN = 'Y') AS SCREN_TRAN_DV_NM
+					     , T.SSTV_INFO_YN
+				  FROM (
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_USER_BAS U
+				            ON S.WHOL_ALLOW_YN = 'Y'
+				         WHERE S.USE_YN = 'Y'
+				         
+				        UNION
+				        
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_GROUP_ATH A
+				            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+				           AND A.USE_YN = 'Y'
+				         INNER JOIN ADM_GROUP_USER_REL R
+				            ON R.GROUP_ID = A.GROUP_ID
+				           AND R.USE_YN = 'Y'
+				         INNER JOIN ADM_USER_BAS U
+				            ON U.USER_ID = R.USER_ID
+				         WHERE S.USE_YN = 'Y'
+				         
+				         UNION
+				         
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_USER_ATH A
+				            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+				           AND A.USE_YN = 'Y'
+				         INNER JOIN ADM_USER_BAS U
+				            ON U.USER_ID = A.USER_ID
+				         WHERE S.USE_YN = 'Y'
+				        ) T
+				 WHERE 1=1
+				<if test="userId != null and userId != ''">
+					AND T.USER_ID LIKE '%' || #{userId} || '%'
+				</if>
+				<if test="userNm != null and userNm != ''">
+					AND T.USER_NM LIKE '%' || #{userNm} || '%'
+				</if>
+				<if test="screnTranId != null and screnTranId != ''">
+					AND T.SCREN_TRAN_ID || T.SCREN_TRAN_NM LIKE '%' || #{screnTranId} || '%'
+				</if>
+				<if test="admBzwkLclsCd != null and admBzwkLclsCd != ''">
+					AND T.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd}
+				</if>
+				<if test="admBzwkMclsCd != null and admBzwkMclsCd != ''">
+					AND T.ADM_BZWK_MCLS_CD = #{admBzwkMclsCd}
+				</if>
+				<if test="!'Y'.toString().equals(includeTranYn)">
+					AND T.SCREN_TRAN_DV_CD NOT IN ('20', '22', '23')
+				</if>
+				 ORDER BY T.USER_ID, T.SCREN_TRAN_ID
+    </select>
+    
+    <!--
+    * Description : 시스템 > 권한관리 > 사용자 권한 목록 전체 조회 (Total Count 가져오기)
+    -->
+	<select id="getAllAdmUserAthTotalCnt"
+			     parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO"
+			     resultType="int">
+		    SELECT 
+		    			COUNT(*)
+				  FROM (
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_USER_BAS U
+				            ON S.WHOL_ALLOW_YN = 'Y'
+				         WHERE S.USE_YN = 'Y'
+				         
+				        UNION
+				        
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_GROUP_ATH A
+				            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+				           AND A.USE_YN = 'Y'
+				         INNER JOIN ADM_GROUP_USER_REL R
+				            ON R.GROUP_ID = A.GROUP_ID
+				           AND R.USE_YN = 'Y'
+				         INNER JOIN ADM_USER_BAS U
+				            ON U.USER_ID = R.USER_ID
+				         WHERE S.USE_YN = 'Y'
+				         
+				         UNION
+				         
+				        SELECT U.USER_ID
+					         , U.USER_NM
+					         , U.ADM_USER_STUS_CD
+					         , S.*
+				          FROM ADM_SCREN_TRAN_BAS S
+				         INNER JOIN ADM_USER_ATH A
+				            ON A.SCREN_TRAN_ID = S.SCREN_TRAN_ID
+				           AND A.USE_YN = 'Y'
+				         INNER JOIN ADM_USER_BAS U
+				            ON U.USER_ID = A.USER_ID
+				         WHERE S.USE_YN = 'Y'
+				        ) T
+				 WHERE 1=1
+				<if test="userId != null and userId != ''">
+					AND T.USER_ID LIKE '%' || #{userId} || '%'
+				</if>
+				<if test="userNm != null and userNm != ''">
+					AND T.USER_NM LIKE '%' || #{userNm} || '%'
+				</if>
+				<if test="screnTranId != null and screnTranId != ''">
+					AND T.SCREN_TRAN_ID || T.SCREN_TRAN_NM LIKE '%' || #{screnTranId} || '%'
+				</if>
+				<if test="admBzwkLclsCd != null and admBzwkLclsCd != ''">
+					AND T.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd}
+				</if>
+				<if test="admBzwkMclsCd != null and admBzwkMclsCd != ''">
+					AND T.ADM_BZWK_MCLS_CD = #{admBzwkMclsCd}
+				</if>
+				<if test="!'Y'.toString().equals(includeTranYn)">
+					AND T.SCREN_TRAN_DV_CD NOT IN ('20', '22', '23')
+				</if>
+				 ORDER BY T.USER_ID, T.SCREN_TRAN_ID
+    </select>
+
+</mapper>

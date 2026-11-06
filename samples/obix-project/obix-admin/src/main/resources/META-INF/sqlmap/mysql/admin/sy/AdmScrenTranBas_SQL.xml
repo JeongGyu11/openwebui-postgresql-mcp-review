@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : 어드민화면거래기본
+-->
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmScrenTranBasDAO">
+
+	<!--
+	* Description : 어드민화면거래기본 목록조회
+	-->
+	<select id="listAdmScrenTranBas"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO"
+			resultType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.listAdmScrenTranBas 어드민화면거래기본 목록 조회 */
+		SELECT SCREN_TRAN_ID	/* 화면거래아이디 */
+				, SCREN_TRAN_DV_CD	/* 화면거래구분코드 */
+				, ADM_BZWK_LCLS_CD	/* 어드민업무대분류코드 */
+				, ADM_BZWK_MCLS_CD	/* 어드민업무중분류코드 */
+				, UP_SCREN_TRAN_ID	/* 상위화면거래아이디 */
+				, SCREN_TRAN_NM	/* 화면거래명 */
+				, URL_ADDR	/* URL주소 */
+				, SCREN_TRAN_LVEL	/* 화면거래레벨 */
+				, MENU_REPST_YN	/* 메뉴표시여부 */
+				, WHOL_ALLOW_YN	/* 전체허용여부 */
+				, SSTV_INFO_YN	/* 민감정보여부 */
+				, REPST_ORDR	/* 표시순서 */
+				, DESC_CTNT	/* 설명내용 */
+				, USE_YN	/* 사용여부 */
+				, FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+				, FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+				, LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+				, LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		FROM (
+			WITH RECURSIVE CTR AS
+			(
+				SELECT A.*,
+						CONVERT( LPAD(CONVERT(A.REPST_ORDR,CHAR(10)), 10, '0'), CHAR(100)) AS HIERARCHY,
+						1 AS LEVEL
+				FROM ADM_SCREN_TRAN_BAS A
+				WHERE A.USE_YN = 'Y'
+				AND A.SCREN_TRAN_LVEL = 0
+				UNION ALL
+				SELECT B.*,
+						CONVERT( CONCAT(C.HIERARCHY, '.', LPAD(CONVERT(B.REPST_ORDR,CHAR(10)), 10, '0')), CHAR(100)) AS HIERARCHY,
+						C.LEVEL + 1 AS LEVEL
+				FROM ADM_SCREN_TRAN_BAS B
+				INNER JOIN CTR C ON B.UP_SCREN_TRAN_ID = C.SCREN_TRAN_ID
+				WHERE B.USE_YN = 'Y'
+			)
+			SELECT *
+			FROM CTR
+		) T
+		WHERE 1=1
+		<if test='admBzwkLclsCd != null and admBzwkLclsCd != ""'>
+			AND ADM_BZWK_LCLS_CD LIKE CONCAT('%', #{admBzwkLclsCd},'%')
+		</if>
+		<if test='admBzwkMclsCd != null and admBzwkMclsCd != ""'>
+			AND ADM_BZWK_MCLS_CD LIKE CONCAT('%', #{admBzwkMclsCd},'%')
+		</if>
+		<if test='screnTranDvCd != null and screnTranDvCd != ""'>
+			AND SCREN_TRAN_DV_CD LIKE CONCAT('%', #{screnTranDvCd},'%')
+		</if>
+		<if test='screnTranLvel != null and screnTranLvel != ""'>
+			AND SCREN_TRAN_LVEL >= #{screnTranLvel}
+		</if>
+		<if test='menuRepstYn != null and menuRepstYn != ""'>
+			AND MENU_REPST_YN LIKE CONCAT('%', #{menuRepstYn},'%')
+		</if>
+		<if test='useYn != null and useYn != ""'>
+			AND USE_YN LIKE CONCAT('%', #{useYn},'%')
+		</if>
+		ORDER BY HIERARCHY ASC
+	</select>
+
+	<!--
+	* Description : 어드민화면거래기본 계층별 목록조회
+	-->
+	<select id="listAdmScrenTranBasByHierarchy"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO"
+			resultType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.listAdmScrenTranBasByHierarchy 어드민화면거래기본 계층별 목록조회 */
+		SELECT SCREN_TRAN_ID	/* 화면거래아이디 */
+			 , SCREN_TRAN_DV_CD	/* 화면거래구분코드 */
+			 , ADM_BZWK_LCLS_CD	/* 어드민업무대분류코드 */
+			 , ADM_BZWK_MCLS_CD	/* 어드민업무중분류코드 */
+			 , UP_SCREN_TRAN_ID	/* 상위화면거래아이디 */
+			 , SCREN_TRAN_NM	/* 화면거래명 */
+			 , URL_ADDR	/* URL주소 */
+			 , SCREN_TRAN_LVEL	/* 화면거래레벨 */
+			 , MENU_REPST_YN	/* 메뉴표시여부 */
+			 , WHOL_ALLOW_YN	/* 전체허용여부 */
+			 , SSTV_INFO_YN	/* 민감정보여부 */
+			 , REPST_ORDR	/* 표시순서 */
+			 , DESC_CTNT	/* 설명내용 */
+			 , USE_YN	/* 사용여부 */
+		FROM (
+				 WITH RECURSIVE CTR AS
+									(
+										SELECT A.*,
+											   CONVERT( LPAD(CONVERT(A.REPST_ORDR,CHAR(10)), 10, '0'), CHAR(100)) AS HIERARCHY,
+											   1 AS LEVEL
+										FROM ADM_SCREN_TRAN_BAS A
+										WHERE A.USE_YN = 'Y'
+										  AND A.SCREN_TRAN_LVEL = 0
+										  AND A.SCREN_TRAN_DV_CD IN ('00','10') /* 화면거래구분코드(00=메뉴그룹, 10=화면일반) */
+										UNION ALL
+										SELECT B.*,
+											   CONVERT( CONCAT(C.HIERARCHY, '.', LPAD(CONVERT(B.REPST_ORDR,CHAR(10)), 10, '0')), CHAR(100)) AS HIERARCHY,
+											   C.LEVEL + 1 AS LEVEL
+										FROM ADM_SCREN_TRAN_BAS B
+												 INNER JOIN CTR C ON B.UP_SCREN_TRAN_ID = C.SCREN_TRAN_ID
+										WHERE B.USE_YN = 'Y'
+										  AND B.SCREN_TRAN_DV_CD IN ('00','10') /* 화면거래구분코드(00=메뉴그룹, 10=화면일반) */
+									)
+				 SELECT *
+				 FROM CTR
+			 ) T
+		WHERE 1=1
+		  AND SCREN_TRAN_DV_CD IN ('00','10') /* 화면거래구분코드(00=메뉴그룹, 10=화면일반) */
+		ORDER BY HIERARCHY ASC
+	</select>
+
+	<!--
+	* Description : 어드민화면거래기본 정보조회
+	-->
+	<select id="selectAdmScrenTranBas"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO"
+			resultType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.selectAdmScrenTranBas 어드민화면거래기본 정보 조회 */
+		SELECT SCREN_TRAN_ID	/* 화면거래아이디 */
+			 , SCREN_TRAN_DV_CD	/* 화면거래구분코드 */
+			 , ADM_BZWK_LCLS_CD	/* 어드민업무대분류코드 */
+			 , ADM_BZWK_MCLS_CD	/* 어드민업무중분류코드 */
+			 , UP_SCREN_TRAN_ID	/* 상위화면거래아이디 */
+			 , SCREN_TRAN_NM	/* 화면거래명 */
+			 , URL_ADDR	/* URL주소 */
+			 , SCREN_TRAN_LVEL	/* 화면거래레벨 */
+			 , MENU_REPST_YN	/* 메뉴표시여부 */
+			 , WHOL_ALLOW_YN	/* 전체허용여부 */
+			 , SSTV_INFO_YN	/* 민감정보여부 */
+			 , REPST_ORDR	/* 표시순서 */
+			 , DESC_CTNT	/* 설명내용 */
+			 , USE_YN	/* 사용여부 */
+			 , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+			 , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+			 , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+			 , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_SCREN_TRAN_BAS	
+		 WHERE 1=1	
+		   AND SCREN_TRAN_ID = #{screnTranId}	/* 화면거래아이디 */
+	</select>
+
+	<!--
+	* Description : 어드민화면거래기본 등록
+	-->
+	<insert id="insertAdmScrenTranBas" parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.insertAdmScrenTranBas 어드민화면거래기본 등록*/
+		INSERT INTO ADM_SCREN_TRAN_BAS
+			   ( SCREN_TRAN_ID ,	/* 화면거래아이디 */
+				 SCREN_TRAN_DV_CD ,	/* 화면거래구분코드 */
+				 ADM_BZWK_LCLS_CD ,	/* 어드민업무대분류코드 */
+				 ADM_BZWK_MCLS_CD ,	/* 어드민업무중분류코드 */
+				 UP_SCREN_TRAN_ID ,	/* 상위화면거래아이디 */
+				 SCREN_TRAN_NM ,	/* 화면거래명 */
+				 URL_ADDR ,	/* URL주소 */
+				 SCREN_TRAN_LVEL ,	/* 화면거래레벨 */
+				 MENU_REPST_YN ,	/* 메뉴표시여부 */
+				 WHOL_ALLOW_YN ,	/* 전체허용여부 */
+				 SSTV_INFO_YN ,	/* 민감정보여부 */
+				 REPST_ORDR ,	/* 표시순서 */
+				 DESC_CTNT ,	/* 설명내용 */
+				 USE_YN ,	/* 사용여부 */
+				 FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */
+				 FRST_REGI_TMSP 	/* 최초등록타임스탬프 */
+			   )
+		VALUES ( #{screnTranId} ,	/* 화면거래아이디 */
+				 #{screnTranDvCd} ,	/* 화면거래구분코드 */
+				 #{admBzwkLclsCd} ,	/* 어드민업무대분류코드 */
+				 #{admBzwkMclsCd} ,	/* 어드민업무중분류코드 */
+				 #{upScrenTranId} ,	/* 상위화면거래아이디 */
+				 #{screnTranNm} ,	/* 화면거래명 */
+				 #{urlAddr} ,	/* url주소 */
+				 #{screnTranLvel} ,	/* 화면거래레벨 */
+				 #{menuRepstYn} ,	/* 메뉴표시여부 */
+				 #{wholAllowYn} ,	/* 전체허용여부 */
+				 #{sstvInfoYn} ,	/* 민감정보여부 */
+				 #{repstOrdr} ,	/* 표시순서 */
+				 #{descCtnt} ,	/* 설명내용 */
+				 #{useYn} ,	/* 사용여부 */
+				 #{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+				 CURRENT_TIMESTAMP() 	/* 최초등록타임스탬프 */
+			  )
+	</insert>
+			
+	<!--
+	* Description : 어드민화면거래기본 수정
+	-->
+	<update id="updateAdmScrenTranBas" parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.updateAdmScrenTranBas 어드민화면거래기본 수정*/
+		UPDATE ADM_SCREN_TRAN_BAS
+		   SET
+		   <if test='screnTranDvCd != "" and screnTranDvCd != null'>
+		   	   SCREN_TRAN_DV_CD = #{screnTranDvCd} ,	/* 화면거래구분코드 */
+		   </if>
+		   <if test='admBzwkLclsCd != "" and admBzwkLclsCd != null'>
+			   ADM_BZWK_LCLS_CD = #{admBzwkLclsCd} ,	/* 어드민업무대분류코드 */
+		   </if>
+		   <if test='admBzwkMclsCd != "" and admBzwkMclsCd != null'>
+			   ADM_BZWK_MCLS_CD = #{admBzwkMclsCd} ,	/* 어드민업무중분류코드 */
+		   </if>
+		   <if test='upScrenTranId != "" and upScrenTranId != null'>
+			   UP_SCREN_TRAN_ID = #{upScrenTranId} ,	/* 상위화면거래아이디 */
+		   </if>
+		   <if test='screnTranNm != "" and screnTranNm != null'>
+			   SCREN_TRAN_NM = #{screnTranNm} ,	/* 화면거래명 */
+		   </if>
+		   <if test='urlAddr != "" and urlAddr != null'>
+			   URL_ADDR = #{urlAddr} ,	/* url주소 */
+		   </if>
+		   <if test='screnTranLvel != "" and screnTranLvel != null and screnTranLvel != 0'>
+			   SCREN_TRAN_LVEL = #{screnTranLvel} ,	/* 화면거래레벨 */
+		   </if>
+		   <if test='menuRepstYn != "" and menuRepstYn != null'>
+			   MENU_REPST_YN = #{menuRepstYn} ,	/* 메뉴표시여부 */
+		   </if>
+		   <choose>
+		   	<when test='wholAllowYn != "" and wholAllowYn != null'>
+		   		 WHOL_ALLOW_YN = #{wholAllowYn} ,	/* 전체허용여부 */
+		   	</when>
+		   	<otherwise>
+		   		WHOL_ALLOW_YN = null,
+		   	</otherwise>
+		   </choose> 		  
+			<choose>
+		   	<when test='sstvInfoYn != "" and sstvInfoYn != null'>
+		   		 SSTV_INFO_YN = #{sstvInfoYn} ,	/* 민감정보여부 */
+		   	</when>
+		   	<otherwise>
+		   		SSTV_INFO_YN = null,
+		   	</otherwise>
+		   </choose> 
+		   <!-- <if test='sstvInfoYn != "" and sstvInfoYn != null'>
+			   SSTV_INFO_YN = #{sstvInfoYn} ,	/* 민감정보여부 */
+		   </if> -->
+		   <if test='repstOrdr != "" and repstOrdr != null  and repstOrdr != 0'>
+			   REPST_ORDR = #{repstOrdr} ,	/* 표시순서 */
+		   </if>
+		   <if test='descCtnt != "" and descCtnt != null'>
+			   DESC_CTNT = #{descCtnt} ,	/* 설명내용 */
+		   </if>
+		   <if test='useYn != "" and useYn != null'>
+			   USE_YN = #{useYn} ,	/* 사용여부 */
+		   </if>
+			   LAST_CHNG_USER_ID = #{lastChngUserId} ,	/* 최종변경사용자아이디 */
+			   LAST_CHNG_TMSP = CURRENT_TIMESTAMP()	/* 최종변경타임스탬프 */
+		 WHERE 1=1
+		   AND SCREN_TRAN_ID = #{screnTranId}
+			
+	</update>		
+			
+	<!--		
+	* Description : 어드민화면거래기본 삭제
+	-->			
+	<delete id="deleteAdmScrenTranBas" parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.deleteAdmScrenTranBas 어드민화면거래기본 삭제*/
+		DELETE
+		  FROM ADM_SCREN_TRAN_BAS
+		 WHERE 1=1
+		   AND SCREN_TRAN_ID = #{screnTranId}	/* 화면거래아이디 */
+	</delete>
+	
+	<!--
+	* Description : 어드민화면거래기본 등록
+	-->
+	<update id="updateMergeAdmScrenTranBas" parameterType="kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO">
+		/*AdmScrenTranBasDAO.updateMergeAdmScrenTranBas 어드민화면거래기본 Merge*/
+		INSERT INTO ADM_SCREN_TRAN_BAS
+		( SCREN_TRAN_ID ,	/* 화면거래아이디 */
+		  SCREN_TRAN_DV_CD ,	/* 화면거래구분코드 */
+		  ADM_BZWK_LCLS_CD ,	/* 어드민업무대분류코드 */
+		  ADM_BZWK_MCLS_CD ,	/* 어드민업무중분류코드 */
+		  UP_SCREN_TRAN_ID ,	/* 상위화면거래아이디 */
+		  SCREN_TRAN_NM ,	/* 화면거래명 */
+		  URL_ADDR ,	/* URL주소 */
+		  SCREN_TRAN_LVEL ,	/* 화면거래레벨 */
+		  MENU_REPST_YN ,	/* 메뉴표시여부 */
+		  WHOL_ALLOW_YN ,	/* 전체허용여부 */
+		  SSTV_INFO_YN ,	/* 민감정보여부 */
+		  REPST_ORDR ,	/* 표시순서 */
+		  DESC_CTNT ,	/* 설명내용 */
+		  USE_YN ,	/* 사용여부 */
+		  FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */
+		  FRST_REGI_TMSP 	/* 최초등록타임스탬프 */
+		)
+		VALUES( #{screnTranId} ,	/* 화면거래아이디 */
+				#{screnTranDvCd} ,	/* 화면거래구분코드 */
+				#{admBzwkLclsCd} ,	/* 어드민업무대분류코드 */
+				#{admBzwkMclsCd} ,	/* 어드민업무중분류코드 */
+				#{upScrenTranId} ,	/* 상위화면거래아이디 */
+				#{screnTranNm} ,	/* 화면거래명 */
+				#{urlAddr} ,	/* url주소 */
+				#{screnTranLvel} ,	/* 화면거래레벨 */
+				#{menuRepstYn} ,	/* 메뉴표시여부 */
+				#{wholAllowYn} ,	/* 전체허용여부 */
+				#{sstvInfoYn} ,	/* 민감정보여부 */
+				#{repstOrdr} ,	/* 표시순서 */
+				#{descCtnt} ,	/* 설명내용 */
+				#{useYn} ,	/* 사용여부 */
+				#{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+				CURRENT_TIMESTAMP() 	/* 최초등록타임스탬프 */
+			  )
+			ON DUPLICATE KEY UPDATE
+								 SCREN_TRAN_DV_CD = #{screnTranDvCd} ,	/* 화면거래구분코드 */
+								 ADM_BZWK_LCLS_CD = #{admBzwkLclsCd} ,	/* 어드민업무대분류코드 */
+								 ADM_BZWK_MCLS_CD = #{admBzwkMclsCd} ,	/* 어드민업무중분류코드 */
+								 UP_SCREN_TRAN_ID = #{upScrenTranId} ,	/* 상위화면거래아이디 */
+								 SCREN_TRAN_NM = #{screnTranNm} ,	/* 화면거래명 */
+								 URL_ADDR = #{urlAddr} ,	/* url주소 */
+								 SCREN_TRAN_LVEL = #{screnTranLvel} ,	/* 화면거래레벨 */
+								 MENU_REPST_YN = #{menuRepstYn} ,	/* 메뉴표시여부 */
+								 WHOL_ALLOW_YN = #{wholAllowYn} ,	/* 전체허용여부 */
+								 SSTV_INFO_YN = #{sstvInfoYn} ,	/* 민감정보여부 */
+								 REPST_ORDR = #{repstOrdr} ,	/* 표시순서 */
+								 DESC_CTNT = #{descCtnt} ,	/* 설명내용 */
+								 USE_YN = #{useYn} ,	/* 사용여부 */
+								 LAST_CHNG_USER_ID = #{lastChngUserId} ,	/* 최초등록사용자아이디 */
+								 LAST_CHNG_TMSP = CURRENT_TIMESTAMP() 	/* 최초등록타임스탬프 */
+	</update>
+	
+	<!--
+	* Description : 어드민화면그룹 목록조회
+	-->
+	<select id="listAdmScrenGroup"
+			parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmScrenGroupQryDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.sy.AdmScrenGroupQryDTO">
+			
+		<include refid="COMMON.pagingPreSQL" />
+		/*AdmScrenTranBasDAO.listAdmScrenGroup 어드민화면그룹 목록조회 */
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY A.REPST_ORDR, A.GROUP_ID, A.SCREN_TRAN_ID) AS num 
+			  , A.GROUP_ID	/* 그룹아이디 */
+			  , A.GROUP_NM	/* 그룹명 */
+			  , A.GROUP_DV_CD	/* 그룹구분코드 */
+			  , A.USE_YN	/* 사용여부 */
+			  , A.ADM_BZWK_LCLS_CD /* 어드민업무대분류코드 */
+			  , A.ADM_BZWK_MCLS_CD /* 어드민업무중분류코드 */
+			  , A.SCREN_TRAN_ID /* 화면거래아이디 */
+			  , A.SCREN_TRAN_NM /* 화면거래명 */
+			  , A.SCREN_TRAN_DV_CD /*화면거래구분코드*/
+			  , A.SSTV_INFO_YN /*민감정보여부*/
+		  FROM (
+			        SELECT A.ADM_BZWK_LCLS_CD
+						    , A.ADM_BZWK_MCLS_CD
+						    , A.SSTV_INFO_YN
+						    , A.SCREN_TRAN_ID
+						    , A.SCREN_TRAN_NM
+						    , A.SCREN_TRAN_DV_CD 
+				 		    , B.GROUP_ID
+						    , B.GROUP_NM
+						    , B.GROUP_DV_CD
+						    , B.USE_YN
+						    , B.REPST_ORDR
+						    , B.FRST_REGI_TMSP
+		             FROM ADM_SCREN_TRAN_BAS A
+		           INNER JOIN ADM_GROUP_BAS B
+		         	   ON 1=1
+		         WHERE A.WHOL_ALLOW_YN = 'Y'
+		        	 AND A.USE_YN = 'Y'
+		         
+		        UNION
+		        
+		        SELECT A.ADM_BZWK_LCLS_CD
+						 , A.ADM_BZWK_MCLS_CD
+						 , A.SSTV_INFO_YN
+						 , A.SCREN_TRAN_ID
+						 , A.SCREN_TRAN_NM
+						 , A.SCREN_TRAN_DV_CD
+						 , C.GROUP_ID
+						 , C.GROUP_NM
+						 , C.GROUP_DV_CD
+						 , C.USE_YN
+						 , C.REPST_ORDR
+						 , C.FRST_REGI_TMSP
+		          FROM ADM_SCREN_TRAN_BAS A
+		         INNER JOIN ADM_GROUP_ATH B
+		              ON A.SCREN_TRAN_ID = B.SCREN_TRAN_ID
+		         INNER JOIN ADM_GROUP_BAS C
+					  ON C.GROUP_ID = B.GROUP_ID
+		        WHERE A.USE_YN = 'Y'
+		        	AND B.USE_YN = 'Y'
+		  ) A
+		 WHERE 1=1
+			<if test='groupDvCd != "" and groupDvCd != null'>
+				AND A.GROUP_DV_CD = #{groupDvCd} 	/* 그룹구분코드 */
+			</if>
+			<if test='admBzwkLclsCd != "" and admBzwkLclsCd != null'>
+				AND A.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd} 	/* 어드민업무대분류코드 */
+			</if>
+			<if test='admBzwkMclsCd != "" and admBzwkMclsCd != null'>
+				AND A.ADM_BZWK_MCLS_CD = #{admBzwkMclsCd} 	/* 어드민업무중분류코드 */
+			</if>
+			<if test='groupIdOrNm !="" and groupIdOrNm != null'>
+				AND UPPER(A.GROUP_ID), UPPER(A.GROUP_NM) LIKE '%', UPPER(#{groupIdOrNm}), '%'
+			</if>
+			<if test='screnIdOrNm !="" and screnIdOrNm != null'>
+				AND (UPPER(A.SCREN_TRAN_ID) LIKE CONCAT('%', UPPER(#{screnIdOrNm}), '%') OR UPPER(A.SCREN_TRAN_NM) LIKE CONCAT('%', UPPER(#{screnIdOrNm}), '%'))
+			</if>
+			ORDER BY A.REPST_ORDR, A.GROUP_ID, A.SCREN_TRAN_ID
+		<include refid="COMMON.pagingPostSQL" />
+	</select>
+	
+	<!--
+	* Description : 어드민화면그룹 목록 건수 조회
+	-->
+	<select id="selectCountAdmScrenGroup"
+			parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmScrenGroupQryDTO"
+			resultType="Integer">
+		/*AdmScrenTranBasDAO.selectCountAdmScrenGroup 어드민화면그룹 목록 건수 조회 */
+		SELECT COUNT(*) AS totalCount
+		  FROM (
+			        SELECT A.ADM_BZWK_LCLS_CD
+						    , A.ADM_BZWK_MCLS_CD
+						    , A.SSTV_INFO_YN
+						    , A.SCREN_TRAN_ID
+						    , A.SCREN_TRAN_NM
+						    , A.SCREN_TRAN_DV_CD 
+				 		    , B.GROUP_ID
+						    , B.GROUP_NM
+						    , B.GROUP_DV_CD
+						    , B.USE_YN
+						    , B.REPST_ORDR
+						    , B.FRST_REGI_TMSP
+		             FROM ADM_SCREN_TRAN_BAS A
+		           INNER JOIN ADM_GROUP_BAS B
+		         	   ON 1=1
+		         WHERE A.WHOL_ALLOW_YN = 'Y'
+		        	 AND A.USE_YN = 'Y'
+		         
+		        UNION
+		        
+		        SELECT A.ADM_BZWK_LCLS_CD
+						 , A.ADM_BZWK_MCLS_CD
+						 , A.SSTV_INFO_YN
+						 , A.SCREN_TRAN_ID
+						 , A.SCREN_TRAN_NM
+						 , A.SCREN_TRAN_DV_CD
+						 , C.GROUP_ID
+						 , C.GROUP_NM
+						 , C.GROUP_DV_CD
+						 , C.USE_YN
+						 , C.REPST_ORDR
+						 , C.FRST_REGI_TMSP
+		          FROM ADM_SCREN_TRAN_BAS A
+		         INNER JOIN ADM_GROUP_ATH B
+		              ON A.SCREN_TRAN_ID = B.SCREN_TRAN_ID
+		         INNER JOIN ADM_GROUP_BAS C
+					  ON C.GROUP_ID = B.GROUP_ID
+		        WHERE A.USE_YN = 'Y'
+		        	AND B.USE_YN = 'Y'
+		  ) A
+		 WHERE 1=1
+			<if test='groupDvCd != "" and groupDvCd != null'>
+				AND A.GROUP_DV_CD = #{groupDvCd} 	/* 그룹구분코드 */
+			</if>
+			<if test='admBzwkLclsCd != "" and admBzwkLclsCd != null'>
+				AND A.ADM_BZWK_LCLS_CD = #{admBzwkLclsCd} 	/* 어드민업무대분류코드 */
+			</if>
+			<if test='admBzwkMclsCd != "" and admBzwkMclsCd != null'>
+				AND A.ADM_BZWK_MCLS_CD = #{admBzwkMclsCd} 	/* 어드민업무중분류코드 */
+			</if>
+			<if test='groupIdOrNm !="" and groupIdOrNm != null'>
+				AND (UPPER(A.GROUP_ID) LIKE CONCAT('%', UPPER(#{groupIdOrNm}),'%') OR UPPER(A.GROUP_NM) LIKE CONCAT('%', UPPER(#{groupIdOrNm}),'%'))
+			</if>
+			<if test='screnIdOrNm !="" and screnIdOrNm != null'>
+				AND (UPPER(A.SCREN_TRAN_ID) LIKE CONCAT('%', UPPER(#{screnIdOrNm}),'%') OR UPPER(A.SCREN_TRAN_NM) LIKE CONCAT('%', UPPER(#{screnIdOrNm}),'%'))
+			</if>
+	</select>
+
+	<!--
+    * Description : 시스템 > 권한관리 > 미등록 URL 현황 조회
+    -->
+	<select id="listValidAdmScrenTranBas" 
+			resultType="kr.fasol.obix.admin.dto.biz.sy.UrlCompareDTO">
+		SELECT SCREN_TRAN_ID
+				 , SCREN_TRAN_NM
+				 , URL_ADDR AS URL_PATTERN
+				 , USE_YN
+		  FROM ADM_SCREN_TRAN_BAS
+		WHERE SCREN_TRAN_DV_CD != '00'
+		ORDER BY SCREN_TRAN_ID
+	</select>
+
+</mapper>

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 공통코드			
+-->			
+<mapper namespace="kr.fasol.obix.batch.dao.comm.CmnCdDAO">			
+
+    <!--
+    * Description : 코드그룹 조회
+    * Creeate : 2021-07-15    정영탁    최초생성
+    -->
+    <select id="listCmnCdGroup"
+            resultType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO">
+        /* CmnCdDAO.listCmnCdGroup 코드그룹 조회 */
+		SELECT
+			CD_GROUP_VAL,
+			CD_GROUP_NM
+		FROM
+		    CMN_CD_GROUP
+		WHERE
+			USE_YN = 'Y'
+    </select>
+
+    <!--
+    * Description : 코드목록 조회
+    * Creeate : 2021-07-15    정영탁    최초생성
+    -->
+    <select id="listCmnCdByCdGroupVal"
+            parameterType="kr.fasol.obix.batch.dto.comm.CmnCdQryDTO"
+            resultType="kr.fasol.obix.batch.dto.comm.CmnCdQryDTO">
+        /* CmnCdDAO.listCmnCdByCdGroupVal 코드목록 조회 */
+		SELECT
+		    B.CD_GROUP_VAL,
+		    B.CD_GROUP_NM,
+		    B.CD_LEN_VAL,
+		    B.DESC_CTNT,
+		    A.CD_VAL,
+		    A.CD_NM,
+		    A.REPST_ORDR,
+		    A.CD_REF_1_VAL,
+		    A.CD_REF_2_VAL,
+		    A.CD_REF_3_VAL,
+		    A.UP_CD_GROUP_VAL,
+		    A.UP_CD_VAL
+		FROM
+		    CMN_CD A
+		    INNER JOIN CMN_CD_GROUP B ON A.CD_GROUP_VAL = B.CD_GROUP_VAL
+			    AND A.USE_YN = 'Y'
+			    AND B.USE_YN = 'Y'
+		WHERE 1=1
+		    AND A.CD_GROUP_VAL = #{cdGroupVal}
+		ORDER BY
+		    A.REPST_ORDR
+    </select>
+
+    <!--
+    * Description : 코드정보 조회
+    * Creeate : 2021-07-15    정영탁    최초생성
+    -->
+    <select id="selectCmnCdByCdVal"
+            parameterType="kr.fasol.obix.batch.dto.comm.CmnCdQryDTO"
+            resultType="kr.fasol.obix.batch.dto.comm.CmnCdQryDTO">
+        /* CmnCdDAO.selectCmnCdByCdVal 코드정보 조회 */
+		SELECT
+		    B.CD_GROUP_VAL,
+		    B.CD_GROUP_NM,
+		    B.CD_LEN_VAL,
+		    B.DESC_CTNT,
+		    A.CD_VAL,
+		    A.CD_NM,
+		    A.REPST_ORDR,
+		    A.CD_REF_1_VAL,
+		    A.CD_REF_2_VAL,
+		    A.CD_REF_3_VAL,
+		    A.UP_CD_GROUP_VAL,
+		    A.UP_CD_VAL
+		FROM
+		    CMN_CD A
+		    INNER JOIN CMN_CD_GROUP B ON A.CD_GROUP_VAL = B.CD_GROUP_VAL
+			    AND A.USE_YN = 'Y'
+			    AND B.USE_YN = 'Y'
+		WHERE 1=1
+		    AND A.CD_GROUP_VAL = #{cdGroupVal}
+		    AND A.CD_VAL = #{cdVal}
+    </select>
+
+
+    <!--
+    * Description : 공통코드그룹 목록조회			
+    -->
+    <select id="selectListCmnCdGroup"			
+            parameterType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO"			
+            resultType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO">
+		/*CmnCdDAO.selectListCmnCdGroup 공통코드그룹 목록 조회 */
+		SELECT CD_GROUP_VAL	/* 코드그룹값 */
+		     , CD_GROUP_NM	/* 코드그룹명 */
+		     , CD_LEN_VAL	/* 코드길이값 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM CMN_CD_GROUP	
+		 WHERE 1=1	
+			 <if test='cdGroupNm !=null  and cdGroupNm !=""'>
+				AND CD_GROUP_NM LIKE ('%' || #{cdGroupNm} || '%') 
+	 		</if>
+    </select>
+    
+    <!--			
+    * Description : 공통코드그룹 목록 개수 조회			
+    -->
+    <select id="selectCountCmnCdGroup" parameterType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO" resultType="Integer">
+    	SELECT COUNT(*) AS totalCount
+    	FROM CMN_CD_GROUP
+    	WHERE 1=1
+    		<if test='cdGroupNm !=null  and cdGroupNm !=""'>
+				AND CD_GROUP_NM LIKE ('%' || #{cdGroupNm} || '%') 
+	 		</if>
+	 		<if test='cdGroupVal !=null  and cdGroupVal !=""'>
+				AND CD_GROUP_VAL LIKE ('%' || #{cdGroupVal} || '%') 
+	 		</if>
+    </select>		
+    			
+    <!--			
+    * Description : 공통코드그룹 정보조회			
+    -->			
+    <select id="selectCmnCdGroup"			
+            parameterType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO"			
+            resultType="kr.fasol.obix.common.dto.entity.CmnCdGroupDTO">			
+		/*CmnCdDAO.selectCmnCdGroup 공통코드그룹 정보 조회 */	
+		SELECT CD_GROUP_VAL	/* 코드그룹값 */
+		     , CD_GROUP_NM	/* 코드그룹명 */
+		     , CD_LEN_VAL	/* 코드길이값 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM 
+		  	CMN_CD_GROUP	
+		 WHERE 	
+		  	CD_GROUP_VAL=#{cdGroupVal} 	/* 코드그룹값 */
+    </select>
+
+
+    <!--
+    * Description : 공통코드 목록 조회			
+    -->
+    <select id="selectListCmnCd"			
+            parameterType="kr.fasol.obix.common.dto.entity.CmnCdDTO"			
+            resultType="kr.fasol.obix.common.dto.entity.CmnCdDTO">
+		/*CmnCdDAO.selectListCmnCd 공통코드 목록 조회 */	
+		SELECT CD_GROUP_VAL	/* 코드그룹값 */
+		     , CD_VAL	/* 코드값 */
+		     , CD_NM	/* 코드명 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , REPST_ORDR	/* 표시순서 */
+		     , CD_REF_1_VAL	/* 코드참조1값 */
+		     , CD_REF_2_VAL	/* 코드참조2값 */
+		     , CD_REF_3_VAL	/* 코드참조3값 */
+		     , UP_CD_GROUP_VAL	/* 상위코드그룹값 */
+		     , UP_CD_VAL	/* 상위코드값 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		 FROM 
+		  	CMN_CD	
+		 WHERE 1=1 
+		 	<if test='cdGroupVal !=null  and cdGroupVal !=""'>
+		 		AND CD_GROUP_VAL=#{cdGroupVal}
+		 	</if>
+            <if test='cdVal !=null  and cdVal !=""'>
+            	AND CD_VAL LIKE CONCAT('%', #{cdVal},'%') 
+         	</if>
+        ORDER BY
+            REPST_ORDR
+    </select>
+
+    <!--			
+    * Description : 공통코드 목록 개수 조회			
+    -->
+    <select id="selectCountCmnCd" parameterType="kr.fasol.obix.common.dto.entity.CmnCdDTO" resultType="Integer">
+    	SELECT COUNT(*) AS totalCount
+    	FROM CMN_CD
+    	WHERE CD_GROUP_VAL=#{cdGroupVal}
+    		<if test='cdVal !=null  and cdVal !=""'>
+            AND CD_VAL LIKE CONCAT('%', #{cdVal},'%') 
+          </if>
+          <if test='useYn !=null  and useYn !=""'>
+            AND USE_YN = #{useYn} 
+          </if>
+          ORDER BY
+            REPST_ORDR
+    </select>		
+	
+    <!--			
+    * Description : 공통코드관리 정보조회			
+    -->			
+    <select id="selectCmnCd"			
+            parameterType="kr.fasol.obix.common.dto.entity.CmnCdDTO"			
+            resultType="kr.fasol.obix.common.dto.entity.CmnCdDTO">			
+		/*CmnCdDAO.selectCmnCd 공통코드 정보 조회 */	
+		SELECT CD_GROUP_VAL	/* 코드그룹값 */
+		     , CD_VAL	/* 코드값 */
+		     , CD_NM	/* 코드명 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , REPST_ORDR	/* 표시순서 */
+		     , CD_REF_1_VAL	/* 코드참조1값 */
+		     , CD_REF_2_VAL	/* 코드참조2값 */
+		     , CD_REF_3_VAL	/* 코드참조3값 */
+		     , UP_CD_GROUP_VAL	/* 상위코드그룹값 */
+		     , UP_CD_VAL	/* 상위코드값 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM CMN_CD	
+		 WHERE CD_GROUP_VAL = #{cdGroupVal}	/* 코드그룹값 */
+   		   AND CD_VAL = #{cdVal}	/* 코드값 */
+    </select>
+
+</mapper>

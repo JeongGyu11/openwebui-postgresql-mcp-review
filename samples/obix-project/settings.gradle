@@ -1,0 +1,15 @@
+
+// root 프로젝트명
+rootProject.name = 'obix3-project'
+
+// Core
+include 'obix-core'
+
+// 공통
+include 'obix-common'
+
+// WAS
+include 'obix-backend'
+include 'obix-front'
+include 'obix-admin'
+include 'obix-batch'

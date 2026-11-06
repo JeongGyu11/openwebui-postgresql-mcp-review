@@ -1,0 +1,3449 @@
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/HtmlUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+
+import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > HTMl Tag 관련 Util
+ * 프로그램명 : HTMl Tag 관련 Util
+ * 설명 : 
+ *
+ * @Class  HtmlUtil.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@UtilityClass
+public class HtmlUtil {
+
+    private static final int UTF8_LENGTH_INFO_BYTE_LENGTH_ID = 0;
+    private static final int UTF8_LENGTH_INFO_CURRENT_BYTE_ID = 1;
+    private static final int UTF8_LENGTH_INFO_DISPLAY_LENGTH = 2;
+
+    private static String getRegexTag(String tag) {
+        return "<" + tag + "[^>]*>|</" + tag + "[^>]*>";
+    }
+
+    private static String getRegexTagInnerBody(String tag) {
+        return "<" + tag + "[^>]*>.*</" + tag + "[^>]*>";
+    }
+
+    private static String removePattern(String text, String regex) {
+
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL
+                | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        Matcher matcher = pattern.matcher(text);
+        if (matcher.find()) {
+            return matcher.replaceAll("");
+        }
+
+        return text;
+    }
+
+    /**
+     * HTML 문자열의 특정 태그를 제거한 문자열 반환
+     * @param text HTML 형식의 문자열
+     * @param tag 제거할 태그명
+     * @param removeBody Body 포함 여부(True: 태그 내의 문자열 포함하여 제거, False: 태그만 제거)
+     */
+    public static String removeTag(String text, String tag, boolean removeBody) {
+
+        String result = text;
+
+        if (removeBody) {
+            result = removePattern(result, getRegexTagInnerBody(tag));
+        }
+
+        return removePattern(result, getRegexTag(tag));
+    }
+
+    /**
+     * 해당 문자가 개행문자(\n)인경우 <br />을 추가하여 반환. (\r)제거
+     **/
+    private static String lineBreakConvertHtml(char ch) {
+
+        String result = null;
+
+        switch (ch) {
+            case '\n': {
+                result = "<br />\n";
+                break;
+            }
+            case '\r': {
+                result = "";
+                break;
+            }
+            default: {
+                result = String.valueOf(ch);
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Html 특수문자를 Html 엔터티로 변환환다.<br />
+     * Html 소스를 웹브라우저에 표시하기 위해 변환합니다.
+     *
+     * @param text 입력 문자열
+     * @param innerLineBreak true시 개행부분에 &lt;br /&gt;를 붙여줍니다.
+     */
+    public static String toText(String text, boolean innerLineBreak) {
+
+        if (StringUtils.isEmpty(text)) {
+            return "";
+        }
+
+        String result = text;
+        result = result.replace("<", "&lt;");
+        result = result.replace(">", "&gt;");
+        result = result.replace(" ", "&nbsp;");
+        result = result.replace("'", "&#39");
+        result = result.replace("\"", "&#34");
+
+        return result;
+    }
+
+    /**
+     * Text의 개행에 Html태그 &ltbr /&gt를 추가하여 반환한다.<br />
+     * Text를 웹브라우저에 표기할때 개행이 되어 표시하기 위해 변환합니다.
+     *
+     * @param text 입력 문자열
+     */
+    public static String toInnerLineBreak(String text) {
+
+        if (StringUtils.isEmpty(text)) {
+            return "";
+        }
+
+        StringBuffer sBuf = new StringBuffer();
+
+        int length = text.length();
+        for (int i = 0; i < length; i++) {
+
+            char tmp = text.charAt(i);
+            sBuf.append(lineBreakConvertHtml(tmp));
+        }
+
+        return sBuf.toString();
+    }
+
+    /**
+     * HTML 태그를 제거한 문자열을 반환한다.
+     */
+    public static String cutStringTag(String str) {
+        if (str == null || str.length() == 0) {
+            return "";
+        }
+        String textWithoutTag = str.replaceAll("<(/)?([a-zA-Z0-9]*)(\\s[a-zA-Z0-9]*=[^>]*)?(\\s)*(/)?>", "");
+        textWithoutTag = textWithoutTag.replace('\r', ' ').replace('\n', ' ').replace("&nbsp;", " ").replace("\\s*", " ").trim();
+        return textWithoutTag;
+    }
+
+    /**
+     * HTML 태그를 제거하고, 해당 필드의 보여주는 값이 필드 길이보다 클 때 특정 길이만 보여주고,
+     * 나머지는 endStr로 처리한다.
+     */
+    public static String cutStringTag(String str, int maxLen, String endStr) {
+        String textWithoutTag = cutStringTag(str);
+        if (textWithoutTag.length() > maxLen) {
+            textWithoutTag = textWithoutTag.substring(0, maxLen) + endStr;
+        }
+        return textWithoutTag;
+    }
+
+    /**
+     * UTF-8 인코딩 된 문자열 길이 반환
+     */
+    private static int[] getUTF8LengthInfo(String str, int size, int utf8DisplaySize) {
+        int byteLength = 0;
+        int currentByte = 0;
+        int displayLength = 0;
+        byte[] byteArray = str.getBytes(StandardCharsets.UTF_8);
+
+        while (byteLength < byteArray.length) {
+            byte tmp = byteArray[byteLength];
+
+            if (tmp == 9 || tmp == 10 || (tmp >= 32 && tmp <= 126)) {
+                byteLength++;
+                currentByte = 1;
+                displayLength++;
+            } else if (tmp >= -62 && tmp <= -33) { // tmp >= 194 && tmp <= 223
+                byteLength += 2;
+                currentByte = 2;
+                displayLength += utf8DisplaySize;
+            } else if (tmp >= -32 && tmp <= -17) { // tmp >= 224 && tmp <= 239
+                byteLength += 3;
+                currentByte = 3;
+                displayLength += utf8DisplaySize;
+            } else if (tmp >= -16 && tmp <= -9) { // tmp >= 240 && tmp <= 247
+                byteLength += 4;
+                currentByte = 4;
+                displayLength += utf8DisplaySize;
+            } else if (tmp >= -8 && tmp <= -5) { // tmp >= 248 && tmp <= 251
+                byteLength += 5;
+                currentByte = 5;
+                displayLength += utf8DisplaySize;
+            } else if (tmp >= -4 && tmp <= -3) { // tmp >= 252 && tmp <= 253
+                byteLength += 6;
+                currentByte = 6;
+                displayLength += utf8DisplaySize;
+            } else {
+                byteLength++;
+            }
+
+            if (size > 0 && displayLength >= size) {
+                break;
+            }
+        }
+
+        int[] lengthInfoArray = new int[3];
+        lengthInfoArray[UTF8_LENGTH_INFO_BYTE_LENGTH_ID] = byteLength;
+        lengthInfoArray[UTF8_LENGTH_INFO_CURRENT_BYTE_ID] = currentByte;
+        lengthInfoArray[UTF8_LENGTH_INFO_DISPLAY_LENGTH] = displayLength;
+
+        byteArray = null;
+
+        return lengthInfoArray;
+    }
+
+    /**
+     * UTF-8 인코딩한 문자열로 반환
+     */
+    public static String UTF8Encoding(String str) {
+        int[] lengthInfoArray = getUTF8LengthInfo(str, str.length(), 2);
+        int byteLength = lengthInfoArray[UTF8_LENGTH_INFO_BYTE_LENGTH_ID];
+
+        byte[] byteArray = str.getBytes(StandardCharsets.UTF_8);
+        byte[] newByte = new byte[byteLength];
+        System.arraycopy(byteArray, 0, newByte, 0, newByte.length);
+
+        String resultStr = new String(newByte, StandardCharsets.UTF_8);
+
+        byteArray = null;
+        newByte = null;
+
+        return resultStr;
+    }
+
+    /**
+     * UTF-8 인코딩한 문자열의 substring 반환
+     */
+    public static String UTF8Substring(String str, int size, int utf8DisplaySize, String endStr) {
+        int[] lengthInfoArray = getUTF8LengthInfo(str, size, utf8DisplaySize);
+        int byteLength = lengthInfoArray[UTF8_LENGTH_INFO_BYTE_LENGTH_ID];
+        int currentByte = lengthInfoArray[UTF8_LENGTH_INFO_CURRENT_BYTE_ID];
+        int displayLength = lengthInfoArray[UTF8_LENGTH_INFO_DISPLAY_LENGTH];
+
+        if (displayLength > size) {
+            byteLength -= currentByte;
+        }
+
+        byte[] byteArray = str.getBytes(StandardCharsets.UTF_8);
+        byte[] newByte = new byte[byteLength];
+        System.arraycopy(byteArray, 0, newByte, 0, newByte.length);
+
+        String resultStr = new String(newByte, StandardCharsets.UTF_8);
+        if (byteLength < byteArray.length) {
+            resultStr += endStr;
+        }
+
+        byteArray = null;
+        newByte = null;
+
+        return resultStr;
+    }
+
+    /**
+     * 2 bytes 문자열의 substring 반환
+     */
+    public static String twoByteSubstring(String str, int size, String endStr, String encoding) throws Exception {
+        byte[] byteArray = str.getBytes(encoding);
+
+        if (size < byteArray.length) {
+            int twoByteChar = 0;
+            for (int i = 0; i < size; i++) {
+                if (byteArray[i] < 0) {
+                    twoByteChar++;
+                }
+            }
+
+            int finalSize = size;
+            if (twoByteChar % 2 == 1) {
+                finalSize--;
+            }
+
+            byte[] newByte = new byte[finalSize];
+            System.arraycopy(byteArray, 0, newByte, 0, newByte.length);
+
+            return new String(newByte, encoding) + endStr;
+        } else {
+            return str;
+        }
+    }
+
+    /**
+     * 한글의substring 반환
+     */
+    public static String korSubstring(String str, int size, String endStr) {
+        int count = 0;
+        int i = 0;
+        for (i = 0; i < str.length(); i++) {
+            int codeval = str.codePointAt(i);
+            if (codeval < 128) {
+                count++;
+            } else {
+                count += 2;
+            }
+
+            if (count > size) {
+                break;
+            }
+        }
+
+        String resultStr = str.substring(0, i);
+        if (i < str.length()) {
+            resultStr += endStr;
+        }
+
+        return resultStr;
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/HtmlUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/IdGeneratorUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > 일련번호 채번
+ * 프로그램명 : 일련번호 채번
+ * 설명 :
+ *
+ * @Class   IdGenerateUtil.class
+ * @author  정영탁
+ * @since   2017-08-08
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일        수정자                수정내용
+ *--------------------------------------------------------------------
+ * 2017-08-08   정영탁  최초생성
+ * 
+ */
+@Slf4j
+@UtilityClass
+public class IdGeneratorUtil  {
+    private static final long MAX_FILL_BITS = 0xffffffffffffffffL;
+    /**
+     * 2011-11-11 00:00:00.000 기준으로 시작.
+     */
+    private static final int TIMESTAMP_BIT_LENGTH = 41;
+    /**
+     * 앱 서버별 고유 아이디 : 0~4095
+     */
+    private static final int NODE_ID_BIT_LENGTH = 12;
+    /**
+     * MACHINE 별 랜덤 번호를 sequence의 시작값으로 한다. sequence는 0~2047까지의 값으로 cycle value.
+     */
+    private static final int SEQUENCE_BIT_LENGTH = 11;
+    private static final int SUFFIX_BIT_LENGTH = 64 - TIMESTAMP_BIT_LENGTH;
+    /**
+     * 2021-01-01 00:00:00.000
+     */
+    private static final long BASE_TIMESTAMP = new Date(1609426800000L).getTime();
+    // 111111111111111111111111111111111111111100000000000000000000000
+    private static final long TIMESTAMP_BITMAP = MAX_FILL_BITS << (NODE_ID_BIT_LENGTH + SEQUENCE_BIT_LENGTH);
+    // 11111111111
+    private static final long SEQUENCE_BITMAP = ~(MAX_FILL_BITS << SEQUENCE_BIT_LENGTH);
+    // 11111111111100000000000
+    private static final long NODE_ID_BITMAP = ~(MAX_FILL_BITS << (NODE_ID_BIT_LENGTH + SEQUENCE_BIT_LENGTH) | SEQUENCE_BITMAP);
+    private final AtomicInteger _sequence;
+    private final Integer startRange;
+    private final Integer endRange;
+    private long _nodeId;
+    private void setNodeId(int nodeId) {
+        final int newNodeId;
+        if (endRange != 0) {
+            int resolution = endRange - startRange;
+            if (resolution < 0)
+            {
+                //throw new IdentifierGenerationException("invalid IdGeneratorUtil node range");
+                throw new IllegalArgumentException("invalid IdGeneratorUtil node range");
+            }
+            newNodeId = (nodeId % resolution) + startRange;
+        } else {
+            newNodeId = nodeId;
+        }
+
+        _nodeId = (newNodeId << SEQUENCE_BIT_LENGTH) & NODE_ID_BITMAP;
+        log.info("generated machineId for IdGenerator: {} ({}:{})", newNodeId & 0xfffL, startRange, endRange);
+    }
+    public long generate() {
+        final long timestamp = System.currentTimeMillis() - BASE_TIMESTAMP;
+        final int seq = incrementAndGet(_sequence);
+        return ((timestamp << SUFFIX_BIT_LENGTH) & TIMESTAMP_BITMAP) | _nodeId | (seq & SEQUENCE_BITMAP);
+    }
+    
+	// 정수형 오버플로우 방지
+    private int incrementAndGet(AtomicInteger seqnoCounter) {
+        int incrementValue = 0;
+        try {
+            incrementValue = seqnoCounter.incrementAndGet();
+            if (incrementValue < 0) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            incrementValue = 0;
+            seqnoCounter.set(incrementValue);
+        }
+        return incrementValue;
+    }
+    
+
+    public static Date getDateFromLogId(long logId) {
+        return new Date((logId >> SUFFIX_BIT_LENGTH) + BASE_TIMESTAMP);
+    }
+    public static long getTimestampFromLogId(long logId) {
+        return (logId >> SUFFIX_BIT_LENGTH) + BASE_TIMESTAMP;
+    }
+    public static long getTimeshiftedLogId(long logId, int delta) {
+        return IdGeneratorUtil.getLogIdFromTimeStamp(IdGeneratorUtil.getDateFromLogId(logId).getTime() + delta);
+    }
+    public static long getLogIdFromTimeStamp(long timeStamp) {
+        return ((timeStamp - BASE_TIMESTAMP) << SUFFIX_BIT_LENGTH) & TIMESTAMP_BITMAP;
+    }
+    public static long getLogIdFromDate(int year, int month, int day, int hour, int minute, int second) {
+        return getLogIdFromTimeStamp(
+                new GregorianCalendar(year, month - 1, day, hour, minute, second).getTimeInMillis());
+    }
+    static {
+        _sequence = new AtomicInteger();
+        startRange = 0;
+        endRange = 4096;
+        IdGeneratorUtil.initialize();
+    }
+    private static void initialize() {
+        // hostname 을 가져온다. (node 별로 생성하는 Id가 uniq하게 하기 위함.)
+        String hostname = "Unknown";
+        try {
+            hostname = InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.error(e.getMessage(), e);
+        }
+        // 머신아이디(노드)는 호스트이름에 있는 숫자값을 이용함. 숫자값이 없으면 0을 사용. (대부분 있어야 함. 없으면 망...)
+        int machineId = 0;
+        if (hostname.matches(".*[0-9].*")) {
+            try {
+                machineId = Integer.parseInt(hostname.replaceAll("[^\\d]", ""));
+            } catch (NumberFormatException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+        // 머신아이디가 0인 경우는 문제가 있는 것이니 모니터링 하자.
+        if (machineId == 0) {
+            log.warn("Initialize IdGenerateUtil... Hostname : {}, MachineId: {}", hostname, machineId);
+        }
+        setNodeId(machineId);
+        log.debug("Initialize IdGenerateUtil... Hostname : {}, MachineId: {}, _nodeId: {}", hostname, machineId, _nodeId);
+    }
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/IdGeneratorUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ImageUtil.java =====
+package kr.fasol.obix.core.util;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.github.jaiimageio.impl.plugins.tiff.TIFFImageWriter;
+import com.github.jaiimageio.impl.plugins.tiff.TIFFT6Compressor;
+import com.github.jaiimageio.plugins.tiff.TIFFImageWriteParam;
+import lombok.Getter;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.imaging.formats.tiff.TiffImageParser;
+import org.apache.commons.io.IOUtils;
+import org.springframework.util.Assert;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > Util > 이미지 변환 유틸
+ * 프로그램명 : 이미지 변환 유틸
+ * 설명 :
+ *
+ * 클래스 : ImageUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 9. 25.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 9. 25.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class ImageUtil {
+
+	@Getter
+	public static enum PICTURE_TYPE {
+		JPEG("jpg"),
+		PNG("png"),
+		TIFF("tiff");
+		private String type;
+		PICTURE_TYPE(String type) {
+			this.type = type;
+		}
+	}
+
+	/**
+	 * TIFF 이미지로 변환
+	 * @param inputStreamList 변환할 이미지 버퍼 목록
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToTiffImage(List<InputStream> inputStreamList) throws Exception {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		ImageOutputStream imageOutputStream = ImageIO.createImageOutputStream(byteArrayOutputStream);
+
+		TIFFImageWriter writer = (TIFFImageWriter) ImageIO.getImageWritersByFormatName(PICTURE_TYPE.TIFF.getType()).next();
+		TIFFImageWriteParam writeParam = (TIFFImageWriteParam) writer.getDefaultWriteParam();
+		TIFFT6Compressor compressor = new TIFFT6Compressor();
+		writeParam.setCompressionMode(TIFFImageWriteParam.MODE_EXPLICIT);
+		writeParam.setCompressionType("LZW");
+		writeParam.setTIFFCompressor(compressor);
+
+		writer.setOutput(imageOutputStream);
+
+		writer.prepareWriteSequence(null);
+		for (InputStream inputStream : inputStreamList) {
+			writer.writeToSequence(new IIOImage(ImageIO.read(inputStream), null, null), writeParam);
+		}
+		writer.endWriteSequence();
+
+		writer.dispose();
+		imageOutputStream.close();
+
+		return byteArrayOutputStream.toByteArray();
+	}
+
+	/**
+	 * TIFF 이미지를 JPEG 이미지로 변환
+	 * @param tiffImageBytes 변환할 TIFF 이미지
+	 * @return 변환된 이미지 목록
+	 */
+	public static List<byte[]> readFromTiffImage(byte[] tiffImageBytes) throws Exception {
+		List<byte[]> imageList = new ArrayList<>();
+
+		TiffImageParser tiffImageParser = new TiffImageParser();
+		List<BufferedImage> tiffBufferedImage = tiffImageParser.getAllBufferedImages(tiffImageBytes);
+
+		tiffBufferedImage.forEach(tiffImage -> {
+			try {
+				BufferedImage jpegImage = new BufferedImage(tiffImage.getWidth(), tiffImage.getHeight(), BufferedImage.TYPE_INT_RGB);
+				// Draw image from original TIFF to the new JPEG image
+				jpegImage.createGraphics().drawImage(tiffImage, 0, 0, Color.WHITE, null);
+				// Write the image as JPEG to disk
+				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+				ImageIO.write(jpegImage, PICTURE_TYPE.JPEG.getType(), ImageIO.createImageOutputStream(byteArrayOutputStream));
+				imageList.add( byteArrayOutputStream.toByteArray() );
+			} catch (IOException e) {
+				log.error(e.getMessage());
+			}
+		});
+
+		return imageList;
+	}
+
+	/**
+	 * 썸네일 이미지로 변환
+	 * @param inputStream 변환할 이미지 버퍼
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToThumbnail(InputStream inputStream) throws Exception {
+		return saveToThumbnail(inputStream, 100);
+	}
+	/**
+	 * 썸네일 이미지로 변환
+	 * @param inputStream 변환할 이미지 버퍼
+	 * @param quality 생성할 이미지의 Quality(최대 100)
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToThumbnail(InputStream inputStream, int quality) throws Exception {
+		return saveToThumbnail(inputStream, 0, 0, quality);
+	}
+	/**
+	 * 썸네일 이미지로 변환
+	 * @param inputStream 변환할 이미지 버퍼
+	 * @param width 생성할 이미지의 Width
+	 * @param height 생성할 이미지의 Height
+	 * @param quality 생성할 이미지의 Quality(최대 100)
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToThumbnail(InputStream inputStream, int width, int height, int quality) throws Exception {
+		// Exif가 제거된(정위치) 이미지객체 반환
+		BufferedImage imageBuffer = getRotateImage(IOUtils.toByteArray(inputStream));
+		// 썸네일로 변환
+		return saveToThumbnail(imageBuffer, width, height, quality);
+	}
+
+	/**
+	 * 썸네일 이미지로 변환
+	 * @param imageBuffer 변환할 이미지 버퍼
+	 * @param width 생성할 이미지의 Width
+	 * @param height 생성할 이미지의 Height
+	 * @param quality 생성할 이미지의 Quality(최대 100)
+	 * @return 저장할 파일
+	 */
+	public static byte[] saveToThumbnail(BufferedImage imageBuffer, int width, int height, int quality) throws Exception {
+		Assert.notNull(imageBuffer, "저장할 이미지 객체는 필수 항목입니다.");
+		Assert.isTrue(quality >= 0 && quality <= 100, "Quality는 0~100 사이의 숫자입니다.");
+
+		// 원본 이미지 크기
+		int imageWidth = imageBuffer.getWidth();
+		int imageHeight = imageBuffer.getHeight();
+
+		int targetWidth = width > 0 ? width : (height > 0 ? imageWidth * height / imageHeight : imageWidth);
+		int targetHeight = height > 0 ? height : (width > 0 ? imageHeight * width / imageWidth : imageHeight);
+
+		// 썸네일 이미지 생성 (3바이트 RGB)
+		BufferedImage thumbnailImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_3BYTE_BGR);
+		Graphics2D g2d = thumbnailImage.createGraphics();
+
+		try {
+			// 렌더링 품질 향상 옵션 추가
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+			// 이미지 리사이징 후 그리기
+			g2d.drawImage(imageBuffer, 0, 0, targetWidth, targetHeight, null);
+		} finally {
+			g2d.dispose(); // 리소스 정리
+		}
+
+		// JPEG 품질 조정 및 이미지 저장
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			 ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+
+			Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
+			if (!writers.hasNext()) {
+				throw new IOException("No available JPEG writer");
+			}
+
+			ImageWriter writer = writers.next();
+			writer.setOutput(ios);
+
+			// JPEG 품질 조정
+			JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
+			jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			jpegParams.setCompressionQuality(quality / 100.0f); // 0.0 ~ 1.0
+
+			writer.write(null, new javax.imageio.IIOImage(thumbnailImage, null, null), jpegParams);
+			writer.dispose();
+
+			return baos.toByteArray();
+		}
+	}
+
+	/**
+	 * 이미지 Exif가 제거된(정위치) 이미지객체 반환
+	 */
+	public static BufferedImage getRotateImage(byte[] imgBytes) throws Exception {
+		InputStream inputStream = new ByteArrayInputStream(imgBytes);
+		BufferedImage image = null;
+		try {
+			image = ImageIO.read(new ByteArrayInputStream(imgBytes));
+			if (image == null) {
+				throw new IOException("이미지 읽기 실패");
+			}
+
+			// 원본 이미지의 Orientation 정보
+			int orientation = 1;	// 회전정보, 1. 0도, 3. 180도, 6. 270도, 8. 90도 회전한 정보 (기본값: 1 회전없음)
+			int imageWidth = image.getWidth();
+			int imageHeight = image.getHeight();
+
+			// 메타데이터 읽기
+			Metadata metadata = ImageMetadataReader.readMetadata(inputStream);		// 이미지 메타데이터 객체
+			Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);	// 이미지의 Exif 데이터를 읽기 위한 객체
+
+			if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+				orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION); // 회전정보
+			}
+
+			// AffineTransform을 사용하여 회전
+			AffineTransform atf = new AffineTransform();
+			switch (orientation) {
+				case 1: // 회전 없음
+					break;
+				case 2: // 좌우 반전
+					atf.scale(-1.0, 1.0);
+					atf.translate(-imageWidth, 0);
+					break;
+				case 3: // 180도 회전
+					atf.translate(imageWidth, imageHeight);
+					atf.rotate(Math.PI);
+					break;
+				case 4: // 상하 반전
+					atf.scale(1.0, -1.0);
+					atf.translate(0, -imageHeight);
+					break;
+				case 5: // -90도 회전 후 좌우 반전
+					atf.rotate(-Math.PI / 2);
+					atf.scale(-1.0, 1.0);
+					break;
+				case 6: // 90도 회전
+					atf.translate(imageHeight, 0);
+					atf.rotate(Math.PI / 2);
+					break;
+				case 7: // 90도 회전 후 좌우 반전
+					atf.scale(-1.0, 1.0);
+					atf.translate(-imageHeight, 0);
+					atf.translate(0, imageWidth);
+					break;
+				case 8: // -90도 회전
+					atf.translate(0, imageWidth);
+					atf.rotate(3 * Math.PI / 2);
+					break;
+				default:
+					log.warn("Unknown orientation: {}", orientation);
+					break;
+			}
+
+			// 이미지 회전 적용
+			AffineTransformOp rotateOp = new AffineTransformOp(atf, AffineTransformOp.TYPE_BICUBIC);
+			BufferedImage destinationImage = rotateOp.createCompatibleDestImage(image, (image.getType() == BufferedImage.TYPE_BYTE_GRAY) ? image.getColorModel() : null);
+			Graphics2D g = destinationImage.createGraphics();
+			g.setBackground(Color.WHITE);
+			g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
+			destinationImage = rotateOp.filter(image, destinationImage);
+
+			return destinationImage;
+		} catch (IOException | ImageProcessingException | MetadataException e) {
+			log.error("이미지 회전 처리 중 오류 발생: {}", e.getMessage(), e);
+		} catch (Exception e) {
+			log.error("알 수 없는 오류 발생: {}", e.getMessage(), e);
+		} finally {
+			try {
+				inputStream.close();
+			} catch (IOException e) {
+				log.warn("스트림 닫기 실패: {}", e.getMessage());
+			}
+		}
+		return image;
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ImageUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/JsonUtil.java =====
+package kr.fasol.obix.core.util;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+/**
+ * JSON 변환 유틸
+ */
+@Component
+public class JsonUtil {
+	private static ObjectMapper objectMapper;
+
+	@Autowired
+	public JsonUtil(ObjectMapper mapper) {
+		objectMapper = mapper;
+	}
+
+	/**
+	 * Object 객체를 JSON 문자열로 변환
+	 */
+	public static String ObjectToJson(Object obj) throws JsonProcessingException {
+		return objectMapper.writeValueAsString(obj);
+	}
+
+	/**
+	 * JSON 문자열을 Object 객체로 변환
+	 */
+	public static <T> T JsonToObject(String json, Class<T> classType) throws JsonProcessingException {
+		return objectMapper.readValue(json, classType);
+	}
+	public static <T> T JsonToObject(String json, TypeReference<T> valueTypeRef) throws JsonProcessingException {
+		return objectMapper.readValue(json, valueTypeRef);
+	}
+
+	public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
+		return objectMapper.convertValue(fromValue, toValueType);
+	}
+	public static <T> T convertValue(Object fromValue, TypeReference<T> valueTypeRef) {
+		return objectMapper.convertValue(fromValue, valueTypeRef);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/JsonUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/MailSenderUtil.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeUtility;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+
+/**
+ * 이메일 발송 Util
+ *
+ * @Class  MailSenderUtil.class
+ * @author  정영탁
+ * @since   2018. 10. 24.
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2018. 10. 24.        정영탁          최초생성
+ */
+@Slf4j
+@Component
+public class MailSenderUtil {
+
+	@Autowired
+	private JavaMailSender mailSender;
+
+	/**
+	 * 메일 발송
+	 * @param from 발신자
+	 * @param to 수신자
+	 * @param subject 제목
+	 * @param text 내용
+	 */
+	public void sendSimpleMessage(String from, String to, String subject, String text) throws Exception {
+		SimpleMailMessage mailMessage = new SimpleMailMessage();
+		mailMessage.setTo(to);
+		mailMessage.setSubject(subject);
+		mailMessage.setText(text);
+		mailMessage.setSentDate(new Date());
+		sendTextMessage(mailMessage, from);
+	}
+
+	/**
+	 * TEXT 형식의 메일 발송
+	 * @param message 메일 메시지
+	 * @param fromEmail 발신자 이메일
+	 */
+	public void sendTextMessage(SimpleMailMessage message, String fromEmail) throws Exception {
+		sendTextMessage(message, fromEmail, null);
+	}
+	/**
+	 * TEXT 형식의 메일 발송
+	 * @param message 메일 메시지
+	 * @param fromEmail 발신자 이메일
+	 * @param fromName 발신자 이름
+	 */
+	public void sendTextMessage(SimpleMailMessage message, String fromEmail, String fromName) throws Exception {
+		sendMessage(message, false, fromEmail, fromName);
+	}
+
+	/**
+	 * HTML 형식의 메일 발송
+	 * @param message 메일 메시지
+	 * @param fromEmail 발신자 이메일
+	 */
+	public void sendHtmlMessage(SimpleMailMessage message, String fromEmail) throws Exception {
+		sendHtmlMessage(message, fromEmail, null);
+	}
+	/**
+	 * HTML 형식의 메일 발송
+	 * @param message 메일 메시지
+	 * @param fromEmail 발신자 이메일
+	 * @param fromName 발신자 이름
+	 */
+	public void sendHtmlMessage(SimpleMailMessage message, String fromEmail, String fromName) throws Exception {
+		sendMessage(message, true, fromEmail, fromName);
+	}
+
+	/**
+	 * 메일 발송
+	 * @param message 메일 메시지
+	 * @param isHtmlTemplate HTML 템플릿 여부
+	 * @param fromEmail 발신자 이메일
+	 * @param fromName 발신자 이름
+	 */
+	public void sendMessage(SimpleMailMessage message, boolean isHtmlTemplate, String fromEmail, String fromName) throws Exception {
+		InternetAddress fromAddress = createInternetAddress(fromEmail, fromName);
+		MimeMessage mimeMessage = createMimeMessage(fromAddress, message, isHtmlTemplate);
+		mailSender.send(mimeMessage);
+	}
+
+	/**
+	 * 템플릿을 이용하여 메일 발송
+	 * @param mailMessageDto 메일 메시지 DTO
+	 */
+	public void sendMessage(MailMessageDto mailMessageDto) throws Exception {
+		InternetAddress fromAddress = createInternetAddress(mailMessageDto.getFromEmail(), mailMessageDto.getFromName());
+		SimpleMailMessage message = new SimpleMailMessage();
+		message.setTo(mailMessageDto.getToEmail());
+		message.setSubject(mailMessageDto.getSubject());
+		message.setText(mailMessageDto.getText());
+		message.setSentDate(new Date());
+		MimeMessage mimeMessage = createMimeMessage(fromAddress, message, true);
+		mailSender.send(mimeMessage);
+	}
+
+	/**
+	 * InternetAddress 생성
+	 * @param email 이메일 주소
+	 * @param name 이름
+	 * @return InternetAddress 객체
+	 */
+	private InternetAddress createInternetAddress(String email, String name) throws Exception {
+		if (name == null) {
+			return new InternetAddress(email);
+		} else {
+			return new InternetAddress(email, MimeUtility.encodeText(name, "UTF-8", "B"));
+		}
+	}
+
+	/**
+	 * MimeMessage 생성
+	 * @param fromAddress 발신자 주소
+	 * @param message 메일 메시지
+	 * @param isHtmlTemplate HTML 템플릿 여부
+	 * @return MimeMessage 객체
+	 */
+	private MimeMessage createMimeMessage(InternetAddress fromAddress, SimpleMailMessage message, boolean isHtmlTemplate) throws Exception {
+		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(System.getProperties()));
+		MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, "UTF-8");
+		mimeMessageHelper.setFrom(fromAddress);
+		mimeMessageHelper.setTo(message.getTo());
+		if (message.getCc() != null) {
+			mimeMessageHelper.setCc(message.getCc());
+		}
+		if (message.getBcc() != null) {
+			mimeMessageHelper.setBcc(message.getBcc());
+		}
+		mimeMessageHelper.setSubject(message.getSubject());
+		mimeMessageHelper.setText(message.getText(), isHtmlTemplate);
+		mimeMessageHelper.setSentDate(message.getSentDate());
+		return mimeMessageHelper.getMimeMessage();
+	}
+
+	/**
+	 * 이메일 메시지의 데이터를 담는 DTO
+	 */
+	@Data
+	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@EqualsAndHashCode(callSuper = false)
+	public static class MailMessageDto {
+		private String fromEmail;	// 발신자 이메일 주소
+		private String fromName;	// 발신자 이름
+		private String toEmail;		// 수신자 이메일 주소
+		private String toName;		// 수신자 이름
+		private String ccEmail;		// 참조 이메일 주소
+		private String ccName;		// 참조 이름
+		private String bccEmail;	// 숨은 참조 이메일 주소
+		private String bccName;		// 숨은 참조 이름
+		private String subject;		// 이메일 제목
+		private String text;		// 이메일 내용
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/MailSenderUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ObixSecurityUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.spec.AlgorithmParameterSpec;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > Util > 암복호화 유틸
+ * 프로그램명 :
+ * 설명 : AES, SHA-256을 이용한 암/복호화
+ *
+ * <pre>
+ * 1. AES 방식의 암복호화
+ *    <code>encryptAES("abcd");</code>
+ *    <code>decryptAES(encryptAES("abcd"));</code>
+ * 2. SHA256 해쉬 암호화
+ *    <code>SHA256("abcd");</code>
+ * </pre>
+ *
+ * @Class ObixSecurityUtil.class
+ * @since 2021/04/12
+ * @author 정영탁
+ * @version 1.0
+ *
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021/04/12        정영탁          최초생성
+ */
+@UtilityClass
+public class ObixSecurityUtil {
+
+	public static String getEnKey() {
+		return EnvironmentUtil.getProperty("OBIX_SECURITY_KEY");
+	}
+
+    /**
+     * AES-256을 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES(String data) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = data.getBytes(StandardCharsets.UTF_8);
+
+        byte[] encrypted = encryptAES128CBC(textBytes);
+
+        return Base64.encodeBase64String(encrypted);
+    }
+
+    /**
+     * AES128CBC+HEXENC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES128CBC(String data) throws Exception {
+        byte[] textBytes = data.getBytes(StandardCharsets.UTF_8);
+
+        byte[] encrypted = encryptAES128CBC(textBytes);
+
+        return Hex.encodeHexString(encrypted, false);
+    }
+
+    /**
+     * AES-256을 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES(String data) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = Base64.decodeBase64(data);
+
+        byte[] decrypted = decryptAES128CBC(textBytes);
+
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AES128CBC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @return 암호화된 문자열
+     */
+    public static byte[] encryptAES(byte[] data) throws Exception {
+    	return encryptAES128CBC(data);
+    }
+
+    /**
+     * AES128CBC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @return 암호화된 문자열
+     */
+    public static byte[] encryptAES128CBC(byte[] data) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        byte[] keyBytes = Hex.decodeHex(getEnKey());
+        byte[] ivBytes = Hex.decodeHex("00000000000000000000000000000000");
+
+        SecretKeySpec newKey = new SecretKeySpec(keyBytes, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+        cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+    /**
+     * DECHEX+AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES128CBC(String data) throws Exception {
+        byte[] textBytes = Hex.decodeHex(data);
+
+        byte[] decrypted = decryptAES128CBC(textBytes);
+
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @return 복호화된 문자열
+     */
+    public static byte[] decryptAES(byte[] data) throws Exception {
+    	return decryptAES128CBC(data);
+    }
+
+    /**
+     * AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @return 복호화된 문자열
+     */
+    public static byte[] decryptAES128CBC(byte[] data) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        byte[] keyBytes = Hex.decodeHex(getEnKey());
+        byte[] ivBytes = Hex.decodeHex("00000000000000000000000000000000");
+
+        SecretKeySpec newKey = new SecretKeySpec(keyBytes, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+        cipher.init(Cipher.DECRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+    /**
+     * AES-256을 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES(String data, byte[] key) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = data.getBytes("UTF-8");
+
+        byte[] encrypted = encryptAES128CBC(textBytes, key);
+
+        return Base64.encodeBase64String(encrypted);
+    }
+
+    /**
+     * AES128CBC+HEXENC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES128CBC(String data, byte[] key) throws Exception {
+        byte[] textBytes = data.getBytes(StandardCharsets.UTF_8);
+
+        byte[] encrypted = encryptAES128CBC(textBytes, key);
+
+        return Hex.encodeHexString(encrypted, false);
+    }
+
+    /**
+     * AES-256을 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES(String data, byte[] key) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = Base64.decodeBase64(data);
+
+        byte[] decrypted = decryptAES128CBC(textBytes, key);
+
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AES128CBC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 암호화된 문자열
+     */
+    public static byte[] encryptAES128CBC(byte[] data, byte[] key) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        byte[] ivBytes = Hex.decodeHex("00000000000000000000000000000000");
+
+        SecretKeySpec newKey = new SecretKeySpec(key, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+        cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+    /**
+     * DECHEX+AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES128CBC(String data, byte[] key) throws Exception {
+        byte[] textBytes = Hex.decodeHex(data);
+
+        byte[] decrypted = decryptAES128CBC(textBytes);
+
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @return 복호화된 문자열
+     */
+    public static byte[] decryptAES128CBC(byte[] data, byte[] key) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        byte[] ivBytes = Hex.decodeHex("00000000000000000000000000000000");
+
+        SecretKeySpec newKey = new SecretKeySpec(key, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+        cipher.init(Cipher.DECRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+    /**
+     * AES-256을 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @param iv 알고리즘 파라미터(16 Byte이상의 키값)
+     * @return 암호화된 문자열
+     */
+    public static String encryptAES(String data, byte[] key, byte[] iv) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = data.getBytes(StandardCharsets.UTF_8);
+
+        byte[] encrypted = encryptAES128CBC(textBytes, key, iv);
+
+        return Base64.encodeBase64String(encrypted);
+    }
+
+    /**
+     * AES128CBC를 이용하여 암호화
+     * @param data 암호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @param iv 알고리즘 파라미터(16 Byte이상의 키값)
+     * @return 암호화된 문자열
+     */
+    public static byte[] encryptAES128CBC(byte[] data, byte[] key, byte[] iv) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        SecretKeySpec newKey = new SecretKeySpec(key, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+    /**
+     * AES-256을 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @param iv 알고리즘 파라미터(16 Byte이상의 키값)
+     * @return 복호화된 문자열
+     */
+    public static String decryptAES(String data, byte[] key, byte[] iv) throws Exception {
+        if (data == null || data.length() == 0) {
+            return "";
+        }
+        byte[] textBytes = Base64.decodeBase64(data);
+
+        byte[] decrypted = decryptAES128CBC(textBytes, key, iv);
+
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * AES128CBC를 이용하여 복호화
+     * @param data 복호화할 문자열
+     * @param key 암호화 키(16 Byte이상의 키값)
+     * @param iv 알고리즘 파라미터(16 Byte이상의 키값)
+     * @return 복호화된 문자열
+     */
+    public static byte[] decryptAES128CBC(byte[] data, byte[] key, byte[] iv) throws Exception {
+        if (data == null || data.length == 0) {
+            return new byte[] {};
+        }
+
+        SecretKeySpec newKey = new SecretKeySpec(key, "AES");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        AlgorithmParameterSpec ivSpec = new IvParameterSpec(iv);
+
+        cipher.init(Cipher.DECRYPT_MODE, newKey, ivSpec);
+        return cipher.doFinal(data);
+    }
+
+
+    /**
+     * AES-128 암호화(EUC-KR)
+     * @param inData 암호화할 문자열
+     * @param inKey 암호화 키(16 Byte이상의 키값)
+     * @return
+     * @throws Exception
+     */
+    public static byte[] encryptAES128ECB(String inData, byte[] inKey) throws Exception {
+		byte[] encryptedByteText = null;
+
+		// inKey : 16진수암호키문자열을 byte[]로 변환
+		SecretKey secretKey = new SecretKeySpec(inKey, "AES");
+
+		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		// Cipher.ENCRYPT_MODE : 1
+		cipher.init(Cipher.ENCRYPT_MODE, secretKey); 
+
+		// inData : 평문
+		encryptedByteText = cipher.doFinal(inData.getBytes("euc-kr"));
+
+		// Base64 인코딩
+		return Base64.encodeBase64(encryptedByteText);
+	}
+
+	/**
+	 * AES-128 복호화(EUC-KR)
+	 * @param inData 복호화할 문자열
+	 * @param inKey 암호화 키(16 Byte이상의 키값)
+	 * @return
+	 * @throws Exception
+	 */
+    public static String decryptAES128ECB(String inData, byte[] inKey) throws Exception {
+		String decryptedText = null;
+		byte[] decryptedByteText = null;
+
+		// inKey : 16진수암호키문자열을 byte[]로 변환
+		SecretKey secretKey = new SecretKeySpec(inKey, "AES");
+
+		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		// Cipher.DECRYPT_MODE : 2
+		cipher.init(Cipher.DECRYPT_MODE, secretKey); 
+
+		// inData : 암호화문 -> Base64 디코딩
+		decryptedByteText = cipher.doFinal(Base64.decodeBase64(inData));
+		decryptedText = new String(decryptedByteText, "euc-kr");
+
+		return decryptedText;
+	}
+
+    /**
+     * SHA-256 해쉬 암호화
+     */
+    public static String SHA256(String value) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(value.getBytes());
+        byte byteData[] = md.digest();
+
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < byteData.length; i++) {
+            sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+        }
+
+        StringBuffer hexString = new StringBuffer();
+        for (int i = 0; i < byteData.length; i++) {
+            String hex = Integer.toHexString(0xff & byteData[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+
+    public static String getEncryptValue(String value) throws Exception {
+    	if (StringUtils.isBlank(value)) {
+    		return "";
+    	}
+    	return Base64.encodeBase64String(value.getBytes("UTF-32LE"));
+    }
+    public static String getDecryptValue(String value) throws Exception {
+    	if (StringUtils.isBlank(value)) {
+    		return "";
+    	}
+    	return new String(Base64.decodeBase64(value), "UTF-32LE");
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ObixSecurityUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/PDFUtil.java =====
+package kr.fasol.obix.core.util;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.pdf.*;
+import com.itextpdf.tool.xml.XMLWorker;
+import com.itextpdf.tool.xml.XMLWorkerFontProvider;
+import com.itextpdf.tool.xml.XMLWorkerHelper;
+import com.itextpdf.tool.xml.css.CssFile;
+import com.itextpdf.tool.xml.css.StyleAttrCSSResolver;
+import com.itextpdf.tool.xml.html.CssAppliers;
+import com.itextpdf.tool.xml.html.CssAppliersImpl;
+import com.itextpdf.tool.xml.html.Tags;
+import com.itextpdf.tool.xml.parser.XMLParser;
+import com.itextpdf.tool.xml.pipeline.css.CSSResolver;
+import com.itextpdf.tool.xml.pipeline.css.CssResolverPipeline;
+import com.itextpdf.tool.xml.pipeline.end.PdfWriterPipeline;
+import com.itextpdf.tool.xml.pipeline.html.HtmlPipeline;
+import com.itextpdf.tool.xml.pipeline.html.HtmlPipelineContext;
+import kr.fasol.obix.core.exception.UserException;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > PDF 파일 관리
+ * 프로그램명 : PDF 파일 관리
+ * 설명 :
+ *
+ * 클래스 : PDFUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 10. 14.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 10. 14.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class PDFUtil {
+
+	/**
+	 * PDF 파일 병합
+	 * @param streamOfPDFFiles : List형 PDF목록 
+	 */
+	public static byte[] mergePDF(List<InputStream> streamOfPDFFiles) throws Exception {
+		return mergePDF(streamOfPDFFiles, false);
+	}
+
+	/**
+	 * PDF 파일 병합
+	 * @param streamOfPDFFiles : List형 PDF목록 
+	 * @param paginate : 페이지번호 표시여부
+	 */
+	public static byte[] mergePDF(List<InputStream> streamOfPDFFiles, boolean paginate) throws Exception {
+    	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    	BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(byteArrayOutputStream);
+
+		Document document = new Document();
+		PdfWriter writer = null;
+		try {
+			List<InputStream> pdfs = streamOfPDFFiles;
+			List<PdfReader> readers = new ArrayList<PdfReader>();
+			int totalPages = 0;
+			Iterator<InputStream> iteratorPDFs = pdfs.iterator();
+
+			// Create Readers for the pdfs.
+			while (iteratorPDFs.hasNext()) {
+				InputStream pdf = iteratorPDFs.next();
+				PdfReader pdfReader = new PdfReader(pdf);
+				readers.add(pdfReader);
+				totalPages += pdfReader.getNumberOfPages();
+			}
+			// Create a writer for the outputstream
+			writer = PdfWriter.getInstance(document, bufferedOutputStream);
+
+			document.open();
+			BaseFont bf = BaseFont.createFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+			PdfContentByte cb = writer.getDirectContent(); // Holds the PDF data
+
+			PdfImportedPage page;
+			int currentPageNumber = 0;
+			int pageOfCurrentReaderPDF = 0;
+			Iterator<PdfReader> iteratorPDFReader = readers.iterator();
+
+			// Loop through the PDF files and add to the output.
+			while (iteratorPDFReader.hasNext()) {
+				PdfReader pdfReader = iteratorPDFReader.next();
+
+				// Create a new page in the target for each source page.
+				while (pageOfCurrentReaderPDF < pdfReader.getNumberOfPages()) {
+					document.newPage();
+					pageOfCurrentReaderPDF++;
+					currentPageNumber++;
+					page = writer.getImportedPage(pdfReader, pageOfCurrentReaderPDF);
+					cb.addTemplate(page, 0, 0);
+
+					// Code for pagination.
+					if (paginate) {
+						cb.beginText();
+						cb.setFontAndSize(bf, 9);
+						cb.showTextAligned(PdfContentByte.ALIGN_CENTER, "" + currentPageNumber + " of " + totalPages, 520, 5, 0);
+						cb.endText();
+					}
+				}
+				pageOfCurrentReaderPDF = 0;
+			}
+		} catch (Exception e) {
+			throw new UserException("CB1003", e); // 잘못된 요청입니다.
+		} finally {
+			if (document.isOpen()) {
+				document.close();
+			}
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (Exception e) {
+					log.error(e.getMessage());
+				}
+			}
+		}
+		return byteArrayOutputStream.toByteArray();
+	}
+
+	/**
+	 * HTML 페이지를 PDF로 변환
+	 * @param html : 변환할 HTML 내용
+	 * @param css : HTML에 적용할 CSS 내용
+	 * @param fontPath : CSS에 적용할 폰트 파일 경로
+	 */
+	public static byte[] createPDF(String html, String css, String fontPath) throws Exception {
+    	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    	BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(byteArrayOutputStream);
+
+		Document document = new Document();
+		PdfWriter writer = null;
+		try {
+			// PDF 파일 생성
+			writer = PdfWriter.getInstance(document, bufferedOutputStream);
+			// PDF 파일에 사용할 폰트 크기 설정
+			writer.setInitialLeading(12.5f);
+			// PDF 파일 열기
+			document.open();
+
+			// CSS 설정 변수 세팅
+			CSSResolver cssResolver = new StyleAttrCSSResolver();
+			if (css != null) {
+				CssFile cssFile = null;
+				try {
+					cssFile = XMLWorkerHelper.getCSS(new ByteArrayInputStream(css.getBytes(StandardCharsets.UTF_8)));
+				} catch (Exception ee) {
+					throw new IllegalArgumentException("PDF CSS 파일을 찾을 수 없습니다.");
+				}
+				if (cssFile == null) {
+					throw new IllegalArgumentException("PDF CSS 파일을 찾을 수 없습니다.");
+				}
+
+				// CSS 파일 적용
+				cssResolver.addCss(cssFile);
+			}
+
+			// PDF 파일에 HTML 내용 삽입
+			XMLWorkerFontProvider fontProvider = new XMLWorkerFontProvider(XMLWorkerFontProvider.DONTLOOKFORFONTS);
+
+			// 폰트 설정
+			if (fontPath != null) {
+				try {
+					fontProvider.register(fontPath);
+				} catch (Exception ee) {
+					throw new IllegalArgumentException("PDF 폰트 파일을 찾을 수 없습니다.");
+				}
+				if (fontProvider.getRegisteredFonts() == null) {
+					throw new IllegalArgumentException("PDF 폰트 파일을 찾을 수 없습니다.");
+				}
+			}
+
+			// 사용할 폰트를 담아두었던 내용을 CssAppliers에 담아 적용
+			CssAppliers cssAppliers = new CssAppliersImpl(fontProvider);
+
+			// HTML Pipeline 생성
+			HtmlPipelineContext htmlPipelineContext = new HtmlPipelineContext(cssAppliers);
+			htmlPipelineContext.setTagFactory(Tags.getHtmlTagProcessorFactory());
+
+			// Pipelines
+			PdfWriterPipeline pdfWriterPipeline = new PdfWriterPipeline(document, writer);
+			HtmlPipeline htmlPipeline = new HtmlPipeline(htmlPipelineContext, pdfWriterPipeline);
+			CssResolverPipeline cssResolverPipeline = new CssResolverPipeline(cssResolver, htmlPipeline);
+
+			// XMLWorker
+			XMLWorker xmlWorker = new XMLWorker(cssResolverPipeline, true);
+			XMLParser xmlParser = new XMLParser(true, xmlWorker, StandardCharsets.UTF_8);
+
+			// HTML 내용을 PDF 파일에 삽입
+			StringReader stringReader = new StringReader(html);
+			// XML 파싱
+			xmlParser.parse(stringReader);
+
+		} catch (Exception e) {
+			throw new UserException("CB1003", e); // 잘못된 요청입니다.
+		} finally {
+			if (document.isOpen()) {
+				document.close();
+			}
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (Exception e) {
+					log.error(e.getMessage());
+				}
+			}
+		}
+		return byteArrayOutputStream.toByteArray();
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/PDFUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ProfileUtil.java =====
+package kr.fasol.obix.core.util;
+
+import kr.fasol.obix.core.config.Constants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+
+/**
+ * Spring Boot의 Active Profile 조회
+ */
+@Component
+public class ProfileUtil {
+
+    private static Environment environment;
+
+    @Autowired
+    public ProfileUtil(Environment env) {
+        environment = env;
+    }
+
+    public static String[] getActiveProfiles() {
+        return environment.getActiveProfiles();
+    }
+
+    public static String getActiveProfile() {
+        return Arrays.asList(environment.getActiveProfiles()).getFirst();
+    }
+
+    public static boolean acceptsProfiles(String... profiles) {
+        return environment.acceptsProfiles(Profiles.of(profiles));
+    }
+
+    public static boolean acceptsProfiles(Profiles profiles) {
+        return environment.acceptsProfiles(profiles);
+    }
+
+    public static boolean isLocal() {
+        return environment.acceptsProfiles(Profiles.of(Constants.ENV_LOCAL));
+    }
+    public static boolean isDev() {
+        return environment.acceptsProfiles(Profiles.of(Constants.ENV_DEV));
+    }
+    public static boolean isTest() {
+        return environment.acceptsProfiles(Profiles.of(Constants.ENV_TEST));
+    }
+    public static boolean isProduction() {
+        return environment.acceptsProfiles(Profiles.of(Constants.ENV_PRODUCTION));
+    }
+    public static boolean isDr() {
+        return environment.acceptsProfiles(Profiles.of(Constants.ENV_DR));
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/ProfileUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/SpringUtil.java =====
+package kr.fasol.obix.core.util;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : F/W > Util > Spring Bean 유틸
+ * 프로그램명 : Spring Bean 유틸
+ * 설명 :
+ *
+ * 클래스 : SpringUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 10.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 10.         정영탁          최초생성
+ */
+@Component
+public class SpringUtil implements ApplicationContextAware {
+
+	private static ApplicationContext applicationContext;
+
+	@Override
+	public void setApplicationContext(@NotNull ApplicationContext applicationContext) {
+		SpringUtil.applicationContext = applicationContext;
+	}
+
+	public static Object getBean(String beanName) {
+		return applicationContext.getBean(beanName);
+	}
+
+	public static <T> T getBean(String beanName, Class<T> requiredType) {
+		return applicationContext.getBean(beanName, requiredType);
+	}
+
+	public static <T> T getBean(Class<T> requiredType, Object... args) {
+		return applicationContext.getBean(requiredType, args);
+	}
+
+	public static boolean containsBean(String beanName) {
+		return applicationContext.containsBean(beanName);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/SpringUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/UserAgentUtil.java =====
+package kr.fasol.obix.core.util;
+
+import kr.fasol.obix.core.config.BusinessTierHeaderInfoProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import ua_parser.Client;
+import ua_parser.Parser;
+
+/**
+ * UserAgent를 처리하는 Util
+ */
+@Component
+public class UserAgentUtil {
+
+    private static BusinessTierHeaderInfoProvider businessTierHeaderInfoProvider;
+
+    @Autowired
+    public UserAgentUtil(BusinessTierHeaderInfoProvider provider) {
+        businessTierHeaderInfoProvider = provider;
+    }
+
+    public static Client getClient() {
+        Parser parser = new Parser();
+        return parser.parse(businessTierHeaderInfoProvider.getUserAgent());
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/UserAgentUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/WasUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > WAS 관련 Util
+ * 프로그램명 : WAS 관련 Util
+ * 설명 : 
+ *
+ * @Class  WasUtil.class
+ * @author  정영탁
+ * @since   2017-08-01
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-08-01        정영탁    최초생성
+ */
+@Slf4j
+@UtilityClass
+public class WasUtil {
+
+    /**
+     * Jeus 서버의 Container명 반환
+     */
+    public static String getJeusContainerName() {
+        String containerName = null;
+        try {
+            Class<?> jeusManagerPropertyValuesClass = Class.forName("jeus.util.properties.JeusManagerPropertyValues");
+            Field containerNameField = jeusManagerPropertyValuesClass.getDeclaredField("containerName");
+            containerNameField.setAccessible(true);
+            Object obj = containerNameField.get(jeusManagerPropertyValuesClass);
+            containerName = ((String) obj).substring(((String) obj).lastIndexOf(95) + 1);
+        }
+        catch (IllegalArgumentException e) {
+        	log.error(e.getMessage());
+        	containerName = EnvironmentUtil.getProperty("application.name");
+        }
+        catch (Exception e) {
+        	log.error(e.getMessage());
+        	containerName = EnvironmentUtil.getProperty("application.name");
+        }
+        return containerName;
+    }
+
+    /**
+     * Tomcat 서버의 Container명 반환
+     */
+    public static String getTomcatContainerName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            return "tomcat01";
+        }
+    }
+
+    /**
+     * WAS의 Container명 반환
+     */
+    public static String getContainerName() {
+        String name = "main";
+
+        WAS_KIND kind = getWasName();
+        if (kind == WAS_KIND.JEUS) {
+            return getJeusContainerName();
+        } else if (kind == WAS_KIND.TOMCAT) {
+            return getTomcatContainerName();
+        } else {
+            return name;
+        }
+    }
+
+    /**
+     * WAS 종류 반환
+     */
+    public static WAS_KIND getWasName() {
+        if (WasUtil.class.getClassLoader() != null) {
+            if (WasUtil.class.getClassLoader().getClass().getName().startsWith("jeus")) {
+                return WAS_KIND.JEUS;
+            }
+            if (WasUtil.class.getClassLoader().getClass().getName().startsWith("com.ibm")) {
+                return WAS_KIND.WEB_SPHERE;
+            }
+        }
+        if (System.getProperty("catalina.home") != null) {
+            return WAS_KIND.TOMCAT;
+        }
+        return WAS_KIND.UNDEFINDED;
+    }
+
+    public static enum WAS_KIND {
+        JEUS, WEB_SPHERE, WEB_LOGIC, TOMCAT, UNDEFINDED;
+    }
+
+    /**
+     * 특정 패키지의 class 목록 반환
+     */
+	public static List<Class<?>> getClassList(String packagePath) throws Exception {
+		List<Class<?>> classList = new ArrayList<>();
+		Package targetPackage = Package.getPackage(packagePath);
+		File directory = null;
+		if (targetPackage == null) {
+			log.error("Inserted Package Path({}) is invalid!!!", packagePath);
+			return null;
+		}
+
+		String relPath = packagePath.replace('.', '/');
+		log.debug("ClassDiscovery: Package: {}, becomes Path:{}", packagePath, relPath);
+		URL resource = WasUtil.class.getClassLoader().getResource(relPath);
+		log.debug("ClassDiscovery: Resource = {}", resource);
+		try {
+			directory = new File(resource.toURI());
+		} catch (URISyntaxException e) {
+			log.error("Inserted Resource Path({}) is invalid!!!", relPath);
+			directory = null;
+		} catch (Exception e) {
+			log.error("Inserted Resource Path({}) is invalid!!!", relPath);
+			directory = null;
+		}
+
+		if (directory != null && directory.exists()) {
+			String[] files = directory.list();
+			for (int i = 0; i < files.length; i++) {
+				if (files[i].endsWith(".class")) {
+					String className = targetPackage.getName() + '.' + files[i].substring(0, files[i].length() - 6);
+					log.debug("ClassDiscovery: className = {}", className);
+					classList.add(Class.forName(className));
+				}
+			}
+		} else {
+			String fullPath = resource.getFile();
+			log.debug("ClassDiscovery: fullPath = {}", fullPath);
+			String jarPath = fullPath.replaceFirst("[.]jar[!].*", ".jar").replaceFirst("file:", "");
+			@SuppressWarnings("resource")
+			JarFile jf = new JarFile(jarPath);
+			for (Enumeration<JarEntry> entries = jf.entries() ; entries.hasMoreElements() ;) {
+				JarEntry entry = entries.nextElement();
+				String entryName = entry.getName();
+				if (entryName.startsWith(relPath) && entryName.length() > (relPath.length() + "/".length())) {
+					log.debug("ClassDiscovery: JarEntry = {}", entryName);
+					String className = entryName.replace('/', '.').replace('\\', '.').replace(".class", "");
+					log.debug("ClassDiscovery: className = {}", className);
+					classList.add(Class.forName(className));
+				}
+			}
+		}
+
+		return classList;
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/WasUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/WebUtil.java =====
+package kr.fasol.obix.core.util;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.filter.MyRequestWrapper;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.springframework.web.util.WebUtils;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.*;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > Web 관련 Util
+ * 프로그램명 : Web 관련 Util
+ * 설명 : 
+ *
+ * @Class  WebUtil.class
+ * @author  정영탁
+ * @since   2017-10-11
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-10-11        정영탁    최초생성
+ */
+@Slf4j
+@UtilityClass
+public class WebUtil {
+
+    /**
+     * request header를 Map형으로 반환
+     */
+    public static Map<String, String> requestHeaderMap(HttpServletRequest request) {
+        final Map<String, String> headerMap = new LinkedHashMap<>();
+        final Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            final String headerName = headerNames.nextElement();
+            headerMap.put(headerName, request.getHeader(headerName));
+        }
+        return headerMap;
+    }
+
+    /**
+     * response header를 Map형으로 반환
+     */
+    public static Map<String, String> responseHeaderMap(HttpServletResponse response) {
+        final Map<String, String> headerMap = new LinkedHashMap<>();
+        response.getHeaderNames().forEach(s -> headerMap.put(s, response.getHeader(s)));
+        return headerMap;
+    }
+
+    /**
+     * request parameter를 Map형으로 반환
+     */
+    public static Map<String, Object> parameterMap(HttpServletRequest request) {
+        final Map<String, Object> parameterMap = new LinkedHashMap<>();
+        Enumeration<String> e = request.getParameterNames();
+        while (e.hasMoreElements()) {
+            String name = e.nextElement();
+            String[] values = request.getParameterValues(name);
+            if (values.length > 1) {
+                parameterMap.put(name, values);
+            } else {
+                parameterMap.put(name, values[0]);
+            }
+        }
+        return parameterMap;
+    }
+
+    /**
+     * request getInputStream을 문자열로 반환
+     */
+    public static String getRequestBody(final HttpServletRequest request) throws IOException {
+        MyRequestWrapper requestWrapper = new MyRequestWrapper(request);
+        return new String(requestWrapper.getRawData(), Charset.forName(requestWrapper.getCharacterEncoding()));
+    }
+
+    /**
+     * response.getOutputStream을 문자열로 반환
+     */
+    public static String getResponseBody(final HttpServletResponse response) throws IOException {
+        String responseBody = "";
+        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+        byte[] content = StreamUtils.copyToByteArray(responseWrapper.getContentInputStream());
+        if (content.length > 0) {
+            responseBody = new String(content);
+        }
+        return responseBody;
+    }
+
+    public static String getServerDomain() {
+        return getServerDomain(getHttpServletRequest());
+    }
+    public static String getServerDomain(final HttpServletRequest request) {
+        if (request != null) {
+            String scheme = request.getHeader("X-Forwarded-Proto");
+            if (StringUtils.isBlank(scheme)) {
+                scheme = request.getHeader("X-Scheme");
+                if (StringUtils.isBlank(scheme)) {
+                    scheme = request.getScheme();
+                }
+            }
+
+            StringBuilder domain = new StringBuilder();
+            domain.append(scheme).append("://").append(request.getServerName());
+            if ("https".equals(request.getScheme()) && request.getServerPort() != 443) {
+                domain.append(":").append(request.getServerPort());
+            } else if ("http".equals(request.getScheme()) && request.getServerPort() != 80) {
+                domain.append(":").append(request.getServerPort());
+            }
+            return domain.toString();
+        }
+        return null;
+    }
+
+    public static String getClientIp() {
+    	return getClientIp(getHttpServletRequest());
+    }
+    public static String getClientIp(final HttpServletRequest request) {
+        String clientIp = null;
+        boolean isIpInHeader = false;
+
+        List<String> headerList = new ArrayList<>();
+        headerList.add("X-Forwarded-For");
+        headerList.add("HTTP_CLIENT_IP");
+        headerList.add("HTTP_X_FORWARDED_FOR");
+        headerList.add("HTTP_X_FORWARDED");
+        headerList.add("HTTP_FORWARDED_FOR");
+        headerList.add("HTTP_FORWARDED");
+        headerList.add("Proxy-Client-IP");
+        headerList.add("WL-Proxy-Client-IP");
+        headerList.add("HTTP_VIA");
+        headerList.add("IPV6_ADR");
+
+        for (String header : headerList) {
+            clientIp = request.getHeader(header);
+            if (StringUtils.isNotBlank(clientIp) && !"unknown".equalsIgnoreCase(clientIp)) {
+                isIpInHeader = true;
+                break;
+            }
+        }
+
+        if (!isIpInHeader) {
+            clientIp = request.getRemoteAddr();
+        }
+
+        // IPv6의 localhost 관련
+        if ("0:0:0:0:0:0:0:1".equals(clientIp)) {
+            clientIp = "127.0.0.1";
+        }
+
+        return clientIp;
+    }
+
+    public static Cookie getCookie(String name) {
+        return getCookie(getHttpServletRequest(), name);
+    }
+    public static Cookie getCookie(final HttpServletRequest request, String name) {
+        return WebUtils.getCookie(request, name);
+    }
+    public static String getCookieValue(String name) {
+        return getCookieValue(getHttpServletRequest(), name);
+    }
+    public static String getCookieValue(final HttpServletRequest request, String name) {
+        Cookie cookie = getCookie(request, name);
+        return cookie != null ? cookie.getValue() : null;
+    }
+    public static void addCookie(String name, String value, int maxAge, String path) {
+        addCookie(getHttpServletResponse(), name, value, maxAge, path);
+    }
+    public static void addCookie(final HttpServletResponse response, String name, String value, int maxAge, String path) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setMaxAge(maxAge);
+        cookie.setPath(path);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+    }
+    public static void removeCookie(String name) {
+        removeCookie(getHttpServletRequest(), getHttpServletResponse(), name);
+    }
+    public static void removeCookie(final HttpServletRequest request, final HttpServletResponse response, String name) {
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if (cookie != null) {
+            cookie.setMaxAge(-1);
+            cookie.setPath("/");
+            cookie.setValue("");
+            response.addCookie(cookie);
+        }
+    }
+
+    private static HttpServletRequest getHttpServletRequest() {
+        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    }
+    public static HttpServletResponse getHttpServletResponse() {
+        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/WebUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/XmlDocumentUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xpath.XPathAPI;
+import org.springframework.util.Assert;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > XML 데이터 유틸
+ * 프로그램명 : XML 데이터 유틸
+ * 설명 :
+ * 예제 :
+ * <pre>
+ * 1. 조회
+ *   Document xmlDoc = XmlDocumentUtil.getDocumentFromString("XML 문자열");
+ *   
+ *   String value = XmlDocumentUtil.getNodeValue(xmlDoc, "//Envelope/Body/response/result/text()");
+ *   String value = XmlDocumentUtil.getTextContent(xmlDoc, "//Envelope/Body/response/result");
+ *   
+ *   NodeList dataList = XmlDocumentUtil.getNodeList(xmlDoc, "//Envelope/Body/response/data");
+ *   if (dataList != null) {
+ *     for (int i = 0; i < dataList.getLength(); i++) {
+ *       String bundleNm = XmlDocumentUtil.getTextContent(dataList.item(i), "bundleNm");
+ *     }
+ *   }
+ * 
+ * 2. XML 생성
+ *   Document xmlDoc = XmlDocumentUtil.createDocument();
+ *
+ *   Element root = XmlDocumentUtil.createElement(xmlDoc, "Envelope");
+ *     Element header = XmlDocumentUtil.createElement(xmlDoc, root, "Header");
+ *       Element commonHeader = XmlDocumentUtil.createElement(xmlDoc, header, "commonHeader");
+ *         Element apiKeyHashCode = XmlDocumentUtil.createElement(xmlDoc, commonHeader, "apiKeyHashCode", "내용");
+ *     Element body = XmlDocumentUtil.createElement(xmlDoc, root, "Body");
+ *       Element field1 = XmlDocumentUtil.createElement(xmlDoc, body, "field1", "내용");
+ *
+ *   String xmlStr = XmlDocumentUtil.toXMLString(xmlDoc);
+ *   log.debug("XML 내용 = {}", xmlStr);
+ * </pre>
+ * 
+ * @apiNote
+ * <pre>
+ * 	xalan-2.7.2.jar, serializer-2.7.2.jar 추가
+ * </pre>
+ *
+ * 클래스 : XmlDocumentUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2022. 11. 15.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2022. 11. 15.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class XmlDocumentUtil {
+
+	/**
+	 * XML 문자열을 Document 형식으로 파싱
+	 */
+	public static Document getDocumentFromString(String xmlDoc) throws ParserConfigurationException, SAXException, IOException {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		InputSource is = new InputSource(new StringReader(xmlDoc));
+		return builder.parse(is);
+	}
+
+	/**
+	 * XML Document에서 XPath로 검색된 Single 문자열 반환
+	 */
+	public static String getNodeValue(Document doc, String xpath) {
+		Assert.notNull(doc, "Document is null");
+		return getNodeValue(doc.getFirstChild(), xpath);
+	}
+
+	/**
+	 * XML Node에서 XPath로 검색된 Single 문자열 반환
+	 */
+	public static String getNodeValue(Node contextNode, String xpath) {
+		Assert.notNull(contextNode, "Node is null");
+
+		try {
+			Node node = XPathAPI.selectSingleNode(contextNode, xpath);
+			if (node != null) {
+				return node.getNodeValue();
+			}
+		} catch (TransformerException e) {
+			log.error("### [XmlDocumentUtil.getValue] [xpath=" + xpath + "]");
+		}
+		return null;
+	}
+
+	/**
+	 * XML Document에서 XPath로 검색된 목록 반환
+	 */
+	public static List<String> getValues(Document doc, String xpath) {
+		Assert.notNull(doc, "Document is null");
+		return getValues(doc.getFirstChild(), xpath);
+	}
+
+	/**
+	 * XML Node에서 XPath로 검색된 목록 반환
+	 */
+	public static List<String> getValues(Node contextNode, String xpath) {
+		Assert.notNull(contextNode, "Node is null");
+
+		List<String> list = new ArrayList<>();
+		try {
+			NodeList nodeList = XPathAPI.selectNodeList(contextNode, xpath);
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				list.add( nodeList.item(i).getNodeValue() );
+			}
+			return list;
+		} catch (TransformerException e) {
+			log.error("### [XmlDocumentUtil.getValues] [xpath=" + xpath + "]");
+		}
+		return null;
+	}
+
+	/**
+	 * XML Document에서 XPath로 검색된 Single 문자열 반환
+	 */
+	public static String getTextContent(Document doc, String xpath) {
+		Assert.notNull(doc, "Document is null");
+		return getTextContent(doc.getFirstChild(), xpath);
+	}
+
+	/**
+	 * XML Node에서 XPath로 검색된 Single 문자열 반환
+	 */
+	public static String getTextContent(Node contextNode, String xpath) {
+		Assert.notNull(contextNode, "Node is null");
+
+		try {
+			Node node = XPathAPI.selectSingleNode(contextNode, xpath);
+			if (node != null) {
+				return node.getTextContent();
+			}
+		} catch (TransformerException e) {
+			log.error("### [XmlDocumentUtil.getValue] [xpath=" + xpath + "]");
+		}
+		return null;
+	}
+
+	/**
+	 * XML Node에서 XPath로 검색된 Single Node 반환
+	 */
+	public static Node getNode(Node contextNode, String xpath) {
+		Assert.notNull(contextNode, "Node is null");
+
+		try {
+			return XPathAPI.selectSingleNode(contextNode, xpath);
+		} catch (TransformerException e) {
+			log.error("### [XmlDocumentUtil.getValue] [xpath=" + xpath + "]");
+		}
+		return null;
+	}
+
+	/**
+	 * XML Document에서 XPath로 검색된 NodeList 반환
+	 */
+	public static NodeList getNodeList(Document doc, String xpath) {
+		Assert.notNull(doc, "Document is null");
+		return getNodeList(doc.getFirstChild(), xpath);
+	}
+
+	/**
+	 * XML Node에서 XPath로 검색된 NodeList 반환
+	 */
+	public static NodeList getNodeList(Node contextNode, String xpath) {
+		Assert.notNull(contextNode, "Node is null");
+
+		try {
+			return XPathAPI.selectNodeList(contextNode, xpath);
+		} catch (TransformerException e) {
+			log.error("### [XmlDocumentUtil.getNodeList] [xpath=" + xpath + "]");
+		}
+		return null;
+	}
+
+	/**
+	 * Document 신규 생성
+	 */
+	public static Document createDocument() throws ParserConfigurationException {
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		Document doc = builder.newDocument();
+		doc.setXmlStandalone(true);	// standalone="no" 제거
+		doc.setXmlVersion("1.0");
+		return doc;
+	}
+
+	/**
+	 * 최상위 Element 생성
+	 * @param doc XML Document
+	 * @param tagName 최상위 Element를 생성할 태그 명
+	 */
+	public static Element createElement(Document doc, String tagName) {
+		return createElement(doc, null, tagName, null);
+	}
+	/**
+	 * 하위의 Element 생성 (데이터 없이 Element 태그만 생성)
+	 * @param doc XML Document
+	 * @param parentElement Element를 생성할 부모 Element
+	 * @param tagName Element를 생성할 태그 명
+	 */
+	public static Element createElement(Document doc, Element parentElement, String tagName) {
+		return createElement(doc, parentElement, tagName, null);
+	}
+	/**
+	 * 하위의 Element 생성 (데이터를 포함하여 생성)
+	 * @param doc XML Document
+	 * @param parentElement Element를 생성할 부모 Element
+	 * @param tagName Element를 생성할 태그 명
+	 * @param textContent Element의 내용에 추가할 데이터
+	 */
+	public static Element createElement(Document doc, Element parentElement, String tagName, String textContent) {
+		Assert.notNull(doc, "Document is null");
+    	Element elem = doc.createElement(tagName);
+    	if (textContent != null) {
+    		elem.setTextContent(textContent);
+    	}
+    	if (parentElement != null) {
+    		parentElement.appendChild(elem);
+    	} else {
+    		doc.appendChild(elem);
+    	}
+		return elem;
+	}
+
+	/**
+	 * XML 문자열로 변환
+	 * @param doc XML Document
+	 */
+	public static String toXMLString(Document doc) throws TransformerConfigurationException, TransformerException {
+		Assert.notNull(doc, "Document is null");
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		DOMSource source = new DOMSource(doc);
+		StreamResult result = new StreamResult(out);
+
+		TransformerFactory transFactory = TransformerFactory.newInstance();
+		Transformer transformer = transFactory.newTransformer();
+
+		// 출력 시 문자코드 UTF-8
+		transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+		// 들여쓰기 있음
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.transform(source, result);
+
+		return new String(out.toByteArray(), StandardCharsets.UTF_8);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/XmlDocumentUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/XssUtil.java =====
+package kr.fasol.obix.core.util;
+
+import lombok.experimental.UtilityClass;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.util.HtmlUtils;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > Util > XSS 처리
+ * 프로그램명 : Cross Site Scripting (XSS) 방지용 XSS 처리
+ * 설명 : 입력값에서 XSS 공격을 방지하기 위해 escape 해주는 로직
+ *
+ * 클래스 : XssUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2022. 11. 15.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2022. 11. 15.         정영탁          최초생성
+ */
+@UtilityClass
+public class XssUtil {
+
+    /**
+     * Html ecsape 문자열 변환
+     */
+    public String escape(String input) {
+        if (StringUtils.isBlank(input)) {
+            return StringUtils.EMPTY;
+        } else {
+            return HtmlUtils.htmlEscape(HtmlUtils.htmlUnescape(input), "UTF-8");
+        }
+    }
+
+    /**
+     * Html ecsape 문자열 변환
+     */
+    public String unescape(String input) {
+        if (StringUtils.isBlank(input)) {
+            return StringUtils.EMPTY;
+        } else {
+            return HtmlUtils.htmlUnescape(input);
+        }
+    }
+
+    public String escapeXss(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        String output = input;
+        output = StringUtils.replace(output, "<", "&lt;");
+        output = StringUtils.replace(output, ">", "&gt;");
+        output = StringUtils.replace(output, "\"", "&quot;");
+        output = StringUtils.replace(output, "'", "&apos;");
+
+        return output;
+    }
+
+    public String unescapeXss(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+
+        String output = input;
+        output = StringUtils.replace(output, "&lt;", "<");
+        output = StringUtils.replace(output, "&gt;", ">");
+        output = StringUtils.replace(output, "&quot;", "\"");
+        output = StringUtils.replace(output, "&apos;", "'");
+
+        return output;
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/util/XssUtil.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/CustomMappingJackson2HttpMessageConverter.java =====
+package kr.fasol.obix.core.view;
+
+import kr.fasol.obix.core.base.Response;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.boot.json.GsonJsonParser;
+import org.springframework.boot.json.JsonParseException;
+import org.springframework.boot.json.JsonParser;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 공통 > Jackson MessageConverter를 상속받은 클래스
+ * 프로그램명 : Jackson MessageConverter를 상속받은 클래스
+ * 설명 :
+ *
+ * 클래스 : CustomMappingJackson2HttpMessageConverter.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 30.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 30.         정영탁          최초생성
+ */
+@Slf4j
+public class CustomMappingJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+
+	@Override
+	protected void writeInternal(Object object, Type type, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+		if (log.isDebugEnabled()) {
+			log.debug("### type = {}", type);
+			log.debug("### object = {}", object);
+		}
+
+		if (object instanceof String) {
+			String str = StringUtils.trimToEmpty((String) object);
+			JsonParser jsonParser = new GsonJsonParser();
+			try {
+				object = jsonParser.parseMap(str);
+			} catch (JsonParseException e1) {
+				try {
+					object = jsonParser.parseList(str);
+				} catch (JsonParseException e2) {
+					log.error("Object Type Converting Error. (String --> JSON Object)");
+				}
+			}
+		}
+
+		if (!(object instanceof Response)) {
+			object = Response.ok(object);
+		}
+
+		super.writeInternal(object, type, outputMessage);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/CustomMappingJackson2HttpMessageConverter.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/CustomMappingJackson2JsonView.java =====
+package kr.fasol.obix.core.view;
+
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.base.Response;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerMapping;
+import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
+
+import java.util.Collections;
+import java.util.Map;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 공통 > Json View
+ * 프로그램명 : Json View
+ * 설명 :
+ *
+ * 클래스 : CustomMappingJackson2JsonView.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 30.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 30.         정영탁          최초생성
+ */
+@Slf4j
+public class CustomMappingJackson2JsonView extends MappingJackson2JsonView {
+
+	public CustomMappingJackson2JsonView() {
+		super.setPrefixJson(false);                       // JSON Prefix 제거
+		super.setExposePathVariables(false);              // Path Variable 노출 제거
+		super.setExtractValueFromSingleKeyModel(false);   // 단일 키 모델 처리 비활성화
+
+		ObjectMapper objectMapper = JsonMapper.builder()
+				.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, false)  // 알파벳 순 정렬 방지
+				.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, false) // Map 키 정렬 방지
+				.build();
+		super.setObjectMapper(objectMapper);
+	}
+
+	/**
+	 * JSON으로 출력할 Map 데이터 검증(Response가 아닐경우 Response로 변환하여 전송)
+	 */
+	@Override
+	public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
+		// 호출한 Controller.Method의 ReturnType 추출
+		HandlerMethod handlerMethod = (HandlerMethod) request.getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
+		final Class<?> returnType;
+		if (handlerMethod != null) {
+			returnType = handlerMethod.getReturnType().getNestedParameterType();
+		} else {
+			returnType = null;
+		}
+
+		if (model != null) {
+			// Return되는 ModelMap에서 Controller.Method의 ReturnType과 일치하는 데이터만 Response 되도록...
+			Object modelObject;
+			if (model.values().stream().anyMatch(x -> x.getClass().equals(returnType))) {
+				modelObject = model.values().stream().filter(x -> x.getClass().equals(returnType)).findFirst().orElse(null);
+			} else {
+				modelObject = model.values().stream().findFirst().orElse(null);
+			}
+
+			// Response<?> Class Type이 아니면 Response<?> Type으로 변환하여 반환
+			if (modelObject instanceof Response) {
+				model = Response.convertMap((Response<?>) modelObject);
+			} else {
+				if (log.isDebugEnabled()) {
+					log.debug("### ReturnValue is not Response<?>.");
+					log.debug("### model[{}] = {}", model.getClass().getName(), model);
+					log.debug("### modelObject = {}", modelObject);
+				}
+
+				model = Response.convertMap(Response.ok(modelObject));
+			}
+		}
+
+		if (log.isDebugEnabled()) {
+			log.debug("View " + formatViewName() +
+					", model " + (model != null ? model : Collections.emptyMap())
+					+ (getStaticAttributes().isEmpty() ? "" : ", static attributes " + getStaticAttributes()));
+		}
+
+		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
+		prepareResponse(request, response);
+		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
+	}
+
+	public void setAttributeResponse(Response<?> response) {
+		Map<String, ?> model = Response.convertMap(response);
+		super.setAttributesMap(model);
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/CustomMappingJackson2JsonView.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/ExcelXlsxStreamingView.java =====
+package kr.fasol.obix.core.view;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.util.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.web.servlet.view.document.AbstractXlsxStreamingView;
+
+import java.util.Map;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Excel Download > SXSSFWorkbook 형태로 대용량 엑셀 다운로드
+ * 설명 : AbstractXlsxStreamingView를 상속받은 대용량 엑셀파일 생성
+ *
+ * @Class  ExcelXlsxStreamingView.class
+ * @author  정영탁
+ * @since   2017-08-17
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-08-17        정영탁    최초생성
+ */
+public class ExcelXlsxStreamingView extends AbstractXlsxStreamingView {
+    @Override
+    protected void buildExcelDocument(Map<String, Object> model, Workbook workbook, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ExcelUtil.createExcel(workbook, model, request, response);
+    }
+}
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/ExcelXlsxStreamingView.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/ExcelXlsxView.java =====
+package kr.fasol.obix.core.view;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.util.ExcelUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.web.servlet.view.document.AbstractXlsxView;
+
+import java.util.Map;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Excel Download > XSSFWorkbook 형태로 엑셀 다운로드
+ * 설명 : AbstractXlsxView를 상속받은 기본적인 엑셀파일 생성
+ *
+ * @Class  ExcelXlsxView.class
+ * @author  정영탁
+ * @since   2017-08-17
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-08-17        정영탁    최초생성
+ */
+public class ExcelXlsxView extends AbstractXlsxView {
+    @Override
+    protected void buildExcelDocument(Map<String, Object> model, Workbook workbook, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ExcelUtil.createExcel(workbook, model, request, response);
+    }
+}
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/view/ExcelXlsxView.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/filter/WebE2eFilter.java =====
+package kr.fasol.obix.core.webe2e.filter;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.fasol.obix.core.util.ObixSecurityUtil;
+import kr.fasol.obix.core.webe2e.WebE2eProvider;
+import kr.fasol.obix.core.webe2e.WebE2eSecurityUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 보안 > E2E 암복호화를 위한 Filter
+ * 프로그램명 : E2E 암복호화를 위한 Filter
+ * 설명 : JSEncrypt를 이용한 암복호화
+ *
+ * 클래스 : WebE2eFilter.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 7.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 7.        정영탁			  최초작성
+ */
+@Slf4j
+public class WebE2eFilter extends OncePerRequestFilter {
+
+	private static final String E2E_ENC_TYPE = "E2E_ENC_TYPE";
+	private static final String E2E_ENC_SALT = "E2E_ENC_SALT";
+	private static final String E2E_ENC_DATA = "E2E_ENC_DATA";
+	private static final String E2E_PUBLICKEY_DATA = "E2E_PUBLICKEY_DATA";
+
+	public WebE2eFilter() {
+	}
+
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+		// PublicKey를 request attribute에 설정
+		request.setAttribute(E2E_PUBLICKEY_DATA, WebE2eSecurityUtil.getPublicKeyString());
+
+		// E2E 암호화 데이터를 복호화하여 request param에 재설정
+    	SecurityWrapperHttpServletRequest wrapperRequest = new SecurityWrapperHttpServletRequest(request, E2E_ENC_SALT, E2E_ENC_DATA, E2E_ENC_TYPE);
+
+    	filterChain.doFilter(wrapperRequest, response);
+    }
+
+
+    /**
+     * E2E 암복호화가 적용된 Request 상속
+     */
+    private static class SecurityWrapperHttpServletRequest extends HttpServletRequestWrapper {
+		private ServletInputStream parameterInputStream = null;
+    	private Map<String, String[]> parameterMap = null;
+		private String contentType = null;
+
+		public SecurityWrapperHttpServletRequest(HttpServletRequest request, String encryptSalt, String encryptParam, String encryptType) throws ServletException {
+			super(request);
+
+			// 생성자는 전달받은 request의 파라미터 정보를 parameterMap에 저장한다.
+			parameterMap = new HashMap<>(request.getParameterMap());
+
+			/*
+			 * E2E 복호화된 데이터를 parameterMap에 저장한다.
+			 */
+			Map<String, String> e2eMap = new LinkedHashMap<>();
+			try {
+				String encSalt = request.getParameter(encryptSalt);
+				String encData = request.getParameter(encryptParam);
+
+				if (StringUtils.isNotBlank(encSalt) && StringUtils.isNotBlank(encData)) {
+					String clientSessionKey = WebE2eProvider.getDecryptClientSessionKey(encSalt);
+					String sDecryptData = WebE2eProvider.getDecryptData(encData, ObixSecurityUtil.SHA256(clientSessionKey));
+
+					if (log.isDebugEnabled()) {
+						log.debug("########## WebE2eFilter 암호화 데이터   ##########");
+						log.debug("- Encrypt Salt [{}]", encSalt);
+						log.debug("- Encrypt Data [{}]", encData);
+						log.debug("- Decrypt Salt [{}]", clientSessionKey);
+						log.debug("- Decrypt Data [{}]", sDecryptData);
+					}
+
+					if (StringUtils.contains(request.getParameter(encryptType), "json")) {
+						parameterInputStream = new SecurityWrapperInputStream(sDecryptData.getBytes(StandardCharsets.UTF_8));
+						this.contentType = "application/json; charset=UTF-8";
+					}
+					else {
+						// 복호화 데이터(queryString to Map)
+						Matcher matcher = Pattern.compile("([^&=]+)(=?)([^&]+)?").matcher(sDecryptData);
+						while (matcher.find()) {
+							String name = matcher.group(1);
+							String eq = matcher.group(2);
+							String value = matcher.group(3);
+							if (value != null) {
+								e2eMap.put(URLDecoder.decode(name, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8));
+							} else {
+								e2eMap.put(URLDecoder.decode(name, StandardCharsets.UTF_8), (StringUtils.isNotBlank(eq) ? "" : null));
+							}
+						}
+						if (!e2eMap.isEmpty()) {
+							log.debug("########## WebE2eFilter Decrypt [Start] ##########");
+							for (Map.Entry<String, ?> entry : e2eMap.entrySet()) {
+								if (log.isDebugEnabled()) {
+									log.debug("### [key][{}]\t[value][{}]", entry.getKey(), entry.getValue());
+								}
+								parameterMap.put(entry.getKey(), new String[]{entry.getValue().toString()});
+							}
+							log.debug("########## WebE2eFilter Decrypt [End]   ##########");
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				throw new ServletException("[WebE2eFilter][복호화 오류]", e);
+			}
+		}
+
+		@Override
+		public String getParameter(String name) {
+			String[] values = getParameterValues(name);
+			if (values != null && values.length > 0) {
+				return values[0];
+			}
+			return null;
+		}
+
+		@Override
+		public Map<String, String[]> getParameterMap() {
+			return parameterMap;
+		}
+
+		@Override
+		public Enumeration<String> getParameterNames() {
+			return Collections.enumeration(parameterMap.keySet());
+		}
+
+		@Override
+		public String[] getParameterValues(String name) {
+			return parameterMap.get(name);
+		}
+
+		@Override
+		public ServletInputStream getInputStream() throws IOException {
+			return (parameterInputStream != null ? parameterInputStream : super.getInputStream());
+		}
+
+		@Override
+		public String getContentType() {
+			return (this.contentType != null ? this.contentType : super.getContentType());
+		}
+
+		@Override
+		public String getHeader(String name) {
+			if (this.contentType != null && StringUtils.contains(name.toLowerCase(), "content-type")) {
+				return this.contentType;
+			} else {
+				return super.getHeader(name);
+			}
+		}
+		@Override
+		public Enumeration<String> getHeaders(String name) {
+			if (this.contentType != null && StringUtils.contains(name.toLowerCase(), "content-type")) {
+				return IteratorUtils.asEnumeration(Collections.singletonList(this.contentType).iterator());
+			} else {
+				return super.getHeaders(name);
+			}
+		}
+    }
+
+	private static class SecurityWrapperInputStream extends ServletInputStream {
+
+		private final InputStream delegate;
+
+		public SecurityWrapperInputStream(byte[] body) {
+			this.delegate = new ByteArrayInputStream(body);
+		}
+
+		@Override
+		public boolean isFinished() {
+			return false;
+		}
+
+		@Override
+		public boolean isReady() {
+			return true;
+		}
+
+		@Override
+		public void setReadListener(ReadListener readListener) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public int read() throws IOException {
+			return this.delegate.read();
+		}
+
+		@Override
+		public int read(byte[] b, int off, int len) throws IOException {
+			return this.delegate.read(b, off, len);
+		}
+
+		@Override
+		public int read(byte[] b) throws IOException {
+			return this.delegate.read(b);
+		}
+
+		@Override
+		public long skip(long n) throws IOException {
+			return this.delegate.skip(n);
+		}
+
+		@Override
+		public int available() throws IOException {
+			return this.delegate.available();
+		}
+
+		@Override
+		public void close() throws IOException {
+			this.delegate.close();
+		}
+
+		@Override
+		public synchronized void mark(int readlimit) {
+			this.delegate.mark(readlimit);
+		}
+
+		@Override
+		public synchronized void reset() throws IOException {
+			this.delegate.reset();
+		}
+
+		@Override
+		public boolean markSupported() {
+			return this.delegate.markSupported();
+		}
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/filter/WebE2eFilter.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/ServerCertificateVO.java =====
+package kr.fasol.obix.core.webe2e;
+
+import lombok.*;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > 보안 > E2E 암복호화를 위한 서버 인증서 VO
+ * 프로그램명 : E2E 암복호화를 위한 서버 인증서 VO
+ * 설명 :
+ *
+ * 클래스 : ServerCertificateVO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2024. 11. 15.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2024. 11. 15.        정영탁			  최초작성
+ */
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ServerCertificateVO {
+
+    /**
+     * 마스터 키
+     */
+    private String masterKey;
+
+    /**
+     * 개인키 문자열
+     */
+    private String privateKeyString;
+    /**
+     * 공개키 문자열
+     */
+    private String publicKeyString;
+
+    /**
+     * 개인키 객체
+     */
+    private PrivateKey privateKey;
+
+    /**
+     * 공개키 객체
+     */
+    private PublicKey publicKey;
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/ServerCertificateVO.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/WebE2eProvider.java =====
+package kr.fasol.obix.core.webe2e;
+
+import kr.fasol.obix.core.util.CryptoJsUtil;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 공통 > 보안 > E2E 암복호화를 위한 유틸
+ * 프로그램명 : E2E 암복호화를 위한 유틸
+ * 설명 :
+ *
+ * 클래스 : WebE2eProvider.java
+ * 작성자 : 정영탁
+ * 작성일 : 2024. 11. 15.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2024. 11. 15.        정영탁			  최초작성
+ */
+@Slf4j
+@UtilityClass
+public class WebE2eProvider {
+
+    private static final String CLIENT_SESSION_KEY = WebE2eProvider.class.getName() + ".CLIENT_SESSION_KEY";
+
+    /**
+     * 서버 인증서 조회
+     */
+    public String getServerCertificate() {
+        return WebE2eSecurityUtil.getPublicKeyString();
+    }
+
+    /**
+     * 클라이언트의 암호화된 세션키 전달
+     */
+    public String getDecryptClientSessionKey(String clientSessionKey) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return WebE2eSecurityUtil.decryptString(clientSessionKey);
+    }
+    public void setClientSessionKey(String clientSessionKey) throws NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // 클라이언트로부터 전달받은 암호화된 세션키를 Private Key를 이용해서 복호화하여 세션에 보관
+        setSessionValue(getDecryptClientSessionKey(clientSessionKey));
+    }
+
+    /**
+     * Data 암호화
+     */
+    public String getEncryptData(String plainText, String clientSessionKey) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // 클라이언트로부터 전달받은 세션키를 이용하여 AES 암호화
+        return CryptoJsUtil.encryptAES(plainText, clientSessionKey);
+    }
+    public String getEncryptData(String plainText) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return getEncryptData(plainText, getSessionValue());
+    }
+
+    /**
+     * Data 복호화
+     */
+    public String getDecryptData(String cipherText, String clientSessionKey) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        // 클라이언트로부터 전달받은 세션키를 이용하여 AES 복호화
+        return CryptoJsUtil.decryptAES(cipherText, clientSessionKey);
+    }
+    public String getDecryptData(String cipherText) throws InvalidAlgorithmParameterException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException {
+        return getDecryptData(cipherText, getSessionValue());
+    }
+
+    /**
+     * 세션에 저장된 객체 조회
+     */
+    private String getSessionValue() {
+        return (String) RequestContextHolder.currentRequestAttributes().getAttribute(WebE2eProvider.CLIENT_SESSION_KEY, RequestAttributes.SCOPE_SESSION);
+    }
+    /**
+     * 세션에 객체 저장
+     */
+    private void setSessionValue(String value) {
+        RequestContextHolder.currentRequestAttributes().setAttribute(WebE2eProvider.CLIENT_SESSION_KEY, value, RequestAttributes.SCOPE_SESSION);
+    }
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/WebE2eProvider.java =====
+
+
+===== SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/WebE2eSecurityUtil.java =====
+package kr.fasol.obix.core.webe2e;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+import java.util.Properties;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 보안 > E2E 암복호화를 위한 유틸
+ * 프로그램명 : E2E 암복호화를 위한 유틸
+ * 설명 : JSEncrypt를 이용한 암복호화
+ *
+ * 클래스 : WebE2eSecurityUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 7.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 7.        정영탁			  최초작성
+ */
+@Slf4j
+public class WebE2eSecurityUtil {
+
+	private static final String KEY_ALGORITHM = "RSA";
+	private static final String SIGNATURE_ALGORITHM = "RSA/ECB/PKCS1Padding";
+
+	// 서버 인증서 객체
+	public static final ServerCertificateVO serverCertificateVO;
+
+	static {
+		// 인증서 초기화
+		serverCertificateVO = initializeServerCertificate();
+	}
+
+    /**
+	 * 전달된 Public Key를 이용하여 암호화
+     */
+    public static byte[] encrypt(String plainText, String publicKey) throws BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        Cipher cipher = Cipher.getInstance(SIGNATURE_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, getPublicKey(publicKey));
+        return cipher.doFinal(plainText.getBytes());
+    }
+
+    /**
+	 * 전달된 Public Key를 이용하여 암호화
+     */
+    public static String encryptString(String plainText, String publicKey) throws BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+		byte[] encryptedData = encrypt(plainText, publicKey);
+		return Base64.getEncoder().encodeToString(encryptedData);
+    }
+
+	/**
+	 * Public Key를 이용하여 암호화
+	 */
+	public static String encryptString(String plainText) throws BadPaddingException, IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+		byte[] encryptedData = encrypt(plainText, serverCertificateVO.getPublicKeyString());
+		return Base64.getEncoder().encodeToString(encryptedData);
+	}
+
+    /**
+     * E2E 복호화
+     */
+    public static byte[] decrypt(byte[] cipherData, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(SIGNATURE_ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        return cipher.doFinal(cipherData);
+    }
+
+    /**
+     * E2E 복호화
+     */
+    public static String decryptString(String cipherText) throws IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+		byte[] cipherBytes = Base64.getDecoder().decode(cipherText);
+        byte[] decryptedBytes = decrypt(cipherBytes, serverCertificateVO.getPrivateKey());
+		return new String(decryptedBytes, StandardCharsets.UTF_8);
+    }
+
+	/**
+	 * E2E 암호화를 위한 Public Key
+	 */
+	public static String getPublicKeyString() {
+		return serverCertificateVO.getPublicKeyString();
+	}
+
+	/**
+	 * E2E 암호화를 위한 Public Key 생성
+	 */
+	private static PublicKey getPublicKey(String base64PublicKey) {
+		PublicKey publicKey = null;
+		try {
+			byte[] encodeKey = Base64.getDecoder().decode(base64PublicKey);
+			X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encodeKey);
+			KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+			publicKey = keyFactory.generatePublic(keySpec);
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			log.error("[WebE2eSecurityUtil][getPublicKey]", e);
+		}
+		return publicKey;
+	}
+
+	/**
+	 * E2E 복호화를 위한 Private Key 생성
+	 */
+	private static PrivateKey getPrivateKey(String base64PrivateKey) {
+		PrivateKey privateKey = null;
+		byte[] encodeKey = Base64.getDecoder().decode(base64PrivateKey);
+		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodeKey);
+		KeyFactory keyFactory = null;
+		try {
+			keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+			privateKey = keyFactory.generatePrivate(keySpec);
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			log.error("[WebE2eSecurityUtil][getPrivateKey]", e);
+		}
+		return privateKey;
+	}
+
+	/**
+	 * webe2e 프로퍼티 파일 로딩
+	 */
+	private static ServerCertificateVO initializeServerCertificate() {
+		ServerCertificateVO serverCertificateVO = new ServerCertificateVO();
+		InputStream propInputStream = null;
+
+		try {
+			// webe2e.properties 파일의 경로 설정
+			String webe2ePropPath = System.getProperty("WEBE2E_CONF_PATH");
+			if (StringUtils.isBlank(webe2ePropPath)) {
+				webe2ePropPath = "webe2e.properties";
+			}
+
+			if (webe2ePropPath.startsWith("/")) {
+				propInputStream = new FileInputStream(webe2ePropPath);
+			} else {
+				Resource resource = new DefaultResourceLoader().getResource(webe2ePropPath);
+				propInputStream = resource.getInputStream();
+			}
+
+			// properties에서 인증키 조회
+			Properties properties = new Properties();
+			properties.load(propInputStream);
+			String publicKey = properties.getProperty("webe2e.public.key");
+			String privateKey = properties.getProperty("webe2e.private.key");
+
+			// 인증키를 객체로 변환하여 static에 보관
+			serverCertificateVO = ServerCertificateVO.builder()
+					.privateKeyString(privateKey)
+					.publicKeyString(publicKey)
+					.privateKey(getPrivateKey(privateKey))
+					.publicKey(getPublicKey(publicKey))
+					.build();
+
+		} catch (Exception e) {
+			log.error("[WebE2eSecurityUtil][initializeServerCertificate]", e);
+		} finally {
+			if (propInputStream != null) {
+				try {
+					propInputStream.close();
+				} catch (IOException e) {
+					log.error(e.getMessage());
+				}
+			}
+		}
+
+		return serverCertificateVO;
+	}
+
+}
+
+===== END SOURCE FILE: obix-core/src/main/java/kr/fasol/obix/core/webe2e/WebE2eSecurityUtil.java =====

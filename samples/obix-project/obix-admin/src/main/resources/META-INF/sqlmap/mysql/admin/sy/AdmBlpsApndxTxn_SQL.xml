@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민게시글첨부내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmBlpsApndxTxnDAO">
+
+    <!--			
+    * Description : 어드민게시글첨부내역 목록조회			
+    -->			
+    <select id="listAdmBlpsApndxTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.listAdmBlpsApndxTxn 어드민게시글첨부내역 목록 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , APNDX_SEQNO	/* 첨부일련번호 */
+		     , STORG_PATH_NM	/* 저장경로명 */
+		     , FILE_NM	/* 파일명 */
+		     , ORCPY_FILE_NM	/* 원본파일명 */
+		     , FILE_SIZE	/* 파일사이즈 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_APNDX_TXN
+		 WHERE 1=1	
+			
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글첨부내역 정보조회			
+    -->			
+    <select id="selectAdmBlpsApndxTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.selectAdmBlpsApndxTxn 어드민게시글첨부내역 정보 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , APNDX_SEQNO	/* 첨부일련번호 */
+		     , STORG_PATH_NM	/* 저장경로명 */
+		     , FILE_NM	/* 파일명 */
+		     , ORCPY_FILE_NM	/* 원본파일명 */
+		     , FILE_SIZE	/* 파일사이즈 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_APNDX_TXN
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+		   AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글첨부내역 등록			
+    -->			
+	<insert id="insertAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.insertAdmBlpsApndxTxn 어드민게시글첨부내역 등록*/	
+		INSERT INTO ADM_BLPS_APNDX_TXN	
+	       ( BULBD_ID ,	/* 게시판아이디 */
+	         BLPS_SEQNO ,	/* 게시글일련번호 */
+	         APNDX_SEQNO ,	/* 첨부일련번호 */
+	         STORG_PATH_NM ,	/* 저장경로명 */
+	         FILE_NM ,	/* 파일명 */
+	         ORCPY_FILE_NM ,	/* 원본파일명 */
+	         FILE_SIZE ,	/* 파일사이즈 */
+	         USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */	
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */	
+	       )		
+	VALUES ( #{bulbdId} ,	/* 게시판아이디 */
+	         #{blpsSeqno} ,	/* 게시글일련번호 */
+	         #{apndxSeqno} ,	/* 첨부일련번호 */
+	         #{storgPathNm} ,	/* 저장경로명 */
+	         #{fileNm} ,	/* 파일명 */
+	         #{orcpyFileNm} ,	/* 원본파일명 */
+	         #{fileSize} ,	/* 파일사이즈 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+	      )		
+	</insert>		
+			
+	<!--		
+    * Description : 어드민게시글첨부내역 수정			
+    -->			
+	<update id="updateAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.updateAdmBlpsApndxTxn 어드민게시글첨부내역 수정*/	
+		UPDATE ADM_BLPS_APNDX_TXN 	
+		   SET 
+		   <if test='bulbdId != "" and bulbdId != null'> 
+		       BULBD_ID = #{bulbdId} ,	/* 게시판아이디 */
+		   </if>
+		   <if test='blpsSeqno != "" and blpsSeqno != null'> 
+		       BLPS_SEQNO = #{blpsSeqno} ,	/* 게시글일련번호 */
+		   </if>
+		   <if test='apndxSeqno != "" and apndxSeqno != null'> 
+		       APNDX_SEQNO = #{apndxSeqno} ,	/* 첨부일련번호 */
+		   </if>
+		   <if test='storgPathNm != "" and storgPathNm != null'> 
+		       STORG_PATH_NM = #{storgPathNm} ,	/* 저장경로명 */
+		   </if>
+		   <if test='fileNm != "" and fileNm != null'> 
+		       FILE_NM = #{fileNm} ,	/* 파일명 */
+		   </if>
+		   <if test='orcpyFileNm != "" and orcpyFileNm != null'> 
+		       ORCPY_FILE_NM = #{orcpyFileNm} ,	/* 원본파일명 */
+		   </if>
+		   <if test='fileSize != "" and fileSize != null'> 
+		       FILE_SIZE = #{fileSize} ,	/* 파일사이즈 */
+		   </if>
+		   <if test='useYn != "" and useYn != null'> 
+		       USE_YN = #{useYn} ,	/* 사용여부 */
+	       </if>
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,
+		       LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()
+		 WHERE 1=1
+		 	AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+			AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+			AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+			
+	</update>		
+			
+	<!--		
+    * Description : 어드민게시글첨부내역 삭제			
+    -->			
+	<delete id="deleteAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.deleteAdmBlpsApndxTxn 어드민게시글첨부내역 삭제*/	
+		DELETE 	
+		  FROM ADM_BLPS_APNDX_TXN 	
+		 WHERE 1=1
+		 	AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+			AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+			AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+	</delete>		
+			
+</mapper>			
+

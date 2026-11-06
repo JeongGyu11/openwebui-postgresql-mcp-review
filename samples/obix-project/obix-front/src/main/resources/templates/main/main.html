@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{/layout/example/template-example-default}"
+	  xmlns:obix="http://obix.fasol.co.kr/thymeleaf/layout"
+	  lang="ko">
+
+<th:block layout:fragment="Content">
+
+	<h1>ObiX Front</h1>
+
+	<div>The current time is <span style="color:blue;" obix:currentDateTime="'yyyy.MM.dd HH:mm:ss'"></span>.</div>
+
+	<div obix:formatDate="'20231222'" th:attr="infmt='yyyyMMdd', outfmt='yyyy.MM.dd'"></div>
+
+	<div obix:commonCode="10" th:attr="cdGroupVal='ADM_USER_STUS_CD', upCdVal=''"></div>
+
+	<select name="admUserStdCd" obix:formSelectStndCode="" th:attr="cdGroupVal='ADM_USER_STUS_CD', upCdVal='', allOption='선택'"></select>
+
+	<script th:inline="javascript" type="text/javascript">
+
+		var commonCodeList = /*[# obix:commonCodeList="ADM_USER_STUS_CD"][/]*/
+		console.log(commonCodeList);
+
+		var requestData = /*[# obix:requestData=""][/]*/
+		console.log(requestData);
+	</script>
+
+</th:block>
+</html>

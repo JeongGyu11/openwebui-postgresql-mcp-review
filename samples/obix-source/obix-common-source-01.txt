@@ -1,0 +1,3382 @@
+
+
+===== SOURCE FILE: obix-common/build.gradle =====
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'java-library'
+
+
+sourceSets {
+    main {
+        // XML파일과 interface 하나의 폴더에서 관리하기
+        resources {
+            srcDir "${project.projectDir}/src/main/java"
+            exclude "**/*.java"
+        }
+    }
+}
+
+dependencies {
+	api project(':obix-core')
+
+}
+
+===== END SOURCE FILE: obix-common/build.gradle =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBlpsApndxTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_BLPS_APNDX_TXN
+ * - 테이블설명 : 어드민게시글첨부내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmBlpsApndxTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 5627512997490840112L;
+
+	private String bulbdId;	// 게시판아이디
+	private BigDecimal blpsSeqno;	// 게시글일련번호
+	private BigDecimal apndxSeqno;	// 첨부일련번호
+	private String storgPathNm;	// 저장경로명
+	private String fileNm;	// 파일명
+	private String orcpyFileNm;	// 원본파일명
+	private BigDecimal fileSize;	// 파일사이즈
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBlpsApndxTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBlpsBlrpTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_BLPS_BLRP_TXN
+ * - 테이블설명 : 어드민게시글댓글내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmBlpsBlrpTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 6545157611404799268L;
+
+	private String bulbdId;	// 게시판아이디
+	private BigDecimal blpsSeqno;	// 게시글일련번호
+	private BigDecimal blrpSeqno;	// 댓글일련번호
+	private String blrpCtnt;	// 댓글내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBlpsBlrpTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBulbdBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_BULBD_BAS
+ * - 테이블설명 : 어드민게시판기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmBulbdBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -8567033158351499239L;
+
+	private String bulbdId;	// 게시판아이디
+	private String bulbdNm;	// 게시판명
+	private String admAthYn;	// 관리자권한여부
+	private String mainRepstYn;	// 메인표시여부
+	private BigDecimal repstOrdr;	// 표시순서
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBulbdBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBulbdTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_BULBD_TXN
+ * - 테이블설명 : 어드민게시판내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmBulbdTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 6551662423981797045L;
+
+	private String bulbdId;	// 게시판아이디
+	private BigDecimal blpsSeqno;	// 게시글일련번호
+	private String blpsTitl;	// 게시글제목
+	private String blpsCtnt;	// 게시글내용
+	private BigDecimal inqryNum;	// 조회수
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmBulbdTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupAthDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_GROUP_ATH
+ * - 테이블설명 : 어드민그룹권한
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmGroupAthDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 3113289996325081363L;
+
+	private String groupId;	// 그룹아이디
+	private String screnTranId;	// 화면거래아이디
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupAthDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_GROUP_BAS
+ * - 테이블설명 : 어드민그룹기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmGroupBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 1990085544951103339L;
+
+	private String groupId;	// 그룹아이디
+	private String groupDvCd;	// 그룹구분코드
+	private String groupNm;	// 그룹명
+	private BigDecimal repstOrdr;	// 표시순서
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupUserRelDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_GROUP_USER_REL
+ * - 테이블설명 : 어드민그룹사용자관계
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmGroupUserRelDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 6974710018187374968L;
+
+	private String groupId;	// 그룹아이디
+	private String userId;	// 사용자아이디
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmGroupUserRelDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmLginTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_LGIN_TXN
+ * - 테이블설명 : 어드민사용자로그인내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmLginTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 3492368654445915979L;
+
+	private String userId;	// 사용자아이디
+	private Date lginTmsp;	// 로그인타임스탬프
+	private String admLginRsltCd;	// 어드민로그인결과코드
+	private String connIp;	// 접속IP주소
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmLginTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmScrenTranBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_SCREN_TRAN_BAS
+ * - 테이블설명 : 어드민화면거래기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmScrenTranBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -1625575196998869739L;
+
+	private String screnTranId;	// 화면거래아이디
+	private String screnTranDvCd;	// 화면거래구분코드
+	private String admBzwkLclsCd;	// 어드민업무대분류코드
+	private String admBzwkMclsCd;	// 어드민업무중분류코드
+	private String upScrenTranId;	// 상위화면거래아이디
+	private String screnTranNm;	// 화면거래명
+	private String urlAddr;	// URL주소
+	private BigDecimal screnTranLvel;	// 화면거래레벨
+	private String menuRepstYn;	// 메뉴표시여부
+	private String wholAllowYn;	// 전체허용여부
+	private String sstvInfoYn;	// 민감정보여부
+	private BigDecimal repstOrdr;	// 표시순서
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmScrenTranBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserAthDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_USER_ATH
+ * - 테이블설명 : 어드민사용자권한
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserAthDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -6598894823175219859L;
+
+	private String userId;	// 사용자아이디
+	private String screnTranId;	// 화면거래아이디
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserAthDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_USER_BAS
+ * - 테이블설명 : 어드민사용자기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -8152218668651425368L;
+
+	private String userId;	// 사용자아이디
+	private String desigIp;	// 지정IP주소
+	private String userPwd;	// 사용자비밀번호
+	private String admUserStusCd;	// 어드민사용자상태코드
+	private String userNm;	// 사용자명
+	private String cpNo;	// 휴대전화번호
+	private String email;	// 이메일
+	private String brofcCd;	// 지점코드
+	private String lastPwdChngDt;	// 최종비밀번호변경일자
+	private BigDecimal pwdErrNotms;	// 비밀번호오류횟수
+	private String descCtnt;	// 설명내용
+	private String saltData;	// SALT데이터
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserFvrtDtlDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_USER_FVRT_DTL
+ * - 테이블설명 : 어드민사용자즐겨찾기상세
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserFvrtDtlDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 2773435707141433513L;
+
+	private String userId;	// 사용자아이디
+	private String fvrtCtnt;	// 즐겨찾기내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserFvrtDtlDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserPwdChngTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_USER_PWD_CHNG_TXN
+ * - 테이블설명 : 어드민사용자비밀번호변경내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserPwdChngTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 478297754146522344L;
+
+	private String userId;	// 사용자아이디
+	private String userPwd;	// 사용자비밀번호
+	private Date chngTmsp;	// 변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserPwdChngTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserStusChngTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ADM_USER_STUS_CHNG_TXN
+ * - 테이블설명 : 어드민사용자상태변경내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserStusChngTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 2571919153844679763L;
+
+	private String userId;	// 사용자아이디
+	private String befUserStusCd;	// 이전사용자상태코드
+	private String admUserStusCd;	// 어드민사용자상태코드
+	private String chngUserId;	// 변경사용자아이디
+	private Date chngTmsp;	// 변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/AdmUserStusChngTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/BtchBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.*;
+
+import java.io.Serial;
+import java.util.Date;
+
+/**
+ * Entity DTO
+ * - 테이블명 : BTCH_BAS
+ * - 테이블설명 : 배치기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class BtchBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -5727992787830538843L;
+
+	private String btchJobId;	// 배치작업ID
+	private String btchJobNm;	// 배치작업명
+	private String btchCyclCd;	// 배치주기코드
+	private String btchExePgmNm;	// 배치실행프로그램명
+	private String btchExePrmt;	// 배치실행파라미터
+	private String reExePosblYn;	// 재실행가능여부
+	private String btchExeDesigDd;	// 배치실행지정일
+	private String btchJobTtm;	// 배치작업시간
+	private String cronExrs;	// CRON표현
+	private String autoExeYn;	// 자동실행여부
+	private String aplyStartDt;	// 적용시작일자
+	private String aplyEndDt;	// 적용종료일자
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/BtchBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/BtchExeTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.*;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+
+/**
+ * Entity DTO
+ * - 테이블명 : BTCH_EXE_TXN
+ * - 테이블설명 : 배치실행내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class BtchExeTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -5866996392927481784L;
+
+	private BigDecimal btchExeSeqno;	// 배치실행일련번호
+	private String btchJobId;	// 배치작업ID
+	private String btchPrmtVal;	// 배치파라미터값
+	private String userId;	// 사용자아이디
+	private BigDecimal tagetTrtCscnt;	// 대상처리건수
+	private String btchExeStusCd;	// 배치실행상태코드
+	private String btchStartDtm;	// 배치시작일시
+	private String btchFinDtm;	// 배치완료일시
+	private String sucssYn;	// 성공여부
+	private String btchErrCtnt;	// 배치오류내용
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/BtchExeTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/CmnCdDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : CMN_CD
+ * - 테이블설명 : 공통코드
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class CmnCdDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -2598273626751493377L;
+
+	private String cdGroupVal;	// 코드그룹값
+	private String cdVal;	// 코드값
+	private String cdNm;	// 코드명
+	private String descCtnt;	// 설명내용
+	private BigDecimal repstOrdr;	// 표시순서
+	private String cdRef1Val;	// 코드참조1값
+	private String cdRef2Val;	// 코드참조2값
+	private String cdRef3Val;	// 코드참조3값
+	private String upCdGroupVal;	// 상위코드그룹값
+	private String upCdVal;	// 상위코드값
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/CmnCdDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/CmnCdGroupDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : CMN_CD_GROUP
+ * - 테이블설명 : 공통코드그룹
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class CmnCdGroupDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 4082754424398870687L;
+
+	private String cdGroupVal;	// 코드그룹값
+	private String cdGroupNm;	// 코드그룹명
+	private BigDecimal cdLenVal;	// 코드길이값
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/CmnCdGroupDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/ErrorLogDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.io.Serial;
+
+/**
+ * Entity DTO
+ * - 테이블명 : ERROR_LOG
+ * - 테이블설명 : 
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class ErrorLogDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 7220021106161587467L;
+
+	private String jobName;	//
+	private String stepName;	// 
+	private String message;	// 
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/ErrorLogDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/FileUldBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : FILE_ULD_BAS
+ * - 테이블설명 : 파일업로드기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class FileUldBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = -4051988131613112751L;
+
+	private BigDecimal uldSeqno;	// 업로드일련번호
+	private String uldDvCd;	// 업로드구분코드
+	private String dataTrtStusCd;	// 데이터처리상태코드
+	private String storgPathNm;	// 저장경로명
+	private String fileNm;	// 파일명
+	private BigDecimal uldCscnt;	// 업로드건수
+	private BigDecimal nomalCscnt;	// 정상건수
+	private BigDecimal errCscnt;	// 오류건수
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/FileUldBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/FileUldDataTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : FILE_ULD_DATA_TXN
+ * - 테이블설명 : 파일업로드데이터내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class FileUldDataTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 7798601748528320001L;
+
+	private BigDecimal uldSeqno;	// 업로드일련번호
+	private BigDecimal dataSeqno;	// 데이터일련번호
+	private String dataCtnt;	// 데이터내용
+	private String nomalYn;	// 정상여부
+	private String errCtnt;	// 오류내용
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/FileUldDataTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/HoldyBasDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : HOLDY_BAS
+ * - 테이블설명 : 휴일기본
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class HoldyBasDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 8745532557139448699L;
+
+	private String holdyYmd;	// 휴일년월일
+	private String holdyCd;	// 휴일코드
+	private String holdyDtlCtnt;	// 휴일상세내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/HoldyBasDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/SysStupVarTxnDTO.java =====
+package kr.fasol.obix.common.dto.entity;
+
+import java.io.Serial;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * Entity DTO
+ * - 테이블명 : SYS_STUP_VAR_TXN
+ * - 테이블설명 : 시스템설정변수내역
+ */
+@Data
+@Builder(builderMethodName = "newBuilder")
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class SysStupVarTxnDTO extends AbstractBaseDTO {
+	@Serial
+	private static final long serialVersionUID = 1373433695268180034L;
+
+	private String stupVarKey;	// 설정변수키
+	private String stupVarVal;	// 설정변수값
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/dto/entity/SysStupVarTxnDTO.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/CodeConstant.java =====
+package kr.fasol.obix.common.enums;
+
+import java.util.Arrays;
+
+import lombok.Getter;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 공통코드 필드의 상수값 정의
+ * 프로그램명 : 공통코드 필드의 상수값 정의
+ * 설명 :
+ *
+ * 클래스 : CodeConstant.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 8. 28.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 8. 28.         정영탁          최초생성
+ */
+public class CodeConstant {
+
+	/**
+	 * 어드민로그인결과코드
+	 */
+	@Getter
+	public static enum ADM_LGIN_RSLT_CD {
+		성공("0000", "성공"),
+		사용자아이디오류("1001", "사용자아이디오류"),
+		비밀번호오류("1002", "비밀번호오류"),
+		접근불가IP("1003", "접근불가IP"),
+		OTP인증오류("1004", "OTP인증오류"),
+		사용자아이디정지("2010", "사용자아이디정지"),
+		비밀번호초기화("2020", "비밀번호초기화"),
+		비밀번호오류초과("2030", "비밀번호오류초과"),
+		비밀번호만기("2040", "비밀번호만기"),
+		사용자아이디만기_휴직("2080", "사용자아이디만기(휴직)"),
+		사용자아이디만기_퇴사("2090", "사용자아이디만기(퇴사)");
+		private String code;
+		private String codeName;
+		ADM_LGIN_RSLT_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static ADM_LGIN_RSLT_CD getEnumByCode(String cd) {
+			return Arrays.stream(ADM_LGIN_RSLT_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 어드민사용자상태코드
+	 */
+	@Getter
+	public static enum ADM_USER_STUS_CD {
+		정상("10", "정상"),
+		정지("20", "정지 (장기미접속 등)"),
+		초기화("30", "초기화 (비밀번호초기화)"),
+		잠김("40", "잠김 (비밀번호오류초과)"),
+		휴직("80", "휴직"),
+		퇴사("90", "퇴사");
+		private String code;
+		private String codeName;
+		ADM_USER_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static ADM_USER_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(ADM_USER_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 신청상태코드
+	 */
+	@Getter
+	public static enum APLN_STUS_CD {
+		신규("00", "신규"),
+		진행중("10", "진행중"),
+		ADMIN대기중("11", "ADMIN대기중"),
+		오류대기중("12", "오류대기중"),
+		비즈니스거절("20", "비즈니스거절"),
+		CSS거절("21", "CSS거절"),
+		정밀심사결과거절("23", "정밀심사결과거절"),
+		상담원이관("22", "상담원이관"),
+		신청취소("30", "신청취소"),
+		자동취소("31", "자동취소"),
+		실행대기중("90", "실행대기중"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		APLN_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static APLN_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(APLN_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 앱메뉴구분코드
+	 */
+	@Getter
+	public static enum APP_MENU_DV_CD {
+		화면VIEW("10", "화면(VIEW)"),
+		팝업FRAG("20", "팝업(FRAG)"),
+		AJAX거래JSON("30", "AJAX거래(JSON)"),
+		다운로드FILE("40", "다운로드(FILE)");
+		private String code;
+		private String codeName;
+		APP_MENU_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static APP_MENU_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(APP_MENU_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 배너팝업구분코드
+	 */
+	@Getter
+	public static enum BANN_PUP_DV_CD {
+		  배너("BAN", "배너"),
+		  팝업("POP", "팝업"),
+		  일반긴급공지("NOR", "일반 긴급공지"),
+		  시스템긴급공지("SYS", "시스템 긴급공지"),
+		  슬라이드배너팝업("SLD", "슬라이드 배너팝업"),
+		  전면팝업("FRT", "전면 팝업");
+		private String code;
+		private String codeName;
+		BANN_PUP_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BANN_PUP_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(BANN_PUP_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 배치주기코드
+	 */
+	@Getter
+	public static enum BTCH_CYCL_CD {
+		연초("10", "연초"),
+		연말("11", "연말"),
+		반기("20", "반기"),
+		분기("21", "분기"),
+		월초("30", "월초"),
+		월말("31", "월말"),
+		월중지정일("32", "월중(지정일)"),
+		매주("40", "매주"),
+		매영업일("50", "매영업일"),
+		매일("51", "매일"),
+		CRON주기("90", "CRON주기");
+		private String code;
+		private String codeName;
+		BTCH_CYCL_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BTCH_CYCL_CD getEnumByCode(String cd) {
+			return Arrays.stream(BTCH_CYCL_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 배치실행상태코드
+	 */
+	@Getter
+	public static enum BTCH_EXE_STUS_CD {
+		실행중("10", "실행중"),
+		오류("20", "오류"),
+		대기중("30", "대기중"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		BTCH_EXE_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BTCH_EXE_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(BTCH_EXE_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 게시상태코드
+	 */
+	@Getter
+	public static enum BULTN_STUS_CD {
+		대기중("10", "대기중"),
+		진행중("20", "진행중"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		BULTN_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BULTN_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(BULTN_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 업무상세코드
+	 */
+	@Getter
+	public static enum BZWK_DTL_CD {
+		로그인("010", "로그인"),
+		기타("999", "기타");
+		private String code;
+		private String codeName;
+		BZWK_DTL_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BZWK_DTL_CD getEnumByCode(String cd) {
+			return Arrays.stream(BZWK_DTL_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 업무구분코드
+	 */
+	@Getter
+	public static enum BZWK_DV_CD {
+		기타("999", "기타");
+		private String code;
+		private String codeName;
+		BZWK_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static BZWK_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(BZWK_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 인증수단코드
+	 */
+	@Getter
+	public static enum CERTN_METHD_CD {
+		간편핀("1010", "간편핀"),
+		휴대전화인증("2010", "휴대전화인증"),
+		간편패턴("1020", "간편패턴"),
+		공동인증서인증("2020", "공동인증서인증"),
+		간편바이오지문("1030", "간편바이오(지문)"),
+		사설인증서인증("2030", "사설인증서인증"),
+		간편바이오페이스아이디("1031", "간편바이오(페이스아이디)");
+		private String code;
+		private String codeName;
+		CERTN_METHD_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CERTN_METHD_CD getEnumByCode(String cd) {
+			return Arrays.stream(CERTN_METHD_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 변경사유코드
+	 */
+	@Getter
+	public static enum CHNG_RSN_CD {
+		악성회원("10", "악성회원"),
+		비정상거래시도("20", "비정상거래시도"),
+		기타("30", "기타"),
+		고객요청("40", "고객요청"),
+		탈퇴("50", "탈퇴"),
+		휴면("90", "휴면"),
+		_1차파기("91", "1차파기"),
+		_2차파기("92", "2차파기"),
+		복구("93", "복구"),
+		완전파기("99", "완전파기");
+		private String code;
+		private String codeName;
+		CHNG_RSN_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CHNG_RSN_CD getEnumByCode(String cd) {
+			return Arrays.stream(CHNG_RSN_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 채널경로코드
+	 */
+	@Getter
+	public static enum CHNL_PATH_CD {
+		PC("P", "PC"),
+		Mobile("M", "Mobile"),
+		APP("A", "APP"),
+		전문("L", "전문");
+		private String code;
+		private String codeName;
+		CHNL_PATH_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CHNL_PATH_CD getEnumByCode(String cd) {
+			return Arrays.stream(CHNL_PATH_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 콜백처리상태코드
+	 */
+	@Getter
+	public static enum CLBC_TRT_STUS_CD {
+		신규("10", "신규"),
+		처리중("20", "처리중"),
+		취소("30", "취소"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		CLBC_TRT_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CLBC_TRT_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(CLBC_TRT_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 마감상태코드
+	 */
+	@Getter
+	public static enum CLSNG_STUS_CD {
+		진행중("10", "진행중"),
+		취소("30", "취소"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		CLSNG_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CLSNG_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(CLSNG_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 확인직업코드
+	 */
+	@Getter
+	public static enum CNFRM_OCCU_CD {
+		급여소득자("10","급여소득자"),
+		개인사업자_자영업("20","개인사업자(자영업)"),
+		프리랜서("30","프리랜서"),
+		주부("40","주부"),
+		학생("50","학생"),
+		무직("60","무직");
+		private String code;
+		private String codeName;
+		CNFRM_OCCU_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CNFRM_OCCU_CD getEnumByCode(String cd) {
+			return Arrays.stream(CNFRM_OCCU_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 동의항목코드
+	 */
+	@Getter
+	public static enum CNSNT_ITEM_CD {
+		고유식별정보수집이용동의("10", "고유식별정보 수집/이용 동의"),
+		민감정보수집이용동의("11", "민감정보 수집/이용 동의"),
+		개인신용정보수집이용동의("12", "개인(신용)정보 수집/이용 동의"),
+		고유식별정보제공동의("20", "고유식별정보 제공 동의"),
+		개인신용정보제공동의("22", "개인(신용)정보 제공 동의"),
+		고유식별정보조회동의("30", "고유식별정보 조회 동의"),
+		개인신용정보조회동의("32", "개인(신용)정보 조회 동의"),
+		상품서비스안내동의("41", "상품서비스 안내동의"),
+		정보수신매체선택("45", "정보수신 매체선택"),
+		청약철회권안내("50", "청약 철회권 안내"),
+		위법계약해지권안내("51", "위법계약 해지권 안내"),
+		금리인하요구권안내("52", "금리인하 요구권 안내"),
+		대출거절사유고지신청안내("53", "대출거절사유 고지 신청안내");
+		private String code;
+		private String codeName;
+		CNSNT_ITEM_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CNSNT_ITEM_CD getEnumByCode(String cd) {
+			return Arrays.stream(CNSNT_ITEM_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 고객확인직업코드
+	 */
+	@Getter
+	public static enum CUST_CNFRM_OCCU_CD {
+		급여소득자("10", "급여소득자"),
+		개인사업자자영업("20", "개인사업자(자영업)"),
+		프리랜서("30", "프리랜서"),
+		주부("40", "주부"),
+		학생("50", "학생"),
+		무직("60", "무직");
+		private String code;
+		private String codeName;
+		CUST_CNFRM_OCCU_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CUST_CNFRM_OCCU_CD getEnumByCode(String cd) {
+			return Arrays.stream(CUST_CNFRM_OCCU_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 고객의견구분코드
+	 */
+	@Getter
+	public static enum CUST_OPIN_DV_CD {
+		개선제안("10", "개선/제안"),
+		칭찬불만("20", "칭찬/불만");
+		private String code;
+		private String codeName;
+		CUST_OPIN_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static CUST_OPIN_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(CUST_OPIN_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 데이터처리상태코드
+	 */
+	@Getter
+	public static enum DATA_TRT_STUS_CD {
+		시작("10", "시작"),
+		처리중("20", "처리중"),
+		오류("30", "오류"),
+		완료("99", "완료");
+		private String code;
+		private String codeName;
+		DATA_TRT_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static DATA_TRT_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(DATA_TRT_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 이메일유형코드
+	 */
+	@Getter
+	public static enum EMAIL_PTRN_CD {
+		보안메일("SMAIL", "보안메일"),
+		HTML2PDF("HTMLPDF", "HTML2PDF"),
+		일반메일("NONE", "일반메일");
+		private String code;
+		private String codeName;
+		EMAIL_PTRN_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static EMAIL_PTRN_CD getEnumByCode(String cd) {
+			return Arrays.stream(EMAIL_PTRN_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 금융권코드
+	 */
+	@Getter
+	public static enum FINAC_SPH_CD {
+		  은행("1", "은행"),
+		  증권사("2", "증권사"),
+		  카드사("3", "카드사"),
+		  핀테크("5", "핀테크");
+		private String code;
+		private String codeName;
+		FINAC_SPH_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static FINAC_SPH_CD getEnumByCode(String cd) {
+			return Arrays.stream(FINAC_SPH_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 금융기관코드
+	 */
+	@Getter
+	public static enum FIORG_CD {
+		당행("000","당행"),
+		산업은행("002","산업은행"),
+		기업은행("003","기업은행"),
+		KB국민은행("004","KB국민은행"),
+		수협("007","수협"),
+		수출입("008","수출입"),
+		농협은행("011","농협은행"),
+		우리은행("020","우리은행"),
+		SC은행("023","SC은행"),
+		한국씨티("027","한국씨티"),
+		대구은행("031","대구은행"),
+		부산은행("032","부산은행"),
+		광주은행("034","광주은행"),
+		제주은행("035","제주은행"),
+		전북은행("037","전북은행"),
+		경남은행("039","경남은행"),
+		새마을금고("045","새마을금고"),
+		신협("048","신협"),
+		저축은행("050","저축은행"),
+		HSBC("054","HSBC"),
+		도이치("055","도이치"),
+		JP모간("057","JP모간"),
+		BOA("060","BOA"),
+		BNPP("061","BNPP"),
+		중국공상("062","중국공상"),
+		중국은행("063","중국은행"),
+		산림조합중앙회("064","산림조합중앙회"),
+		중국건설("067","중국건설"), 
+		우체국("071","우체국"),
+		KEB하나은행("081","KEB하나은행"),
+		신한은행("088","신한은행"),
+		케이뱅크("089","케이뱅크"),
+		카카오뱅크("090","카카오뱅크"),
+		토스뱅크("092","토스뱅크"),
+		유안타증권("209","유안타증권"),
+		KB증권("218","KB증권"),
+		BNK투자증권("224","BNK투자증권"),
+		IBK투자증권("225","IBK투자증권"),
+		KTB투자증권("227","KTB투자증권"),
+		미래에셋대우("238","미래에셋대우"),
+		삼성증권("240","삼성증권"),
+		한국투자증권("243","한국투자증권"),
+		NH투자증권("247","NH투자증권"),
+		교보증권("261","교보증권"),
+		하이투자증권("262","하이투자증권"),
+		현대차증권("263","현대차증권"),
+		키움증권("264","키움증권"),
+		이베스트증권("265","이베스트증권"),
+		SK증권("266","SK증권"),
+		대신증권("267","대신증권"),
+		한화증권("269","한화증권"),
+		하나증권("270","하나증권"),
+		토스증권("271","토스증권"),
+		신한투자증권("278","신한투자증권"),
+		DB증권("279","DB증권"),
+		유진투자증권("280","유진투자증권"),
+		메리츠증권("287","메리츠증권"),
+		카카오페이증권("288","카카오페이증권"),
+		부국증권("290","부국증권"),
+		신영증권("291","신영증권"),
+		케이프투자증권("292","케이프투자증권"),
+		한국포스증권("294","한국포스증권"),
+		;
+		private String code;
+		private String codeName;
+		FIORG_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static FIORG_CD getEnumByCode(String cd) {
+			return Arrays.stream(FIORG_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 그룹구분코드
+	 */
+	@Getter
+	public static enum GROUP_DV_CD {
+		메인그룹("10", "메인그룹"),
+		서브그룹("20", "서브그룹"),
+		여신("110", "여신"),
+		수신("120", "수신"),
+		고객지원("130", "고객지원"),
+		마케팅("140", "마케팅"),
+		연계채널("150", "연계채널"),
+		설정("160", "설정"),
+		보고서("170", "보고서"),
+		시스템("180", "시스템"),
+		공통("190", "공통"),
+		담당자("CHGMAN", "담당자"),
+		관리자("ADMIN", "관리자"),
+		_1차결재권자("APPRMAN1", "1차결재권자"),
+		_2차결재권자("APPRMAN2", "2차결재권자"),
+		_3차결재권자("APPRMAN3", "3차결재권자"),
+		메인("100", "메인"),
+		;
+		private String code;
+		private String codeName;
+		GROUP_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static GROUP_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(GROUP_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 휴일코드
+	 */
+	@Getter
+	public static enum HOLDY_CD {
+	  공휴일("10", "공휴일"),
+	  임시공휴일("20", "임시공휴일"),
+	  기타("90", "기타");
+		private String code;
+		private String codeName;
+		HOLDY_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static HOLDY_CD getEnumByCode(String cd) {
+			return Arrays.stream(HOLDY_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 유입경로코드
+	 */
+	@Getter
+	public static enum INFL_PATH_CD {
+		  전화상담("10", "전화상담"),
+		  일대일상담요청("20", "1:1상담요청"),
+		  콜백("30", "콜백"),
+		  신청중상담원안내("40", "신청중상담원안내");
+		private String code;
+		private String codeName;
+		INFL_PATH_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static INFL_PATH_CD getEnumByCode(String cd) {
+			return Arrays.stream(INFL_PATH_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 가입상태코드
+	 */
+	@Getter
+	public static enum JOIN_STUS_CD {
+		 가입("10", "가입"),
+		 해지("20", "해지");
+		private String code;
+		private String codeName;
+		JOIN_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static JOIN_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(JOIN_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 최종승인구분코드
+	 */
+	@Getter
+	public static enum LAST_APRV_DV_CD {
+		승인("01","승인"),
+		조건부승인("02","조건부승인"),
+		거절("03","거절");
+		private String code;
+		private String codeName;
+		LAST_APRV_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static LAST_APRV_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(LAST_APRV_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 회원연락수단코드
+	 */
+	@Getter
+	public static enum MB_CNTCT_METHD_CD {
+	  우편("01", "우편"),
+	  자택전화("02", "자택전화"),
+	  직장전화("03", "직장전화"),
+	  휴대전화("04", "휴대전화"),
+	  SMS("06", "SMS"),
+	  연락거부("09", "연락거부"),
+	  이메일("05", "이메일");
+		private String code;
+		private String codeName;
+		MB_CNTCT_METHD_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static MB_CNTCT_METHD_CD getEnumByCode(String cd) {
+			return Arrays.stream(MB_CNTCT_METHD_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 회원식별유형코드
+	 */
+	@Getter
+	public static enum MB_IDNFI_PTRN_CD {
+	  이천년이전생남성("1", "2000년 이전 생 남성"),
+	  이천년이전생여성("2", "2000년 이전 생 여성"),
+	  이천년이후생남성("3", "2000년 이후 생 남성"),
+	  이천년이후생여성("4", "2000년 이후 생 여성");
+		private String code;
+		private String codeName;
+		MB_IDNFI_PTRN_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static MB_IDNFI_PTRN_CD getEnumByCode(String cd) {
+			return Arrays.stream(MB_IDNFI_PTRN_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 회원상태코드
+	 */
+	@Getter
+	public static enum MB_STUS_CD {
+		정상("10", "정상"),
+		정지("20", "정지"),
+		탈퇴("30", "탈퇴"),
+		휴면("90", "휴면"),
+		파기1차("91", "1차파기"),
+		파기2차("92", "2차파기"),
+		완전파기("99", "완전파기");
+		private String code;
+		private String codeName;
+		MB_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static MB_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(MB_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 매체코드
+	 */
+	@Getter
+	public static enum MDIA_CD {
+		APP("A", "APP"),
+		WEB("W", "WEB"),
+		채널연계("L", "채널연계"),
+		기타("E", "기타");
+		private String code;
+		private String codeName;
+		MDIA_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static MDIA_CD getEnumByCode(String cd) {
+			return Arrays.stream(MDIA_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 알림속성코드
+	 */
+	@Getter
+	public static enum NOTI_ATRB_CD {
+		필수("00", "필수"),
+		금융("10", "금융"),
+		이벤트혜택("20", "이벤트혜택"),			
+		신용관리("30", "신용관리"),
+		대출한도("40", "대출한도"),
+		마케팅활용동의("50", "마케팅활용동의");
+		private String code;
+		private String codeName;
+		NOTI_ATRB_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static NOTI_ATRB_CD getEnumByCode(String cd) {
+			return Arrays.stream(NOTI_ATRB_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 알림수단코드
+	 */
+	@Getter
+	public static enum NOTI_METHD_CD {
+		  Push("10", "Push"),
+		  알림톡("20", "알림톡"),
+		  문자("30", "문자"),
+		  이메일("40", "이메일"),
+		  전화("50", "전화"),
+		  DM우편물("60", "DM우편물");
+		private String code;
+		private String codeName;
+		NOTI_METHD_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static NOTI_METHD_CD getEnumByCode(String cd) {
+			return Arrays.stream(NOTI_METHD_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 공지사항유형구분코드
+	 */
+	@Getter
+	public static enum NTC_PTRN_DV_CD {
+		 업무공지("10", "업무공지"),
+		 서비스공지("20", "서비스공지"),
+		 시스템점검("30", "시스템점검"),
+		 기타("90", "기타");
+		private String code;
+		private String codeName;
+		NTC_PTRN_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static NTC_PTRN_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(NTC_PTRN_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * OS코드
+	 */
+	@Getter
+	public static enum OS_CD {
+		 iOS("IOS", "iOS"),
+		 Android("AOS", "Android"),
+		 기타("ETC", "기타"),
+		 전체("ALL", "전체");
+		private String code;
+		private String codeName;
+		OS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static OS_CD getEnumByCode(String cd) {
+			return Arrays.stream(OS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 게재형식코드
+	 */
+	@Getter
+	public static enum PBLC_FMAT_CD {
+		전문연계("01","전문연계"),
+		배너연계("02","배너연계"),
+		브랜드검색("11","브랜드검색"),
+		키워드검색("12","키워드검색"),
+		배너광고("13","배너광고"),
+		제휴광고("14","제휴광고"),
+		영상광고("15","영상광고"),
+		문자광고("16","문자광고"),
+		바이럴광고("17","바이럴광고");
+		private String code;
+		private String codeName;
+		PBLC_FMAT_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static PBLC_FMAT_CD getEnumByCode(String cd) {
+			return Arrays.stream(PBLC_FMAT_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 진행상태코드
+	 */
+	@Getter
+	public static enum PRGRS_STUS_CD {
+		정상("10","정상"),
+		오류("40","오류"),
+		완료("99","완료");
+		private String code;
+		private String codeName;
+		PRGRS_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static PRGRS_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(PRGRS_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 등록상태코드
+	 */
+	@Getter
+	public static enum REGI_STUS_CD {
+		  정상("10", "정상"),
+		  해지("20", "해지");
+		private String code;
+		private String codeName;
+		REGI_STUS_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static REGI_STUS_CD getEnumByCode(String cd) {
+			return Arrays.stream(REGI_STUS_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 요청상세구분코드
+	 */
+	@Getter
+	public static enum REQT_DTL_DV_CD {
+		  상세정보안내("010", "상세정보안내"),
+		  정보변경("020", "정보변경"),
+		  오류대응("030", "오류대응"),
+		  민원등록("040", "민원등록"),
+		  사후처리("050", "사후처리"),
+		  자료제공("060", "자료제공"),
+		  기타("999", "기타");
+		private String code;
+		private String codeName;
+		REQT_DTL_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static REQT_DTL_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(REQT_DTL_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 화면거래구분코드
+	 */
+	@Getter
+	public static enum SCREN_TRAN_DV_CD {
+		메뉴그룹("00", "메뉴 그룹"),
+		화면일반("10", "화면 일반"),
+		화면서브("11", "화면 서브"),
+		화면모달("12", "화면 모달"),
+		화면개별("13", "화면 개별"),
+		화면링크("14", "화면 링크"),
+		거래일반("20", "거래 일반"),
+		거래엑셀("21", "거래 엑셀"),
+		거래파일UP("22", "거래 파일UP"),
+		거래파일DN("23", "거래 파일DN");
+		private String code;
+		private String codeName;
+		SCREN_TRAN_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static SCREN_TRAN_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(SCREN_TRAN_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 성별구분코드
+	 */
+	@Getter
+	public static enum SEX_DV_CD {
+		  남성("M", "남성"),
+		  여성("F", "여성");
+		private String code;
+		private String codeName;
+		SEX_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static SEX_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(SEX_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 분리보관코드
+	 */
+	@Getter
+	public static enum SST_CD {
+		일차파기("10","1차파기"),
+		이차파기("20","2차파기"),
+		가망인증회원파기("25","가망/인증회원파기"),
+		완전파기("30","완전파기"),
+		일차복구("90","1차파기복구"),
+		이차복구("91","2차파기복구");
+		private String code;
+		private String codeName;
+		SST_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static SST_CD getEnumByCode(String cd) {
+			return Arrays.stream(SST_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 시스템구분코드
+	 */
+	@Getter
+	public static enum SYS_DV_CD {
+		APP("APP", "APP"),
+		WEB("WEB", "WEB"),
+		채널연계("LNK", "채널연계"),
+		ADMIN("ADM", "ADMIN"),
+		솔루션("SOL", "솔루션"),
+		기타("ETC", "기타");
+		private String code;
+		private String codeName;
+		SYS_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static SYS_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(SYS_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 통신사코드
+	 */
+	@Getter
+	public static enum TCPNY_CD {
+		  SKT("10", "SKT"),
+		  KT("20", "KT"),
+		  LGT("30", "LGT"),
+		  알뜰폰("40", "알뜰폰");
+		private String code;
+		private String codeName;
+		TCPNY_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static TCPNY_CD getEnumByCode(String cd) {
+			return Arrays.stream(TCPNY_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+	/**
+	 * 사용자접근구분코드
+	 */
+	@Getter
+	public static enum USER_ACCS_DV_CD {
+		미인증("10", "미인증"),
+		인증필수("20", "인증필수"),
+		전자금융필수("30", "전자금융필수");
+		private String code;
+		private String codeName;
+		USER_ACCS_DV_CD(String code, String codeName) {
+			this.code = code;
+			this.codeName = codeName;
+		}
+		public static USER_ACCS_DV_CD getEnumByCode(String cd) {
+			return Arrays.stream(USER_ACCS_DV_CD.values()).filter(ce -> ce.getCode().equals(cd)).findFirst().orElse(null);
+		}
+	}
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/CodeConstant.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/DoubleSubmitConstant.java =====
+package kr.fasol.obix.common.enums;
+
+/**
+ * 이중거래방지 관련 속성
+ */
+public class DoubleSubmitConstant {
+
+    public static final String DOUBLE_SUBMIT_PARAMETER_NAME = "DOUBLE_SUBMIT_PARAMETER";    // Client로부터 들어오는 Token키 파라미터
+    public static final String DOUBLE_SUBMIT_SESSION_KEY = "DOUBLE_SUBMIT_SESSION";         // Token을 보관하기 위한 세션키
+    public static final String DOUBLE_SUBMIT_EXCLUDE_CHECK = "DOUBLE_SUBMIT_EXCLUDE_CHECK"; // 이중거래 체크 제외 여부
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/DoubleSubmitConstant.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/FileConstant.java =====
+package kr.fasol.obix.common.enums;
+
+import lombok.Getter;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 파일 처리를 위한 상수값 정의
+ * 프로그램명 : 파일 처리를 위한 상수값 정의
+ * 설명 :
+ *
+ * 클래스 : FileConstant.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 9. 8.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 9. 8.          정영탁          최초생성
+ */
+public class FileConstant {
+
+	/**
+	 * 파일 저장공간 위치
+	 */
+	@Getter
+	public static enum STORG_DIRECTORY_ROOT {
+		프로필("/prfi_img/", "yyyy/MM/", true, "jpg,jpeg,png", "프로필"),
+		공지사항("/ntc/", "yyyy/MM/", false, "pdf,jpg,jpeg,png", "컨텐츠 게시판 공지사항"),
+		알림템플릿("/noti/", "yyyy/MM/", false, "", "UMS 알림 템플릿"),
+		게시이미지("/pup_bann/", "yyyy/MM/", false, "jpg,jpeg,png", "공지사항/배너/팝업/이벤트 등의 게시 이미지 파일"),
+		Admin첨부파일("/adm_blps/", "yyyy/MM/", false, "", "어드민 게시판 첨부파일"),
+
+		EXAMPLE("/example/", "yyyy/MM/dd/", false, "csv,doc,xls,ppt,txt,pdf,bmp,gif,jpg,jpeg,tif,tiff,jtd,docx,xlsx,pptx,hwp,gul,dib,png,rtf,pps,xlsb,xlsm,ppsx,json", "테스트");
+
+		private String rootPath;	// 서버의 Root 경로
+		private String postfixPattern;	// 업무소분류 디렉토리 pattern
+		private boolean cryptYn;	// 암호화여부
+		private String fileExt;	// 저장할 파일 확장자명(,로 구분)
+		private String bzwkClsfiNm;	// 업무분류명
+		STORG_DIRECTORY_ROOT(String rootPath, String postfixPattern, boolean cryptYn, String fileExt, String bzwkClsfiNm) {
+			this.rootPath = rootPath;
+			this.postfixPattern = postfixPattern;
+			this.cryptYn = cryptYn;
+			this.fileExt = fileExt;
+			this.bzwkClsfiNm = bzwkClsfiNm;
+		}
+	}
+
+	/**
+	 * 업무분류별 디렉토리 정의
+	 */
+	@Getter
+	public static enum SUB_DIRECTORY {
+		/*
+		 * 게시판
+		 */
+		BBS_파일("bbs/file/", "게시판 파일"),
+		BBS_이미지("bbs/image/", "게시판 이미지");
+
+		String dirPath;	// 업무소분류 디렉토리
+		String bzwkClsfiNm;	// 업무분류명
+		SUB_DIRECTORY(String dirPath, String bzwkClsfiNm) {
+			this.dirPath = dirPath;
+			this.bzwkClsfiNm = bzwkClsfiNm;
+		}
+	}
+
+}
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/FileConstant.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/SessionEnum.java =====
+package kr.fasol.obix.common.enums;
+
+import java.util.Arrays;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 세션 관리를 위한 코드 정의
+ * 프로그램명 : 세션 관리를 위한 코드 정의
+ * 설명 :
+ *
+ * 클래스 : SessionEnum.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 10.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 10.         정영탁          최초생성
+ */
+public enum SessionEnum {
+	// @formatter:off
+	USER_MENU_LIST("Front:메뉴 목록"),
+	USER_CURRENT_MENU_ID("Front:선택된 메뉴ID"),
+	USER_SESSION("Front:로그인 세션키"),
+	NEXT_USER_URL("Front:로그인 후 이동할 URL"),
+	NEXT_USER_URL_PARAM("Front:로그인 후 이동할 URL의 PARAM"),
+	FROM_LOGIN_PAGE_YN("Front:로그인 직후 여부"),
+	LOGIN_ALERT_TYPE("Front:로그인 이후 사용자 알림 메시지 구분"),
+	SELF_CERT_SESSION("Front:본인인증/본인확인"),
+
+	ADMIN_MENU_LIST("Admin:메뉴 목록"),
+	ADMIN_CURRENT_MENU_ID("Admin:선택된 메뉴ID"),
+	ADMIN_SESSION("Admin:로그인 세션키"),
+	NEXT_ADMIN_URL("Admin:로그인 후 이동할 URL"),
+
+	STND_CODE("Common:표준코드"),
+	STND_ERROR_CODE("Common:표준오류코드"),
+	CHNL_ERROR_CODE("Common:채널오류코드"),
+	REDU_CODE("Common:환원코드"),
+	// @formatter:on
+
+	DUMMY_END_OF_KEYS("");
+
+	private String desc;
+	private SessionEnum(String desc) {
+		this.desc = desc;
+	}
+
+    public static SessionEnum getSessionEnumByKey(String key) {
+        return Arrays.stream(SessionEnum.values()).filter(se -> se.getKey().equals(key)).findFirst().orElse(null);
+    }
+
+	/**
+	 * 세션키 반환
+	 */
+	public String getKey() {
+		return this.name();
+	}
+	/**
+	 * 세션키 설명 반환
+	 */
+	public String getDesc() {
+		return this.desc;
+	}
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/enums/SessionEnum.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/FileDownloadUtil.java =====
+package kr.fasol.obix.common.util;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import kr.fasol.obix.core.util.DateUtil;
+import kr.fasol.obix.core.util.EnvironmentUtil;
+import kr.fasol.obix.core.util.ImageUtil;
+import kr.fasol.obix.core.util.ObixSecurityUtil;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
+
+import kr.fasol.obix.common.enums.FileConstant;
+import kr.fasol.obix.core.exception.UserException;
+import lombok.NonNull;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > 파일 다운로드 유틸
+ * 프로그램명 : 파일 다운로드 유틸
+ * 설명 :
+ *
+ * 클래스 : FileDownloadUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 8. 11.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 8. 11.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class FileDownloadUtil {
+
+	/**
+	 * 파일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> download(@NonNull String filePath, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		Assert.notNull(filePath, "`filePath` is required");
+		String filename = filePath.substring(filePath.lastIndexOf('/')+1);
+		return download(filePath, filename, storgDirRoot.isCryptYn());
+	}
+
+	/**
+	 * 파일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> download(@NonNull String filePath) throws Exception {
+		Assert.notNull(filePath, "`filePath` is required");
+		String filename = filePath.substring(filePath.lastIndexOf('/')+1);
+		return download(filePath, filename);
+	}
+
+	/**
+	 * 파일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> download(@NonNull String filePath, @NonNull String filename, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return download(filePath, filename, storgDirRoot.isCryptYn());
+	}
+
+	/**
+	 * 파일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> download(@NonNull String filePath, @NonNull String filename) throws Exception {
+		return download(filePath, filename, false);
+	}
+
+	/**
+	 * 파일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @param cryptYn 암호화여부
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> download(@NonNull String filePath, @NonNull String filename, boolean cryptYn) throws Exception {
+		byte[] fileBytes = readFile(filePath, filename, cryptYn);
+
+		Resource resource = new ByteArrayResource(fileBytes);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentDisposition(ContentDisposition.builder("attachment").filename(filename, StandardCharsets.UTF_8).build());
+		headers.setContentLength(resource.contentLength());
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
+	}
+
+	/**
+	 * 이미지파일 썸네일 다운로드
+	 * @param filePath 서버의 파일 경로
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param width 생성할 이미지의 Width
+	 * @param height 생성할 이미지의 Height
+	 * @param quality 생성할 이미지의 Quality(최대 100)
+	 * @return ResponseEntity
+	 */
+	public static ResponseEntity<Resource> downloadThumbnail(@NonNull String filePath, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, int width, int height, int quality) throws Exception {
+		Assert.notNull(filePath, "`filePath` is required");
+		String filename = filePath.substring(filePath.lastIndexOf('/')+1);
+
+		byte[] fileBytes = readFileThumbnail(filePath, width, height, quality, storgDirRoot.isCryptYn());
+
+		Resource resource = new ByteArrayResource(fileBytes);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentDisposition(ContentDisposition.builder("attachment").filename(filename, StandardCharsets.UTF_8).build());
+		headers.setContentLength(resource.contentLength());
+		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
+	}
+
+	/**
+	 * 파일 다운로드 가능여부 확인
+	 * @param filePath 서버의 파일 경로
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @return ResponseEntity
+	 */
+	public static boolean isDownload(@NonNull String filePath, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		Assert.notNull(filePath, "`filePath` is required");
+		String filename = filePath.substring(filePath.lastIndexOf('/')+1);
+		return isDownload(filePath, filename, storgDirRoot.isCryptYn());
+	}
+
+	/**
+	 * 파일 다운로드  가능여부 확인
+	 * @param filePath 서버의 파일 경로
+	 * @return ResponseEntity
+	 */
+	public static boolean isDownload(@NonNull String filePath) throws Exception {
+		Assert.notNull(filePath, "`filePath` is required");
+		String filename = filePath.substring(filePath.lastIndexOf('/')+1);
+		return isDownload(filePath, filename);
+	}
+
+	/**
+	 * 파일 다운로드  가능여부 확인
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @return ResponseEntity
+	 */
+	public static boolean isDownload(@NonNull String filePath, @NonNull String filename, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return isDownload(filePath, filename, storgDirRoot.isCryptYn());
+	}
+
+	/**
+	 * 파일 다운로드  가능여부 확인
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @return ResponseEntity
+	 */
+	public static boolean isDownload(@NonNull String filePath, @NonNull String filename) throws Exception {
+		return isDownload(filePath, filename, false);
+	}
+
+	/**
+	 * 파일 다운로드  가능여부 확인
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @param cryptYn 암호화여부
+	 * @return ResponseEntity
+	 */
+	public static boolean isDownload(@NonNull String filePath, @NonNull String filename, boolean cryptYn) throws Exception {
+		File file = new File(filePath);
+		return (file.exists() && file.isFile());
+	}
+
+	/**
+	 * 파일 읽기
+	 * @param filePath 서버의 파일 경로
+	 */
+	public static byte[] readFile(@NonNull String filePath) throws Exception {
+		return readFile(filePath, "", false);
+	}
+	/**
+	 * 파일 읽기
+	 * @param filePath 서버의 파일 경로
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static byte[] readFile(@NonNull String filePath, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return readFile(filePath, "", storgDirRoot.isCryptYn());
+	}
+	/**
+	 * 파일 읽기
+	 * @param filePath 서버의 파일 경로
+	 * @param filename 브라우저로 다운로드 될 파일명
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static byte[] readFile(@NonNull String filePath, @NonNull String filename, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return readFile(filePath, filename, storgDirRoot.isCryptYn());
+	}
+	/**
+	 * 파일 읽기
+	 * @param filePath 서버의 파일 경로
+	 * @param cryptYn 암호화여부
+	 */
+	public static byte[] readFile(@NonNull String filePath, @NonNull String filename, boolean cryptYn) throws Exception {
+		InputStream inputStream = null;
+		try {
+			File file = new File(filePath);
+			if (!file.exists()) {
+				throw new FileNotFoundException(filePath);
+			}
+
+			Resource resource = new UrlResource(file.toURI());
+
+			// 파일 복호화 처리
+			if (cryptYn) {
+				try {
+					inputStream = resource.getInputStream();
+					byte[] srcBytes = IOUtils.toByteArray(inputStream);
+					byte[] decBytes = ObixSecurityUtil.decryptAES(srcBytes);
+					resource = new ByteArrayResource(decBytes);
+				} catch (IOException | DecoderException | NoSuchAlgorithmException | NoSuchPaddingException |
+                         InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException |
+                         BadPaddingException e) {
+					log.error("### 파일 복호화 실패 = " + filePath);
+					log.error(e.getMessage());
+				} catch (Exception e) {
+					log.error("### 파일 복호화 실패 = " + filePath);
+					log.error(e.getMessage());
+				} finally {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				}
+			}
+			inputStream = resource.getInputStream();
+
+			if (log.isDebugEnabled()) {
+				log.debug("filePath = {}", resource.getFilename());
+				log.debug("fileSize = {}", resource.contentLength());
+			}
+
+			return IOUtils.toByteArray(resource.getInputStream());
+		}
+		catch (FileNotFoundException e) {
+			throw new UserException("CB1007").setDebuggingMessage("[FileNotFoundException][" + filePath + "]");
+		}
+		catch (Exception e) {
+			throw new UserException("CB1007", e).setDebuggingMessage("[File Download Exception][" + filePath + "]");
+		}
+		finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+	}
+
+	/**
+	 * 파일 읽기
+	 * @param filePath 서버의 파일 경로
+	 * @param cryptYn 암호화여부
+	 */
+	public static byte[] readFileThumbnail(@NonNull String filePath, int width, int height, int quality, boolean cryptYn) throws Exception {
+		InputStream inputStream = null;
+		try {
+			File file = new File(filePath);
+			if (!file.exists()) {
+				throw new FileNotFoundException(filePath);
+			}
+
+			Resource resource = new UrlResource(file.toURI());
+
+			// 파일 복호화 처리
+			if (cryptYn) {
+				try {
+					inputStream = resource.getInputStream();
+					byte[] srcBytes = IOUtils.toByteArray(resource.getInputStream());
+					byte[] decBytes = ObixSecurityUtil.decryptAES(srcBytes);
+					resource = new ByteArrayResource(decBytes);
+				} catch (IOException | DecoderException | NoSuchAlgorithmException | NoSuchPaddingException |
+                         InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException |
+                         BadPaddingException e) {
+					log.error("### 파일 복호화 실패 = " + filePath);
+					log.error(e.getMessage());
+				} catch (Exception e) {
+					log.error("### 파일 복호화 실패 = " + filePath);
+					log.error(e.getMessage());
+				} finally {
+					if (inputStream != null) {
+						inputStream.close();
+					}
+				}
+			}
+			inputStream = resource.getInputStream();
+
+			if (log.isDebugEnabled()) {
+				log.debug("filePath = {}", resource.getFilename());
+				log.debug("fileSize = {}", resource.contentLength());
+			}
+
+			// 파일을 썸네일 이미지로 변환
+			return ImageUtil.saveToThumbnail(resource.getInputStream(), width, height, quality);
+		}
+		catch (FileNotFoundException e) {
+			throw new UserException("CB1007").setDebuggingMessage("[FileNotFoundException][" + filePath + "]");
+		}
+		catch (Exception e) {
+			throw new UserException("CB1007", e).setDebuggingMessage("[File Download Exception][" + filePath + "]");
+		}
+		finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		}
+	}
+
+	/**
+	 * 서버에 저장된 파일 목록 조회
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static List<File> listFile(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return listFile(storgDirRoot, "");
+	}
+
+	/**
+	 * 서버에 저장된 파일 목록 조회
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param umsSubDirectory 파일저장공간위치 뒤에 추가로 생성된 디렉토리(FileConstant.UMS_SUB_DIRECTORY)
+	 */
+	public static List<File> listFile(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY umsSubDirectory) throws Exception {
+		return listFile(storgDirRoot, umsSubDirectory.getDirPath());
+	}
+	/**
+	 * 서버에 저장된 파일 목록 조회
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성된 디렉토리
+	 */
+	public static List<File> listFile(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir) throws Exception {
+		List<File> fileList = new ArrayList<>();
+
+		String newFilePath = getNewFilePath(storgDirRoot, postfixDir);
+
+		fileList.addAll(getListFile(new File(newFilePath)));
+
+		return fileList;
+	}
+
+	private static List<File> getListFile(File file) throws Exception {
+		List<File> list = new ArrayList<>();
+
+		if (file.exists() && file.isDirectory()) {
+			File[] files = file.listFiles();
+			if (files != null && files.length > 0) {
+				for (int i = 0; i < files.length; i++) {
+					if (files[i].isDirectory()) {
+						list.addAll(getListFile(files[i]));
+					} else {
+						list.add(files[i]);
+					}
+				}
+			}
+		}
+
+		return list;
+	}
+
+	/**
+	 * 파일을 저장할 전체 경로를 생성하여 리턴한다.
+	 */
+	private static String getNewFilePath(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir) {
+		String newFilePath = EnvironmentUtil.getProperty("STORG_ROOT_PATH", "") + storgDirRoot.getRootPath();
+		if (StringUtils.isNotBlank(storgDirRoot.getPostfixPattern())) {
+			newFilePath += DateUtil.getCurrentDate(storgDirRoot.getPostfixPattern());
+		}
+
+		if (StringUtils.isNotBlank(postfixDir)) {
+			newFilePath += postfixDir;
+		}
+
+		if (!newFilePath.endsWith("/")) {
+			newFilePath += "/";
+		}
+
+		return newFilePath;
+	}
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/FileDownloadUtil.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/FileUploadUtil.java =====
+package kr.fasol.obix.common.util;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
+import kr.fasol.obix.core.util.DateUtil;
+import kr.fasol.obix.core.util.EnvironmentUtil;
+import kr.fasol.obix.core.util.ObixSecurityUtil;
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.google.gson.Gson;
+
+import kr.fasol.obix.common.enums.FileConstant;
+import kr.fasol.obix.core.exception.UserException;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Util > 파일 업로드 유틸
+ * 프로그램명 : 파일 업로드 유틸
+ * 설명 :
+ *
+ * 클래스 : FileUploadUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 8. 26.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 8. 26.         정영탁          최초생성
+ */
+@Slf4j
+@UtilityClass
+public class FileUploadUtil {
+
+	private static final char[] ALPHAS = new char[] { 'A', 'B', 'C', 'D', 'E',
+			'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+			'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e',
+			'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+			's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+
+	private static Random GENERATOR = new Random(System.currentTimeMillis());
+
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static String upload(MultipartFile file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return upload(file, storgDirRoot, "", null);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 */
+	public static String upload(MultipartFile file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory) throws Exception {
+		return upload(file, storgDirRoot, subDirectory.getDirPath(), null);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(MultipartFile file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory, String savedFileName) throws Exception {
+		return upload(file, storgDirRoot, subDirectory.getDirPath(), savedFileName);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(MultipartFile file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName) throws Exception {
+		return upload(file, storgDirRoot, postfixDir, savedFileName, false);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 * @param overwriteYn 덮어쓰기 여부
+	 */
+	public static String upload(MultipartFile file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName, boolean overwriteYn) throws Exception {
+		if (file == null || file.isEmpty()) {
+			throw new UserException("BIZ.FILE.01").setDebuggingMessage("전달할 파일이 존재하지 않습니다.");
+		}
+
+		// 유효한 확장자인지 체크
+		checkFileExt(storgDirRoot, file.getOriginalFilename());
+
+		String newFilePath = getNewFilePath(storgDirRoot, postfixDir);
+
+		String newFileName;
+		if (StringUtils.isNotBlank(savedFileName)) {
+			newFileName = checkFileName(newFilePath + savedFileName, overwriteYn);
+		} else {
+			newFileName = generateFileName(newFilePath, file.getOriginalFilename());
+		}
+
+		return upload(file.getInputStream(), newFileName, storgDirRoot.isCryptYn(), overwriteYn);
+	}
+
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return upload(file, storgDirRoot, "", null);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String savedFileName) throws Exception {
+		return upload(file, storgDirRoot, "", savedFileName);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory) throws Exception {
+		return upload(file, storgDirRoot, subDirectory.getDirPath(), null);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory, String savedFileName) throws Exception {
+		return upload(file, storgDirRoot, subDirectory.getDirPath(), savedFileName);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName) throws Exception {
+		return upload(file, storgDirRoot, postfixDir, savedFileName, false);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 * @param overwriteYn 덮어쓰기 여부
+	 */
+	public static String upload(File file, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName, boolean overwriteYn) throws Exception {
+		if (file == null || !file.exists()) {
+			throw new UserException("BIZ.FILE.01").setDebuggingMessage("전달할 파일이 존재하지 않습니다.");
+		}
+
+		// 유효한 확장자인지 체크
+		checkFileExt(storgDirRoot, file.getName());
+
+		String newFilePath = getNewFilePath(storgDirRoot, postfixDir);
+
+		String newFileName;
+		if (StringUtils.isNotBlank(savedFileName)) {
+			newFileName = checkFileName(newFilePath + savedFileName, overwriteYn);
+		} else {
+			newFileName = generateFileName(newFilePath, file.getName());
+		}
+
+		InputStream inputStream = new FileInputStream(file);
+		try {
+			return upload(inputStream, newFileName, storgDirRoot.isCryptYn(), overwriteYn);
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			inputStream.close();
+		}
+	}
+
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot) throws Exception {
+		return upload(inputStream, storgDirRoot, "", null, null);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param savedFileName 저장할 파일명
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String savedFileName) throws Exception {
+		return upload(inputStream, storgDirRoot, "", savedFileName, null);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param savedFileName 저장할 파일명
+	 * @param extension 파일확장자
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String savedFileName, String extension) throws Exception {
+		return upload(inputStream, storgDirRoot, "", savedFileName, extension);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory) throws Exception {
+		return upload(inputStream, storgDirRoot, subDirectory.getDirPath(), null, null);
+	}
+	/**
+	 * 업무분류별 디렉토리에 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param subDirectory 파일저장공간위치 뒤에 추가로 생성할 디렉토리(FileConstant.SUB_DIRECTORY)
+	 * @param savedFileName 저장할 파일명(강제지정)
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, FileConstant.SUB_DIRECTORY subDirectory, String savedFileName) throws Exception {
+		return upload(inputStream, storgDirRoot, subDirectory.getDirPath(), savedFileName, null);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName, String extension) throws Exception {
+		return upload(inputStream, storgDirRoot, postfixDir, savedFileName, extension, false);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param inputStream 저장할 파일
+	 * @param storgDirRoot 파일 저장공간 위치 FileConstant.STORG_DIRECTORY_ROOT
+	 * @param postfixDir 파일저장공간위치 뒤에 추가로 생성할 디렉토리
+	 * @param savedFileName 저장할 파일명
+	 * @param overwriteYn 덮어쓰기 여부
+	 */
+	public static String upload(InputStream inputStream, FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir, String savedFileName, String extension, boolean overwriteYn) throws Exception {
+		if (inputStream == null) {
+			throw new UserException("BIZ.FILE.01").setDebuggingMessage("전달할 파일이 존재하지 않습니다.");
+		}
+
+		String newFilePath = getNewFilePath(storgDirRoot, postfixDir);
+
+		String newFileName;
+		if (StringUtils.isNotBlank(savedFileName)) {
+			newFileName = checkFileName(newFilePath + savedFileName, overwriteYn);
+		} else {
+			newFileName = generateFileName(newFilePath, (StringUtils.isNotBlank(extension) ? "filename.".concat(extension) : savedFileName) );
+		}
+
+		return upload(inputStream, newFileName, storgDirRoot.isCryptYn(), overwriteYn);
+	}
+	/**
+	 * 파일 업로드(서버에 저장)
+	 * @param file 저장할 파일
+	 * @param filePath 저장할 파일경로
+	 * @param cryptYn 암호화여부
+	 * @param overwriteYn 덮어쓰기 여부
+	 */
+	private static String upload(InputStream file, String filePath, boolean cryptYn, boolean overwriteYn) throws Exception {
+		if (file == null) {
+			throw new UserException("BIZ.FILE.01").setDebuggingMessage("전달할 파일이 존재하지 않습니다.");
+		}
+
+		// 저장경로 존재여부 검사, 폴더가 존재하지 않으면 생성
+		File savePath = new File(filePath);
+		if (savePath.getParentFile() != null && !savePath.getParentFile().exists()) {
+			createDirectoryAndPermissions(savePath.getParentFile());
+		}
+
+		InputStream inputStream = null;
+
+		// 파일 암호화 처리
+		if (cryptYn) {
+			byte[] srcBytes = IOUtils.toByteArray(file);
+			try {
+				byte[] encBytes = ObixSecurityUtil.encryptAES(srcBytes);
+				inputStream = IOUtils.toBufferedInputStream(new ByteArrayInputStream(encBytes));
+			} catch (EncoderException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e) {
+				log.error("### 파일 암호화 실패 = " + filePath);
+				log.error(e.getMessage());
+				inputStream = IOUtils.toBufferedInputStream(new ByteArrayInputStream(srcBytes));
+			} catch (Exception e) {
+				log.error("### 파일 암호화 실패 = " + filePath);
+				log.error(e.getMessage());
+				inputStream = IOUtils.toBufferedInputStream(new ByteArrayInputStream(srcBytes));
+			}
+		} else {
+			inputStream = IOUtils.toBufferedInputStream(file);
+		}
+
+		BufferedInputStream bis = null;
+		BufferedOutputStream bos = null;
+		try {
+			bis = new BufferedInputStream(inputStream);
+			bos = new BufferedOutputStream(new FileOutputStream(savePath));
+			
+			int i;
+			byte readByte[] = new byte[4096];
+			while ((i = bis.read(readByte, 0, 4096)) != -1) {
+				bos.write(readByte, 0, i);
+			}
+			bos.flush();
+		} catch (IOException e) {
+			throw e;
+		} finally {
+			if (bos != null) {
+				bos.close();
+			}
+			if (bis != null) {
+				bis.close();
+			}
+		}
+
+		if (log.isDebugEnabled()) {
+			log.debug("[파일업로드] 서버에 저장된 파일경로 = {}", filePath);
+			log.debug("[파일업로드] 서버에 저장된 파일크기 = {}", savePath.length());
+		}
+
+		// 디렉토리 퍼미션을 775으로 변경
+		setFilePermission(savePath.toPath());
+
+		return filePath;
+	}
+
+	/**
+	 * 디렉토리 생성 및 퍼미션 조정(mkdirs)
+	 * @param file 경로
+	 */
+	public static boolean createDirectoryAndPermissions(File file) throws Exception {
+		if (log.isDebugEnabled()) {
+			log.debug("### 디렉토리 생성 = {}", file.toPath());
+		}
+		if (file.exists()) {
+			return false;
+		}
+		if (createDirectoryAndPermission(file)) {
+			return true;
+		}
+        File canonFile = null;
+        try {
+            canonFile = file.getCanonicalFile();
+        } catch (IOException e) {
+            return false;
+        }
+        File parent = canonFile.getParentFile();
+        return (parent != null && (createDirectoryAndPermissions(parent) || parent.exists()) && createDirectoryAndPermission(canonFile));
+	}
+
+	/**
+	 * 디렉토리 생성 및 퍼미션 조정(mkdir)
+	 * @param file 경로
+	 */
+	private static boolean createDirectoryAndPermission(File file) throws Exception {
+		if (file.mkdir()) {
+			setFilePermission(file.toPath());
+			return true;
+		}
+		return false;
+	}
+
+	private static void setFilePermission(Path path) throws Exception {
+		try {
+			// 파일 퍼미션을 775로 변경
+			Set<PosixFilePermission> perms = new HashSet<>(Arrays.asList(
+					PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE,
+					PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_WRITE, PosixFilePermission.GROUP_EXECUTE));
+			Files.setPosixFilePermissions(path, perms);
+		} catch (UnsupportedOperationException e) {
+			log.error("지원하지 않는 OS = {}", path);
+		}
+	}
+
+	/**
+	 * 파일을 생성하고, 성공여부를 반환한다.
+	 * @param data 파일에 쓰기 위한 데이터
+	 * @param filePath 파일 경로
+	 * @return true : 성공, false : 실패
+	 * @throws Exception
+	 */
+	public static boolean createFile(String data, String filePath) throws Exception {
+
+		// 디렉토리 생성
+		File savePath = new File(filePath);
+		if (!savePath.exists()) {
+			createDirectoryAndPermissions(savePath);
+		}
+
+		BufferedWriter bw = null;
+		try {
+			bw = new BufferedWriter(new FileWriter(filePath));
+			bw.write(data);
+			bw.flush();
+		} catch (IOException e) {
+			return false;
+		} finally {
+			if (bw != null) {
+				bw.close();
+			}
+		}
+		
+		return true;
+	}
+
+	/**
+	 * List를 JSON 형식으로 변환하여 파일을 생성한다.
+	 * @param list 파일에 쓰기 위한 데이터
+	 * @param filePath 파일 경로
+	 * @return true : 성공, false : 실패
+	 * @throws Exception
+	 */
+	public static boolean createFile(List<?> list, String filePath) throws Exception {
+		if (list == null || list.isEmpty()) {
+			throw new UserException("BIZ.FILE.01").setDebuggingMessage("전달할 내용이 존재하지 않습니다.");
+		}
+
+		// 디렉토리 생성
+		File savePath = new File(filePath);
+		if (!savePath.exists()) {
+			createDirectoryAndPermissions(savePath);
+		}
+
+		BufferedWriter bw = null;
+		try {
+			bw = new BufferedWriter(new FileWriter(filePath));
+
+			for (int i = 0; i < list.size(); i++) {
+				String data = new Gson().toJson(list.get(i));
+				bw.write(data);
+				bw.write('\n');
+			}
+
+			bw.flush();
+		} catch (IOException e) {
+			return false;
+		} finally {
+			if (bw != null) {
+				bw.close();
+			}
+		}
+
+		// 파일 퍼미션을 770으로 변경
+		setFilePermission(savePath.toPath());
+
+		return true;
+	}
+
+	/**
+	 * 파일을 저장할 전체 경로를 생성하여 리턴한다.
+	 */
+	private static String getNewFilePath(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String postfixDir) {
+		String newFilePath = EnvironmentUtil.getProperty("STORG_ROOT_PATH", "") + storgDirRoot.getRootPath();
+		if (StringUtils.isNotBlank(storgDirRoot.getPostfixPattern())) {
+			newFilePath += DateUtil.getCurrentDate(storgDirRoot.getPostfixPattern());
+		}
+
+		if (StringUtils.isNotBlank(postfixDir)) {
+			newFilePath += postfixDir;
+		}
+
+		if (!newFilePath.endsWith("/")) {
+			newFilePath += "/";
+		}
+
+		return newFilePath;
+	}
+
+	/**
+	 * 전달된 폴더와 파일명으로 전체 파일경로를 생성하여 리턴한다. (지정경로에 일자별로 폴더를 생성하여 저장)
+	 * @param rootDir 상위 파일 경로
+	 * @param fileName 파일명
+	 * @return
+	 */
+	public static String generateFileName(String rootDir, String fileName) throws Exception {
+		String newFileName = rootDir + uniqueFileName(fileName);
+		return checkFileName(newFileName, false);
+	}
+
+	/**
+	 * 파일에 유니크한 이름을 구한다.
+	 */
+	private static String uniqueFileName(String fileName) throws Exception {
+		// 서버에 저장할 새로운 파일명을 만든다.
+		StringBuffer newFileName = new StringBuffer();
+		newFileName.append( getRandomString(16,32) );
+		newFileName.append( "_" );
+		newFileName.append( DateUtil.getCurrentDateTime("HHmmss") );
+		if (StringUtils.isNotBlank(fileName)) {
+			newFileName.append( "." );
+			newFileName.append( FilenameUtils.getExtension(fileName) );
+		}
+		return newFileName.toString();
+	}
+
+	/**
+	 * 해당 파일명으로 저장된 데이터가 존재하면 새로운 파일명 리턴
+	 * @param fileName 파일명
+	 * @param overwriteYn 덮어쓰기 여부
+	 * @return
+	 */
+	private static String checkFileName(String fileName, boolean overwriteYn) throws Exception {
+		String newFileName = StringUtils.trimToEmpty(fileName);
+		if (StringUtils.isEmpty(newFileName)) return null;
+
+		// 저장경로 존재여부 검사를 위한 경로 취득
+		String filePath = new File(newFileName).getParentFile().toString();
+
+		// 저장경로 존재여부 검사, 폴더가 존재하지 않으면 생성
+		File tmpFile = new File(filePath);
+		if (!tmpFile.exists()) {
+			createDirectoryAndPermissions(tmpFile);
+		}
+
+		if (!overwriteYn) {
+			// 해당 경로에 같은 파일명이 존재하는지 검사
+			// 같은 파일명이 존재할 경우 파일명에 "_i" 추가
+			int i = 0;
+			String tmpName = newFileName;
+			while (true) {
+				i++;
+				tmpFile = new File(tmpName);
+				if (!tmpFile.exists()) {
+					break;
+				} else {
+					tmpName = FilenameUtils.getFullPath(newFileName) + FilenameUtils.getBaseName(newFileName) + "_" + i + "." + FilenameUtils.getExtension(newFileName);
+					continue;
+				}
+			}
+			newFileName = tmpName;
+		}
+
+		return newFileName;
+	}
+
+	/**
+	 * 유효한 파일 확장자인지 체크
+	 * @param storgDirRoot
+	 * @param filename 업로드할 파일명
+	 */
+	private static void checkFileExt(FileConstant.STORG_DIRECTORY_ROOT storgDirRoot, String filename) throws Exception {
+		// 확장자 유효성이 있으면, 검사
+		if (StringUtils.isNotBlank(storgDirRoot.getFileExt())) {
+			if (!FilenameUtils.isExtension(filename, storgDirRoot.getFileExt().toLowerCase().split(","))) {
+				throw new UserException("BIZ.FILE.03").setDebuggingMessage("유효한 파일 확장자가 아님(업로드된 파일확장자 = " + FilenameUtils.getExtension(filename) + ")");
+			}
+		}
+	}
+
+	/**
+	 * Return a specific length of random string.
+	 * 
+	 * @param size
+	 *            the length of random string to be developed
+	 * @return String random string
+	 */
+	public static String getRandomString(int size) {
+		return randomAlphabetic(size);
+	}
+
+	/**
+	 * Return random string between minimum and maximum digits.
+	 * 
+	 * @param minSize
+	 *            minimum digits
+	 * @param maxSize
+	 *            maximum digits
+	 * @return String random string
+	 */
+	public static String getRandomString(int minSize, int maxSize) {
+		Random generator = new Random(System.currentTimeMillis());
+		int randomLength = generator.nextInt(maxSize - minSize) + minSize;
+
+		return randomAlphabetic(randomLength);
+	}
+
+	private static String randomAlphabetic(int size) {
+		StringBuilder buf = new StringBuilder();
+		GENERATOR.setSeed(System.currentTimeMillis());
+		for (int i = 0; i < size; i++) {
+			buf.append(ALPHAS[GENERATOR.nextInt(52)]);
+		}
+		return buf.toString();
+	}
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/FileUploadUtil.java =====
+
+
+===== SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/SessionUtil.java =====
+package kr.fasol.obix.common.util;
+
+import kr.fasol.obix.common.enums.SessionEnum;
+import lombok.experimental.UtilityClass;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : F/W > Util > 세션 관리 유틸
+ * 프로그램명 : 세션 관리 유틸
+ * 설명 : SessionEnum에 정의된 Key로 세션을 관리하기 위한 유틸
+ * 		  세션키는 SessionEnum에 정의된 Key로만 세션을 추가할 수 있다.
+ *
+ * 클래스 : SessionUtil.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 10.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 10.         정영탁          최초생성
+ */
+@UtilityClass
+public class SessionUtil {
+
+    /**
+     * 세션에 저장된 객체 조회
+     */
+    public static Object get(SessionEnum sessionKey) {
+        return get(sessionKey, Object.class);
+    }
+    /**
+     * 세션에 저장된 객체 조회
+     */
+    public static String getString(SessionEnum sessionKey) {
+        return get(sessionKey, String.class);
+    }
+    /**
+     * 세션에 저장된 객체 조회
+     */
+    @SuppressWarnings("unchecked")
+	public static <T> T get(SessionEnum sessionKey, Class<T> requiredType) {
+		Object obj = RequestContextHolder.currentRequestAttributes().getAttribute(sessionKey.getKey(), RequestAttributes.SCOPE_SESSION);
+		if (obj != null) {
+			if (!requiredType.isAssignableFrom(obj.getClass())) {
+				throw new IllegalArgumentException("Session value [" + obj + "] is not of required type [" + requiredType.getName() + "]");
+			}
+			return (T) obj;
+		}
+		return null;
+    }
+
+    /**
+     * 세션에 객체 저장
+     */
+    public static void put(SessionEnum sessionKey, Object value) {
+    	RequestContextHolder.currentRequestAttributes().setAttribute(sessionKey.getKey(), value, RequestAttributes.SCOPE_SESSION);
+    }
+
+    /**
+     * 세션에서 객체 삭제
+     */
+    public static void remove(SessionEnum sessionKey) {
+    	RequestContextHolder.currentRequestAttributes().removeAttribute(sessionKey.getKey(), RequestAttributes.SCOPE_SESSION);
+    }
+
+    /**
+     * session id 조회
+     */
+    public static String getSessionId() {
+    	return RequestContextHolder.currentRequestAttributes().getSessionId();
+    }
+
+}
+
+===== END SOURCE FILE: obix-common/src/main/java/kr/fasol/obix/common/util/SessionUtil.java =====

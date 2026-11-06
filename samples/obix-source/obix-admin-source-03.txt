@@ -1,0 +1,5336 @@
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/HeadTitleAreaTag.java =====
+package kr.fasol.obix.admin.common.tag;
+
+import jakarta.el.VariableMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.tagext.TagSupport;
+
+import kr.fasol.obix.core.util.EnvironmentUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.jasper.tagplugins.jstl.Util;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 업무구분명 :
+ * 세부업무구분명 : 공통 > Custom Tag > 타이틀(head.title) 출력
+ * 설명 :
+ *
+ * @Class  HeadTitleAreaTag.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+public class HeadTitleAreaTag extends TagSupport {
+
+    private HttpServletRequest request;
+    private String var;
+    private int scope;
+
+    public HeadTitleAreaTag() {
+        this.var = null;
+        this.scope = 1;
+    }
+
+	@Override
+	@SuppressWarnings("unchecked")
+    public int doEndTag() throws JspException {
+        JspWriter out = pageContext.getOut();
+        request = (HttpServletRequest) pageContext.getRequest();
+
+        try {
+			StringBuilder result = new StringBuilder();
+
+            /*
+             * 메뉴 목록에서 Location을 추출
+             */
+			final String headTitle = EnvironmentUtil.getProperty("biz.ui.head.title","");
+
+			if (StringUtils.isNotBlank(headTitle)) {
+				result.append(headTitle);
+			}
+
+            /*
+             * Output에 결과 전송
+             */
+            if (this.var != null) {
+                if (this.scope == 1) {
+                    VariableMapper vm = this.pageContext.getELContext().getVariableMapper();
+                    if (vm != null) {
+                        vm.setVariable(this.var, null);
+                    }
+                }
+                this.pageContext.setAttribute(this.var, result.toString(), this.scope);
+            } else {
+                out.append(result.toString());
+            }
+
+        } catch(Exception e) {
+            throw new JspException(e);
+        }
+        return EVAL_PAGE;
+    }
+
+    public void setVar(String var) {
+        this.var = var;
+    }
+    public void setScope(String scope) {
+        this.scope = Util.getScope(scope);
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/HeadTitleAreaTag.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/LocationAreaTag.java =====
+package kr.fasol.obix.admin.common.tag;
+
+import jakarta.el.VariableMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.tagext.TagSupport;
+
+import kr.fasol.obix.admin.common.session.AdminSessionHelper;
+import kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.jasper.tagplugins.jstl.Util;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.servlet.HandlerMapping;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * 업무구분명 :
+ * 세부업무구분명 : 공통 > Custom Tag > 네비게이션(Line Map) 출력
+ * 설명 :
+ *
+ * @Class  LocationAreaTag.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+public class LocationAreaTag extends TagSupport {
+
+    private HttpServletRequest request;
+    private String var;
+    private int scope;
+
+    public LocationAreaTag() {
+        this.var = null;
+        this.scope = 1;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int doEndTag() throws JspException {
+        JspWriter out = pageContext.getOut();
+        request = (HttpServletRequest) pageContext.getRequest();
+
+        try {
+            StringBuilder result = new StringBuilder();
+
+            List<AdmScrenTranBasQryDTO> locationList = new ArrayList<>();
+            String pathWithinHandlerMapping = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+
+            /*
+             * 메뉴 목록에서 Location을 추출
+             */
+            locationList = FunctionUtil.getMenuList(Objects.requireNonNullElse(AdminSessionHelper.getAdmScrenMenuList(), new ArrayList<>()), pathWithinHandlerMapping);
+
+            if (!locationList.isEmpty()) {
+                String urlAddr;
+                for (int i = locationList.size() - 1; i >= 0; i--) {
+                    urlAddr = locationList.get(i).getUrlAddr();
+                    result.append("<li>");
+                    if (StringUtils.isNotBlank(urlAddr)) {
+                        if (urlAddr.startsWith("http://") || urlAddr.startsWith("https://")) {
+                            result.append("<a href=\"").append(urlAddr).append("\" target=\"_blank\">");
+                            result.append(locationList.get(i).getScrenTranNm());
+                            result.append("</a>");
+                        } else if (urlAddr.startsWith("javascript:")) {
+                            result.append("<a href=\"#none\" onclick=\"").append(urlAddr).append(";return false;\">");
+                            result.append(locationList.get(i).getScrenTranNm());
+                            result.append("</a>");
+                        } else {
+                            result.append("<a href=\"#none\" onclick=\"navigate('").append(urlAddr).append("');return false;\">");
+                            result.append(locationList.get(i).getScrenTranNm());
+                            result.append("</a>");
+                        }
+                    } else {
+                        result.append(locationList.get(i).getScrenTranNm());
+                    }
+                    result.append("</li>");
+                }
+            }
+
+            /*
+             * Output에 결과 전송
+             */
+            if (this.var != null) {
+                if (this.scope == 1) {
+                    VariableMapper vm = this.pageContext.getELContext().getVariableMapper();
+                    if (vm != null) {
+                        vm.setVariable(this.var, null);
+                    }
+                }
+                this.pageContext.setAttribute(this.var, result.toString(), this.scope);
+            } else {
+                out.append(result.toString());
+            }
+
+        } catch(Exception e) {
+            throw new JspException(e);
+        }
+        return EVAL_PAGE;
+    }
+
+    public void setVar(String var) {
+        this.var = var;
+    }
+    public void setScope(String scope) {
+        this.scope = Util.getScope(scope);
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/LocationAreaTag.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/PageHelperTag.java =====
+package kr.fasol.obix.admin.common.tag;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.el.VariableMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.tagext.TagSupport;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import kr.fasol.obix.core.base.IPageInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.jasper.tagplugins.jstl.Util;
+
+/**
+ * 업무구분명 :
+ * 세부업무구분명 : 공통 > Custom Tag > Page Navigation 출력
+ * 설명 :
+ *
+ * ex)
+ * <u:pageHelper urlFormat="javascript:lfGoPage('%s');" value="${output.pageInfo}" />
+ *
+ *
+ * @Class  PageHelperTag.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+public class PageHelperTag extends TagSupport {
+
+    private HttpServletRequest request;
+    private String var;
+    private int scope;
+    private Object value;
+    private String urlFormat;
+
+    public PageHelperTag() {
+        this.var = null;
+        this.scope = 1;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int doEndTag() throws JspException {
+        JspWriter out = pageContext.getOut();
+        request = (HttpServletRequest) pageContext.getRequest();
+
+        try {
+        	Map<String, Object> map;
+        	if (this.value instanceof IPageInfo) {
+        		map = new ObjectMapper().convertValue(this.value, Map.class);
+        	} else {
+        		map = (Map<String, Object>) this.value;
+        	}
+            if (map == null) {
+                map = new HashMap<String, Object>();
+            }
+            map.put("urlFormat", this.urlFormat);
+
+            String result = generate(map);
+
+            /*
+             * Output에 결과 전송
+             */
+            if (this.var != null) {
+                if (this.scope == 1) {
+                    VariableMapper vm = this.pageContext.getELContext().getVariableMapper();
+                    if (vm != null) {
+                        vm.setVariable(this.var, null);
+                    }
+                }
+                this.pageContext.setAttribute(this.var, result, this.scope);
+            } else {
+                out.append(result);
+            }
+
+        } catch(Exception e) {
+            throw new JspException(e);
+        }
+        return EVAL_PAGE;
+    }
+
+    /**
+     * HTML 결과 생성
+     */
+    @SuppressWarnings("unchecked")
+    private String generate(Map<String, Object> map) throws Exception {
+        StringBuilder outputHtml = new StringBuilder();
+        String urlFormat = (String)map.get("urlFormat");
+        int pageNo = (int)map.get("pageNo");
+        int totalCount = (int)map.get("totalCount");
+        //int pageSize = (int)map.get("pageSize");
+        //int pageBlock = (int)map.get("pageBlock");
+        int totalPage = (int)map.get("totalPage");
+        //int startPage = (int)map.get("startPage");
+        //int endPage = (int)map.get("endPage");
+        List<Integer> pages = (List<Integer>)map.get("pages");
+        int firstPage = (int)map.get("firstPage");
+        int prevPage = (int)map.get("prevPage");
+        int nextPage = (int)map.get("nextPage");
+        int lastPage = (int)map.get("lastPage");
+
+        if (totalCount > 0) {
+            if (pageNo > 1) {
+                outputHtml.append("<li class=\"first\"><a href=\"").append(String.format(urlFormat, firstPage)).append("\">처음</a></li>\n");
+                outputHtml.append("<li class=\"prev\"><a href=\"").append(String.format(urlFormat, prevPage)).append("\">이전</a></li>\n");
+            }
+            for (Integer itemNo : pages) {
+                if (itemNo == pageNo) {
+                    outputHtml.append("<li><strong>").append(itemNo).append("</strong></li>");
+                } else {
+                    outputHtml.append("<li><a href=\"").append(String.format(urlFormat, itemNo)).append("\">").append(itemNo).append("</a></li>\n");
+                }
+            }
+            if (pageNo < totalPage) {
+                outputHtml.append("<li class=\"next\"><a href=\"").append(String.format(urlFormat, nextPage)).append("\">다음</a></li>\n");
+                outputHtml.append("<li class=\"last\"><a href=\"").append(String.format(urlFormat, lastPage)).append("\">끝</a></li>\n");
+            }
+        }
+
+        return outputHtml.toString();
+    }
+
+    public void setUrlFormat(String urlFormat) {
+        this.urlFormat = urlFormat;
+    }
+    public void setValue(Object value) {
+        this.value = value;
+    }
+    public void setVar(String var) {
+        this.var = var;
+    }
+    public void setScope(String scope) {
+        this.scope = Util.getScope(scope);
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/PageHelperTag.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/RequestDataTag.java =====
+package kr.fasol.obix.admin.common.tag;
+
+import java.util.Map;
+
+import jakarta.el.VariableMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspWriter;
+import jakarta.servlet.jsp.tagext.TagSupport;
+
+import kr.fasol.obix.core.util.WebUtil;
+import org.apache.jasper.tagplugins.jstl.Util;
+
+import com.google.gson.Gson;
+
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 업무구분명 :
+ * 세부업무구분명 : 공통 > Custom Tag > Request Data 출력
+ * 설명 :
+ *
+ * @Class  RequestDataTag.class
+ * @author  정영탁
+ * @since   2017-07-26
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017-07-26        정영탁    최초생성
+ */
+@Slf4j
+public class RequestDataTag extends TagSupport {
+
+    private HttpServletRequest request;
+    private String var;
+    private int scope;
+
+    public RequestDataTag() {
+        this.var = null;
+        this.scope = 1;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public int doEndTag() throws JspException {
+        JspWriter out = pageContext.getOut();
+        request = (HttpServletRequest) pageContext.getRequest();
+
+        try {
+
+            Map<String, Object> reqMap = WebUtil.parameterMap(request);
+
+            StringBuilder result = new StringBuilder();
+            result.append( new Gson().toJson(reqMap) );
+
+            /*
+             * Output에 결과 전송
+             */
+            if (this.var != null) {
+                if (this.scope == 1) {
+                    VariableMapper vm = this.pageContext.getELContext().getVariableMapper();
+                    if (vm != null) {
+                        vm.setVariable(this.var, null);
+                    }
+                }
+                this.pageContext.setAttribute(this.var, result.toString(), this.scope);
+            } else {
+                out.append(result.toString());
+            }
+
+        } catch(Exception e) {
+            throw new JspException(e);
+        }
+        return EVAL_PAGE;
+    }
+
+    public void setVar(String var) {
+        this.var = var;
+    }
+    public void setScope(String scope) {
+        this.scope = Util.getScope(scope);
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/tag/RequestDataTag.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/util/CommonCodeHelper.java =====
+package kr.fasol.obix.admin.common.util;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import kr.fasol.obix.common.dto.entity.CmnCdGroupDTO;
+import kr.fasol.obix.admin.biz.common.service.CmnCdService;
+import kr.fasol.obix.admin.dto.comm.CmnCdQryDTO;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 코드관리
+ * 프로그램명 : 공통코드 Helper
+ * 설명 :
+ *
+ * 클래스 : ComCodeHelper.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 8. 3.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 8. 3.         정영탁          최초생성
+ */
+@Component
+public class CommonCodeHelper {
+
+	private static CmnCdService cmnCdService;
+
+	@Autowired
+	public CommonCodeHelper(CmnCdService _cmnCdService) {
+		cmnCdService = _cmnCdService;
+	}
+
+	/**
+	 * 코드그룹 조회
+	 * @param cdGroupVal 코드그룹값
+	 */
+	public static CmnCdGroupDTO getCmnCdGroup(String cdGroupVal) throws Exception {
+		return cmnCdService.getCmnCdGroup(cdGroupVal);
+	}
+
+	/**
+	 * 코드목록 조회
+	 * @param cdGroupVal 코드그룹값
+	 */
+	public static List<CmnCdQryDTO> getListCmnCd(String cdGroupVal) throws Exception {
+		return cmnCdService.getListCmnCd(cdGroupVal);
+	}
+	/**
+	 * 코드목록 조회
+	 * @param cdGroupVal 코드그룹값
+	 * @param upCdVal 상위코드값
+	 */
+	public static List<CmnCdQryDTO> getListCmnCd(String cdGroupVal, String upCdVal) throws Exception {
+		return cmnCdService.getListCmnCd(cdGroupVal, upCdVal);
+	}
+
+	/**
+	 * 코드정보 조회
+	 * @param cdGroupVal 코드그룹값
+	 * @param cdVal 코드값
+	 */
+	public static CmnCdQryDTO getCmnCd(String cdGroupVal, String cdVal) throws Exception {
+		return cmnCdService.getCmnCd(cdGroupVal, cdVal);
+	}
+	/**
+	 * 코드정보 조회
+	 * @param cdGroupVal 코드그룹값
+	 * @param upCdVal 상위코드값
+	 * @param cdVal 코드값
+	 */
+	public static CmnCdQryDTO getCmnCd(String cdGroupVal, String upCdVal, String cdVal) throws Exception {
+		return cmnCdService.getCmnCd(cdGroupVal, upCdVal, cdVal);
+	}
+	/**
+	 * 코드명 조회
+	 * @param cdGroupVal 코드그룹값
+	 * @param cdVal 코드값
+	 */
+	public static String getCmnCdNm(String cdGroupVal, String cdVal) throws Exception {
+		CmnCdQryDTO dto = getCmnCd(cdGroupVal, cdVal);
+		return (dto != null ? dto.getCdNm() : null);
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/util/CommonCodeHelper.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/util/PswdValidUtil.java =====
+package kr.fasol.obix.admin.common.util;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.lang.NonNull;
+
+import kr.fasol.obix.core.exception.UserException;
+import lombok.experimental.UtilityClass;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 공통 > Util > Admin 사용자 비밀번호 검증
+ * 프로그램명 : Admin 사용자 비밀번호 검증
+ * 설명 :
+ *
+ * 클래스 : java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 9.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 9.         정영탁          최초생성
+ */
+@UtilityClass
+public class PswdValidUtil {
+
+    private static final int USERID_MIN_LENGTH = 6;
+    private static final int USERID_MAX_LENGTH = 13;
+
+    private static final int PWSD_COMBI_2_MIN_LENGTH = 10;
+    private static final int PWSD_COMBI_3_MIN_LENGTH = 8;
+
+    private static final String PATTERN_SPECIAL_CHAR = "[!@#$%^&*()+=-]";
+    private static final String PATTERN_SAME_CHAR = "(.)\\1\\1";
+
+    private static final String USERID_PATTERN_REGEX = "^[0-9a-zA-z]{6,13}$";
+    private static final String[] USERID_COMBI_PATTERNS = {"[0-9]", "[a-zA-z]"};
+
+    private static final String[] PSWD_COMBI_PATTERNS = {"[0-9]", "[a-z]", "[A-Z]", PATTERN_SPECIAL_CHAR};
+
+    /**
+     * 비밀 번호 정책에 따른 비밀 번호 검증
+     * 영문대문자, 영문소문자, 숫자, 특수문자의 4종류 조합으로 생성
+     * - 2종류 조합시 10자리 이상, 3종류 조합시 8자리 이상
+     * @param pswd 검증 대상 비밀번호
+     * @return 검증 여부( 성공:true, 실패: false)
+     */
+    private static boolean isValidByPasswordPolicy(@NonNull final String pswd) {
+        int matchCnt = 0;
+        for (String iter : PSWD_COMBI_PATTERNS) {
+            Pattern pattern = Pattern.compile(iter);
+            Matcher matcher = pattern.matcher(pswd);
+            if (matcher.find()) {
+                matchCnt++;
+            }
+        }
+
+        if (matchCnt == 2 && PWSD_COMBI_2_MIN_LENGTH <= StringUtils.length(pswd)) {
+            return true;
+        } else if (matchCnt >= 3 && PWSD_COMBI_3_MIN_LENGTH <= StringUtils.length(pswd)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 특수문자 포함여부
+     * @param pswd 검증 대상 비밀번호
+     * @return 검증 여부( 성공:true, 실패: false) - 특수문자가 포함되어야 함
+     */
+    private static boolean isValidSpecialChar(@NonNull final String pswd) {
+        Pattern pattern = Pattern.compile(PATTERN_SPECIAL_CHAR);
+        Matcher matcher = pattern.matcher(pswd);
+        return matcher.find();
+    }
+
+    /**
+     * 동일한 문자 체크 (예: aaa, 777)
+     * @param pswd 검증 대상 비밀번호
+     * @return 검증 여부( 성공:true, 실패: false ) - 동일한 문자/숫자가 있는 경우 false
+     */
+    public static boolean isValidDuplicate3Character(@NonNull final String pswd) {
+        Pattern p = Pattern.compile(PATTERN_SAME_CHAR);
+        Matcher m = p.matcher(pswd);
+        if (!m.find()) return true;
+        return false;
+    }
+
+    /**
+     * 연속된 문자 체크 (예: abc, 123)
+     * @param pswd
+     * @return 검증 여부( 성공:true, 실패: false) - 연속된 글자가 있는 경우 false
+     */
+    private static boolean isValidContinuous3Charater(@NonNull final String pswd) {
+        byte[] bytes = pswd.getBytes();
+
+        for (int i = 1; i < bytes.length - 1; i++) {
+            if (bytes[i] == (byte) ((bytes[i - 1] + bytes[i + 1]) / 2)
+                    && 2 == Math.abs(bytes[i - 1] - bytes[i + 1])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String QWERTY_SEQUENCE = "qwertyuiop|asdfghjkl|zxcvbnm";
+
+    /**
+     * Qwerty 기반 배열 연속성 여부
+     * - 4자 이상만 체크 한다.
+     * - 가로만 해야 할 듯 하다. 세로까지 고려하기에 경우의 수가 많다.
+     * @param pswd
+     * @return
+     */
+    private static boolean isValidQwerySequence4(@NonNull final String pswd) {
+        // forward, backward 둘다 되도록 처리함
+        for (int i = 0; i < pswd.length() - 3; i++) {
+            String str = pswd.substring(i, i + 4);
+
+            if (!Pattern.matches("[a-z]{4}", str)) continue;
+
+            if (QWERTY_SEQUENCE.contains(str)
+                    || QWERTY_SEQUENCE.contains(StringUtils.reverse(str)))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 비밀번호만 가지고 검증하는 로직
+     * @param pswd 검증 대상 비밀번호
+     * @return 비밀번호 검증 여부 (true: 통과)
+     */
+    private static boolean isValidPassword(@NonNull final String pswd) {
+        return (isValidSpecialChar(pswd)           // 비밀번호 검증 : 특수문자여부
+                && isValidByPasswordPolicy(pswd)    // 비밀번호 검증 : 비밀번호 정책
+                && isValidContinuous3Charater(pswd) // 비밀번호 검증 : 연속된 숫자/문자 3개 이상 여부
+                && isValidDuplicate3Character(pswd) // 비밀번호 검증 : 동일 숫자/문자 3개 연속으로 있는경우
+                && isValidQwerySequence4(pswd)
+        );
+    }
+
+    /**
+     * 비밀 번호와 유사성 유사성 여부
+     * - 동일한 문자/숫자가 아이디/패스워드에 동일하게 들어가는지 확인
+     * @param pswd 검증 대상 비밀번호
+     * @param arg 비교대상 문자
+     * @return 검증 여부( 성공:true, 실패: false) - 유사한 글자가 있는 경우 false
+     */
+    private static boolean isValidEqualCharacter(@NonNull final String pswd, @NonNull String arg) {
+    	if (pswd.contains(arg)) { return false; }
+    	return true;
+    }
+
+    /**
+     * 비밀 번호와 유사성 유사성 여부
+     * - 동일한 3글자 이상의 문자/숫자가 아이디/패스워드에 동일하게 들어가는지 확인
+     * @param pswd 검증 대상 비밀번호
+     * @param arg 비교대상 문자 ( 3글자 이상 )
+     * @return 검증 여부( 성공:true, 실패: false) - 유사한 글자가 있는 경우 false
+     */
+    private static boolean isValidEqual3Character(@NonNull final String pswd, @NonNull String arg) {
+    	int len = arg.length();
+    	for (int i = 0; i < len - 2; i++) {
+    		if (pswd.contains(arg.substring(i, i + 3))) return false;
+    	}
+    	return true;
+    }
+
+    /**
+     * 아이디와 유사성 여부 체크 복수형
+     * 복수의 문자열을 비밀번호와 넣어서 비교하기 위한 함수
+     * @param pswd 검증 대상 비밀번호
+     * @param args 복수의 문자열 Collection 형태로 전달
+     * @return 검증 여부( 성공:true, 실패: false)  - 유사한 글자가 있는 경우 false
+     */
+    private static boolean isValidEqual3Character(@NonNull final String pswd, @NonNull List<String> args) {
+        for (String arg : args) {
+            if (!isValidEqual3Character(pswd, arg))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * 비밀번호 유효일자 체크
+     * - 비밀번호는 최근 변경일자 기준 60일 동안만 유효하다.
+     * - 비밀번호 마지막 수정 일자를 기준으로 60일을 더한 일자와 오늘 일자를 변경한다.
+     * @param lastChngDt 마지막 비밀번호 수정 일자
+     * @return (lastChngDt+60) >= now : true // (lastChngDt+60) < now : false
+     */
+    private static int PSWD_VALID_DAYS = 60;
+
+    @NonNull
+    public static boolean isValidPswdChngDt(String lastChngDt) {
+        if (StringUtils.isBlank(lastChngDt)) return true;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate validPswdDt = LocalDate.parse(lastChngDt, formatter).plusDays(60);
+
+        // 비밀번호 유효일자가 오늘보다 이후이면 true, 아니면 false;
+        return validPswdDt.isAfter(LocalDate.now());
+    }
+
+    /**
+     * 사용자 ID 유효성 체크
+     * - 영문(대소문자 구분없음)숫자 혼용 6~13
+     * - 영문 숫자 조합 필수
+     * @param bnknUserId
+     * @return
+     */
+    private static boolean isValidUserId(String bnknUserId) {
+        // 조합 여부
+        int matchCnt = 0;
+        for (String iter : USERID_COMBI_PATTERNS) {
+            Pattern pattern = Pattern.compile(iter);
+            Matcher matcher = pattern.matcher(bnknUserId);
+            if (matcher.find()) {
+                matchCnt++;
+            }
+        }
+
+        if (2 > matchCnt) return false;
+
+        return Pattern.matches(USERID_PATTERN_REGEX, bnknUserId);
+    }
+
+    /**
+     * 비밀번호 테스트
+     * @param pswd 비밀번호
+     * @param userId 사용자 아이디
+     * @param cpno 사용자 전화번호
+     * @throws UserException
+     */
+    public static boolean checkValidPswd(@NonNull String pswd, String userId, String cpno) throws UserException {
+        //비밀번호 유효성 체크
+        // TODO 비밀번호유효성검증 오류코드 정의 필요
+
+        if (StringUtils.isBlank(pswd)) {
+            throw new UserException("BB3007").setDebuggingMessage("비밀번호 미입력");
+        }
+        if (!isValidByPasswordPolicy(pswd)) {
+            throw new UserException("BB3009").setDebuggingMessage("영대문자, 영소문자, 숫자, 특수문자를 조합해서 8자리 이상.");
+        }
+        if (!isValidSpecialChar(pswd)) {
+            throw new UserException("BB3009").setDebuggingMessage("특수문자 미포함");
+        }
+        if (!isValidContinuous3Charater(pswd)) {
+            throw new UserException("BB3010").setDebuggingMessage("연속된 문자(숫자)");
+        }
+        if (!isValidDuplicate3Character(pswd)) {
+            throw new UserException("BB3011").setDebuggingMessage("동일한 문자(숫자)");
+        }
+        if (StringUtils.isNotBlank(userId)) {
+            if (!isValidEqualCharacter(pswd, userId)) {
+                throw new UserException("BB3018").setDebuggingMessage("아이디와 동일한 문자 포함");
+            }
+        }
+        if (StringUtils.isNotBlank(cpno)) {
+            String cpno1 = cpno.startsWith("010") ? cpno.substring(3) : cpno;
+            if (!isValidEqual3Character(pswd, cpno1)) {
+                throw new UserException("BB3013").setDebuggingMessage("사용자의 휴대전화와 동일한 문자(숫자) 3개이상 포함");
+            }
+        }
+        if (!isValidQwerySequence4(pswd)) {
+            throw new UserException("BB3014").setDebuggingMessage("키보드상의 연속된 배열");
+        }
+        return true;
+    }
+
+    /**
+     * 비밀번호 유효성 체크 패스워드 Only
+     *
+     * @param pswd 신규비밀번호
+     * @return
+     * @throws Exception
+     */
+    public static boolean checkValidPswd(@NonNull final String pswd) throws Exception {
+        return checkValidPswd(pswd, null, null);
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/common/util/PswdValidUtil.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+@Configuration
+@Import({
+	AppConfigCommon.class,
+	AppConfigDatabase.class,
+	AppConfigThread.class,
+	AppConfigTransaction.class
+})
+public class AppConfig {
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigCommon.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.core.config.CommonConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+
+@Configuration
+@ComponentScan(basePackages = "kr.fasol", includeFilters = {
+		@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Service.class),
+		@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Repository.class)
+	}, excludeFilters = {
+		@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class),
+		@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Configuration.class)
+	})
+public class AppConfigCommon extends CommonConfiguration {
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigCommon.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigDatabase.java =====
+package kr.fasol.obix.admin.config;
+
+import com.zaxxer.hikari.HikariDataSource;
+import kr.fasol.obix.core.config.DataSourceConfiguration;
+import kr.fasol.obix.core.config.db.interceptor.AuditInterceptor;
+import kr.fasol.obix.core.config.db.interceptor.SqlLogInterceptor;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 설정 > Database 설정
+ * 프로그램명 : Database 설정
+ * 설명 :
+ *
+ * 클래스 : AppConfigDatabase.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 12. 13.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 12. 13.         정영탁          최초생성
+ */
+@Configuration
+@Lazy
+@MapperScan(basePackages = "kr.fasol.**.dao", annotationClass = Mapper.class)
+@EnableTransactionManagement
+@EnableConfigurationProperties
+public class AppConfigDatabase extends DataSourceConfiguration {
+
+	@Autowired
+	private Environment environment;
+
+    @Value("${spring.application.name:}")
+    private String applicationName;
+
+    @Override
+	public String getDbName() {
+		return environment.getProperty("database.default-config-name");
+	}
+
+    /**
+     * 데이터소스 설정
+     */
+    @Bean(name = "dataSource")
+    @Primary
+    public DataSource dataSource() {
+    	if (datasourcePropertyHolder().isJndiEnabled()) {
+            JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
+            return dataSourceLookup.getDataSource(datasourcePropertyHolder().getJndiName());
+    	} else {
+            final HikariDataSource dataSource = new HikariDataSource();
+            dataSource.setJdbcUrl(dbcpDBProperties().getUrl());
+            dataSource.setDriverClassName(dbcpDBProperties().getDriverClassName());
+            dataSource.setUsername(dbcpDBProperties().getUsername());
+            dataSource.setPassword(dbcpDBProperties().getPassword());
+            dataSource.setConnectionTestQuery(hikariProperties().getValidationQuery());
+            dataSource.setMaximumPoolSize(dbcpDBProperties().getMaxActive());
+            dataSource.setMinimumIdle(dbcpDBProperties().getMinIdle());
+            dataSource.setPoolName(dbcpDBProperties().getPoolName());
+            dataSource.setDataSourceJNDI(datasourcePropertyHolder().getJndiName());
+            dataSource.addDataSourceProperty("autoReconnect", dbcpDBProperties().isAutoReconnect());
+            dataSource.addDataSourceProperty("cacheServerConfiguration", dbcpDBProperties().isCacheServerConfiguration());
+            dataSource.addDataSourceProperty("useLocalSessionState", dbcpDBProperties().isUseLocalSessionState());
+            dataSource.addDataSourceProperty("elideSetAutoCommits", dbcpDBProperties().isElideSetAutoCommits());
+            dataSource.addDataSourceProperty("connectTimeout", dbcpDBProperties().getConnectTimeout());
+            dataSource.addDataSourceProperty("socketTimeout", dbcpDBProperties().getSocketTimeout());
+            dataSource.addDataSourceProperty("useSSL", dbcpDBProperties().isUseSSL());
+            dataSource.addDataSourceProperty("useAffectedRows", dbcpDBProperties().isUseAffectedRows());
+            dataSource.addDataSourceProperty("useUnicode", dbcpDBProperties().isUseUnicode());
+            dataSource.addDataSourceProperty("characterEncoding", dbcpDBProperties().getCharacterEncoding());
+            return dataSource;
+    	}
+    }
+
+    /**
+     * SqlSessionFactory 설정
+     */
+    @Bean(name = "sqlSessionFactory")
+    @Primary
+    public SqlSessionFactory sqlSessionFactory(@Qualifier("dataSource") DataSource dataSource) throws Exception {
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        sqlSessionFactoryBean.setDataSource(dataSource);
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        if (StringUtils.isNotBlank(mybatisProperties().getConfigLocation())) {
+        	sqlSessionFactoryBean.setConfigLocation (resolver.getResource(mybatisProperties().getConfigLocation()));
+        }
+        if (StringUtils.isNotBlank(mybatisProperties().getMapperLocations())) {
+        	sqlSessionFactoryBean.setMapperLocations(resolver.getResources(mybatisProperties().getMapperLocations()));
+        	sqlSessionFactoryBean.setConfiguration(configuration());
+        }
+        sqlSessionFactoryBean.setTypeAliasesPackage(mybatisProperties().getTypeAliasesPackage());
+        sqlSessionFactoryBean.setTypeHandlersPackage(mybatisProperties().getTypeHandlersPackage());
+
+        // Mybatis Plugin 추가(Audit, SqlLog 등)
+        sqlSessionFactoryBean.addPlugins(new SqlLogInterceptor());
+        sqlSessionFactoryBean.addPlugins(new AuditInterceptor(applicationName));
+
+        return sqlSessionFactoryBean.getObject();
+    }
+
+    /**
+     * SqlSessionTemplate 설정
+     */
+    @Bean(name = "sqlSessionTemplate")
+    @Primary
+    public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) throws Exception {
+        final SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory);
+        return sqlSessionTemplate;
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigDatabase.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigThread.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.core.config.AsyncThreadConfiguration;
+import kr.fasol.obix.core.util.EnvironmentUtil;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+import java.util.concurrent.Executor;
+
+/**
+ * 시스템명 : APP
+ * 업무구분명 : F/W 설정 > Async Thread 설정
+ * 프로그램명 : Async Thread 설정
+ * 설명 :
+ *
+ * 클래스 : DbkThreadConfig.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 8. 31.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 8. 31.         정영탁          최초생성
+ */
+@Configuration
+@EnableAsync
+public class AppConfigThread extends AsyncThreadConfiguration {
+
+	/**
+	 * ThreadPool 기본 설정
+	 */
+	@Bean
+	@Primary
+	public Executor asyncExecutor() {
+		int corePoolSize = EnvironmentUtil.getProperty("spring.thread-pool.default.core-pool-size", Integer.class);
+		int maxPoolSize = EnvironmentUtil.getProperty("spring.thread-pool.default.max-pool-size", Integer.class);
+		int queueCapacity = EnvironmentUtil.getProperty("spring.thread-pool.default.queue-capacity", Integer.class);
+		int keepAliveSeconds = EnvironmentUtil.getProperty("spring.thread-pool.default.keep-alive-seconds", Integer.class);
+		int awaitTerminationSeconds = EnvironmentUtil.getProperty("spring.thread-pool.default.await-termination-seconds", Integer.class);
+		String threadNamePrefix = EnvironmentUtil.getProperty("spring.thread-pool.default.thread-name-prefix");
+
+		return configThreadPoolTaskExecutor(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, awaitTerminationSeconds, threadNamePrefix);
+	}
+
+	/**
+	 * Async Service용 ThreadPool 설정
+	 */
+	@Bean(name = "asyncServiceThreadPoolTaskExecutor")
+	public Executor asyncServiceThreadPoolTaskExecutor() {
+		int corePoolSize = EnvironmentUtil.getProperty("spring.thread-pool.service.core-pool-size", Integer.class);
+		int maxPoolSize = EnvironmentUtil.getProperty("spring.thread-pool.service.max-pool-size", Integer.class);
+		int queueCapacity = EnvironmentUtil.getProperty("spring.thread-pool.service.queue-capacity", Integer.class);
+		int keepAliveSeconds = EnvironmentUtil.getProperty("spring.thread-pool.service.keep-alive-seconds", Integer.class);
+		int awaitTerminationSeconds = EnvironmentUtil.getProperty("spring.thread-pool.service.await-termination-seconds", Integer.class);
+		String threadNamePrefix = EnvironmentUtil.getProperty("spring.thread-pool.service.thread-name-prefix");
+
+		return configThreadPoolTaskExecutor(corePoolSize, maxPoolSize, queueCapacity, keepAliveSeconds, awaitTerminationSeconds, threadNamePrefix);
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigThread.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigTransaction.java =====
+package kr.fasol.obix.admin.config;
+
+import java.util.Collections;
+import java.util.HashMap;
+
+import javax.sql.DataSource;
+
+import org.springframework.aop.Advisor;
+import org.springframework.aop.aspectj.AspectJExpressionPointcut;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 설정 > DB의 Transaction 설정
+ * 프로그램명 : DB의 Transaction 설정
+ * 설명 :
+ *
+ * 클래스 : AppConfigTransaction.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 12. 13.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 12. 13.         정영탁          최초생성
+ */
+@Configuration
+public class AppConfigTransaction {
+
+    /**
+     * TransactionManager 설정
+     */
+	@Bean(name={"txManager", "transactionManager"})
+	public DataSourceTransactionManager txManager(@Qualifier("dataSource") DataSource dataSource) {
+		DataSourceTransactionManager dataSourceTransactionManager = new DataSourceTransactionManager();
+		dataSourceTransactionManager.setDataSource(dataSource);
+		return dataSourceTransactionManager;
+	}
+
+	@Bean
+	public TransactionInterceptor txAdvice(DataSourceTransactionManager txManager) {
+		RuleBasedTransactionAttribute txAttribute = new RuleBasedTransactionAttribute();
+		txAttribute.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		txAttribute.setRollbackRules(Collections.singletonList(new RollbackRuleAttribute(Exception.class)));
+
+		HashMap<String, TransactionAttribute> txMethods = new HashMap<String, TransactionAttribute>();
+		txMethods.put("*", txAttribute);
+
+		NameMatchTransactionAttributeSource txAttributeSource = new NameMatchTransactionAttributeSource();
+		txAttributeSource.setNameMap(txMethods);
+
+		TransactionInterceptor txAdvice = new TransactionInterceptor();
+		txAdvice.setTransactionAttributeSource(txAttributeSource);
+		txAdvice.setTransactionManager(txManager);
+
+		return txAdvice;
+	}
+
+	@Bean
+	public Advisor txAdvisor(@Qualifier("txManager") DataSourceTransactionManager txManager) {
+		AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+		pointcut.setExpression(
+				"execution(* kr.fasol..service.*.*(..))"
+		);
+		return new DefaultPointcutAdvisor(pointcut, txAdvice(txManager));
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/AppConfigTransaction.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/CacheManagerConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.admin.common.cache.CustomCacheEntryListener;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.jcache.JCacheCacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.cache.Caching;
+import javax.cache.configuration.FactoryBuilder;
+import javax.cache.configuration.MutableCacheEntryListenerConfiguration;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
+import javax.cache.spi.CachingProvider;
+
+/**
+ * 시스템명 :
+ * 업무구분명 : 설정 > Cache 설정
+ * 프로그램명 : Cache 설정
+ * 설명 :
+ *
+ * 클래스 : CacheManagerConfig.java
+ * 작성자 : 정영탁
+ * 작성일 : 2024. 11. 12.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2024. 11. 12.        정영탁			  최초작성
+ */
+@Configuration
+@EnableCaching
+public class CacheManagerConfig {
+
+    @Bean
+    public javax.cache.CacheManager jCacheManager() {
+        CachingProvider cachingProvider = Caching.getCachingProvider();
+        return cachingProvider.getCacheManager();
+    }
+
+    @Bean
+    public org.springframework.cache.CacheManager cacheManager(javax.cache.CacheManager jCacheManager) {
+
+        // Cache Entry Listener Configuration
+        MutableCacheEntryListenerConfiguration<Object, Object> cacheEntryListenerConfig =
+                new MutableCacheEntryListenerConfiguration<>(
+                        FactoryBuilder.factoryOf(CustomCacheEntryListener.class),
+                        null, // CacheEntryEventFilter (필터가 필요 없는 경우 null)
+                        true, // 동기 설정
+                        true  // 오래된 값 필요 여부
+                );
+
+        javax.cache.configuration.Configuration<Object, Object> configuration = new MutableConfiguration<>()
+                .addCacheEntryListenerConfiguration(cacheEntryListenerConfig) // 캐시에 리스너 구성 추가
+                .setTypes(Object.class, Object.class)
+                .setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.ONE_DAY))
+                .setStoreByValue(false)
+                .setStatisticsEnabled(true);
+
+        // Cache 생성
+        jCacheManager.createCache("BIZ_MENU_LIST", configuration);
+        jCacheManager.createCache("BIZDAY_LIST", configuration);
+        jCacheManager.createCache("CMN_CD_GROUP", configuration);
+        jCacheManager.createCache("CMN_CD", configuration);
+
+        return new JCacheCacheManager(jCacheManager);
+    }
+
+}
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/CacheManagerConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/JasyptConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.core.config.JasyptConfiguration;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 설정 > Jasypt 암복호화 설정
+ * 프로그램명 : Jasypt 암복호화 설정
+ * 설명 : 
+ *
+ * 클래스 : JasyptConfig.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 25.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 25.        정영탁			  최초작성
+ */
+@Configuration
+public class JasyptConfig extends JasyptConfiguration {
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/JasyptConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/MultipartConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import jakarta.servlet.MultipartConfigElement;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.util.unit.DataSize;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+
+/**
+ * 설명 : Multipart 설정
+ *
+ * 클래스 : MultipartConfig.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023/08/22
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023/08/22         정영탁          최초생성
+ */
+@Configuration
+public class MultipartConfig {
+
+    /**
+     * @return [MultipartResolver 설정] StandardServletMultipartResolver 등록
+     */
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
+    }
+
+    @Bean
+    public MultipartConfigElement multipartConfigElement() {
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setMaxRequestSize(DataSize.ofMegabytes(50L));
+        factory.setMaxFileSize(DataSize.ofMegabytes(50L));
+        return factory.createMultipartConfig();
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/MultipartConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/ServletFilterConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.admin.common.filter.WebSiteMeshFilter;
+import kr.fasol.obix.core.config.ServletFilterConfiguration;
+import kr.fasol.obix.core.filter.XssProtectFilter;
+import kr.fasol.obix.core.webe2e.filter.WebE2eFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.web.servlet.support.ErrorPageFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.CharacterEncodingFilter;
+
+/**
+ * 설명 : Servlet Filter 설정
+ *
+ * @Class  ServletFilterConfig.class
+ * @author  정영탁
+ * @since   2017. 7. 15.
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017. 7. 15.        정영탁           최초생성
+ */
+@Configuration
+public class ServletFilterConfig extends ServletFilterConfiguration {
+
+	/**
+	 * E2E 암복호화를 위한 Filter
+	 */
+	@Bean
+	public FilterRegistrationBean<WebE2eFilter> webE2eFilter() {
+		FilterRegistrationBean<WebE2eFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new WebE2eFilter());
+		filter.addUrlPatterns("*.do", "*.view", "*.frag", "*.indv", "*.blnk", "*.file", "*.excl", "*.cmd", "*.json", "*.xml");
+		filter.setOrder(1);
+		return filter;
+	}
+
+	/**
+	 * Spring CharacterEncodingFilter 설정
+	 */
+	@Bean
+	public FilterRegistrationBean<CharacterEncodingFilter> encodingFilter() {
+		FilterRegistrationBean<CharacterEncodingFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new CharacterEncodingFilter());
+		filter.addInitParameter("encoding", "UTF-8");
+		filter.addInitParameter("forceEncoding", "true");
+		filter.addUrlPatterns("*.do", "*.view", "*.frag", "*.indv", "*.blnk", "*.file", "*.excl", "*.cmd", "*.json", "*.xml");
+		filter.setOrder(2);
+		return filter;
+	}
+
+	/**
+	 * XSS(크로스 사이트 스크립트) Filter
+	 */
+	@Bean
+	public FilterRegistrationBean<XssProtectFilter> xssProtectFilter() {
+		FilterRegistrationBean<XssProtectFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new XssProtectFilter());
+		filter.addUrlPatterns("*.do", "*.view", "*.frag", "*.indv", "*.blnk", "*.file", "*.excl", "*.cmd", "*.json", "*.xml");
+		filter.setOrder(3);
+		return filter;
+	}
+
+	/**
+	 * SiteMesh Template을 위한 Filter
+	 */
+	@Bean
+	public FilterRegistrationBean<WebSiteMeshFilter> siteMeshFilter() {
+		FilterRegistrationBean<WebSiteMeshFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new WebSiteMeshFilter());
+		filter.addUrlPatterns("*.view", "*.frag", "*.indv", "*.blnk");
+		filter.setOrder(4);
+		return filter;
+	}
+
+	/*
+	 * 서버에서 ErrorPageFilter 에러처리(Disabled 설정)
+	 */
+	@Bean
+	public ErrorPageFilter errorPageFilter() {
+		return new ErrorPageFilter();
+	}
+	@Bean
+	public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(ErrorPageFilter filter) {
+		FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+		filterRegistrationBean.setFilter(filter);
+		filterRegistrationBean.setEnabled(false);
+		return filterRegistrationBean;
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/ServletFilterConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/WebMvcConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import kr.fasol.obix.admin.common.interceptor.AdminRequiredLoginInterceptor;
+import kr.fasol.obix.admin.common.interceptor.AdminCommonInterceptor;
+import kr.fasol.obix.core.handler.CustomHandlerExceptionResolver;
+import kr.fasol.obix.core.view.CustomMappingJackson2HttpMessageConverter;
+import kr.fasol.obix.core.view.CustomMappingJackson2JsonView;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.mvc.WebContentInterceptor;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
+import org.springframework.web.servlet.resource.EncodedResourceResolver;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 설명 : Web MVC 설정
+ *
+ * @Class  WebMvcConfig.class
+ * @author  정영탁
+ * @since   2017. 7. 15.
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2017. 7. 15.        정영탁           최초생성
+ */
+@Configuration
+@RequiredArgsConstructor
+public class WebMvcConfig extends WebMvcConfigurationSupport {
+
+	// =====================================================================
+	// RequestMappingHandlerMapping 설정
+	// =====================================================================
+
+	// -------------------------------------------------------------
+	// RequestMappingHandlerMapping 설정 View Controller 추가
+	// -------------------------------------------------------------
+	@Override
+	public void addViewControllers(ViewControllerRegistry registry) {
+		registry.addViewController("/").setViewName("forward:/index.jsp");
+		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
+	}
+
+	@Bean
+	public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
+		RequestMappingHandlerAdapter rmha = super.createRequestMappingHandlerAdapter();
+		return rmha;
+	}
+
+	// -------------------------------------------------------------
+	// HandlerExceptionResolver 설정
+	// -------------------------------------------------------------
+    /**
+     * 예외상황(Exception)을 처리해 주는 Resolver 설정
+     */
+	@Override
+	public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+        CustomHandlerExceptionResolver customHandlerExceptionResolver = new CustomHandlerExceptionResolver();
+        customHandlerExceptionResolver.setDefaultErrorView("/error/error");
+        resolvers.add(customHandlerExceptionResolver);
+	}
+
+	// -------------------------------------------------------------
+	// View Resolver 설정
+	// -------------------------------------------------------------
+    /**
+     * ViewResolver 설정
+     */
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+        // JSON View
+    	CustomMappingJackson2JsonView jsonView = new CustomMappingJackson2JsonView();
+        // ContentNegotiation 설정
+        registry.enableContentNegotiation(jsonView);
+        // JSP View
+        registry.jsp("/WEB-INF/jsp", ".jsp");
+    }
+
+    /**
+     * Response 메시지 Type Converter
+     */
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    	converters.add(customMappingJackson2HttpMessageConverterConfig());
+    	converters.add(new ResourceHttpMessageConverter());
+    }
+    @Bean
+    public HttpMessageConverter<?> customMappingJackson2HttpMessageConverterConfig() {
+    	CustomMappingJackson2HttpMessageConverter converter = new CustomMappingJackson2HttpMessageConverter();
+    	return converter;
+    }
+
+    /**
+     * 컨텐츠 MediaType 설정
+     */
+	@SuppressWarnings("deprecation")
+	@Override
+	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    	configurer.favorParameter(true)
+    		.favorPathExtension(true)
+	        .parameterName("mediaType")
+	        .ignoreAcceptHeader(true)
+	        .defaultContentType(MediaType.TEXT_HTML)
+	        .mediaType("do", MediaType.TEXT_HTML)
+	        .mediaType("view", MediaType.TEXT_HTML)
+	        .mediaType("frag", MediaType.TEXT_HTML)
+	        .mediaType("indv", MediaType.TEXT_HTML)
+	        .mediaType("blnk", MediaType.TEXT_HTML)
+	        .mediaType("file", MediaType.APPLICATION_OCTET_STREAM)
+	        .mediaType("excl", MediaType.APPLICATION_OCTET_STREAM)
+	        .mediaType("cmd", MediaType.APPLICATION_JSON)
+	        .mediaType("json", MediaType.APPLICATION_JSON)
+	        .mediaType("xml", MediaType.APPLICATION_XML);
+	}
+
+	@Bean
+	public WebContentInterceptor webContentInterceptor() {
+		WebContentInterceptor interceptor = new WebContentInterceptor();
+		interceptor.setCacheSeconds(-1); // 캐시 처리용
+		interceptor.setCacheControl(CacheControl.noCache());
+		return interceptor;
+	}
+
+	@Override
+	public LocaleResolver localeResolver() {
+		SessionLocaleResolver resolver = new SessionLocaleResolver();
+		return resolver;
+	}
+
+    /**
+     * resource 폴더 캐시 설정
+     */
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/resources/**")
+	        .addResourceLocations("/resources/")
+	        .setCachePeriod(3600)	// 캐시 처리용(단위:초)
+	        .setCacheControl(CacheControl.maxAge(3600, TimeUnit.SECONDS).mustRevalidate())
+	        .resourceChain(true)
+	        .addResolver(new PathResourceResolver())
+	        .addResolver(new EncodedResourceResolver())
+        ;
+	}
+
+	// -------------------------------------------------------------
+	// RequestMappingHandlerMapping 설정 - Interceptor 추가
+	// -------------------------------------------------------------
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(webContentInterceptor())
+				.addPathPatterns("/**")
+				;
+
+		// Locale 설정
+		registry.addInterceptor(new LocaleChangeInterceptor())
+				.addPathPatterns("/**")
+		;
+
+		// 기본 Interceptor 추가
+		registry.addInterceptor(new AdminCommonInterceptor())
+				.addPathPatterns("/**/*.view", "/**/*.frag", "/**/*.json", "/**/*.file", "/**/*.indv")
+				.excludePathPatterns("/resources/**")
+				.excludePathPatterns("/common/**", "/system/**")
+				.excludePathPatterns("/error**", "/error/*")
+				.excludePathPatterns("/_hcheck**")
+				;
+
+		// 로그인 체크Interceptor
+		registry.addInterceptor(new AdminRequiredLoginInterceptor())
+		        .addPathPatterns("/admin/**")
+		        .excludePathPatterns("/", "/index.jsp")
+		        .excludePathPatterns("/resources/**")
+		        .excludePathPatterns("/common/**", "/system/**")
+		        .excludePathPatterns("/error**", "/error/*")
+		        .excludePathPatterns("/_hcheck**")
+		        .excludePathPatterns("/admin/cm/so/ACMSO*")
+		        ;
+
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/WebMvcConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/WebSecurityConfig.java =====
+package kr.fasol.obix.admin.config;
+
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.firewall.DefaultHttpFirewall;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > 보안
+ * 프로그램명 : 
+ * 설명 : 
+ *
+ * 클래스 : WebSecurityConfig.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 19.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 19.        정영탁			  최초작성
+ */
+@Configuration
+public class WebSecurityConfig {
+
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+		http
+				.csrf(CsrfConfigurer::disable)
+				.formLogin(Customizer.withDefaults())
+				.authorizeHttpRequests(authorizeRequest ->
+						authorizeRequest
+								.anyRequest().permitAll()
+				)
+				.headers(
+						headersConfigurer ->
+								headersConfigurer
+										.frameOptions(
+												HeadersConfigurer.FrameOptionsConfig::sameOrigin
+										)
+				);
+
+		return http.build();
+	}
+
+	@Bean
+	public WebSecurityCustomizer webSecurityCustomizer() {
+		return (web) ->
+				web
+					.httpFirewall(new DefaultHttpFirewall())
+					.ignoring()
+					.requestMatchers(
+							PathRequest.toStaticResources().atCommonLocations()
+					);
+	}
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/config/WebSecurityConfig.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/login/AdminLoginDAO.java =====
+package kr.fasol.obix.admin.dao.admin.login;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmLginTxnDTO;
+import kr.fasol.obix.common.dto.entity.AdmUserBasDTO;
+import kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO;
+import kr.fasol.obix.common.dto.entity.AdmUserPwdChngTxnDTO;
+import kr.fasol.obix.common.dto.entity.AdmUserStusChngTxnDTO;
+import kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO;
+import kr.fasol.obix.admin.dto.biz.cm.AdmUserBasSesDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmGroupBasQryDTO;
+
+/**
+ * 시스템명 :  
+ * 업무구분명 : Admin > 공통 > 로그인
+ * 프로그램명 : Admin 로그인
+ * 설명 : 
+ *
+ * 클래스 : AdminLoginDAO
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 03. 17.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 03. 17.        정영탁			  최초작성
+ */
+@Mapper
+@Repository("AdminLoginDAO")
+public interface AdminLoginDAO {
+
+	/**********************************************
+	 * 로그인
+	 **********************************************/
+
+	/**
+	 * 로그인 사용자조회
+	 * @author 정영탁
+	 */
+	public AdmUserBasSesDTO selectAdmUserBasByAuth(AdmUserBasSesDTO req) throws Exception;
+
+	/**
+	 * 로그인 내역 insert
+	 * @author 정영탁
+	 */
+	public int insertAdmLginTxn(AdmLginTxnDTO req) throws Exception;
+	
+	/**
+	 * 비밀번호 오류횟수 update
+	 * @author 정영탁
+	 */
+	public int updateAdmUserBasPwdErr(AdmUserBasDTO req) throws Exception;
+	/**
+	 * 비밀번호 오류횟수 초기화 update
+	 * @author 정영탁
+	 */
+	public int updateAdmUserBasPwdInit(AdmUserBasDTO req) throws Exception;
+	/**
+	 * 어드민사용자상태코드 update
+	 * @author 정영탁
+	 */
+	public int updateAdmUserBasStusCd(AdmUserBasDTO req) throws Exception;
+
+    /**
+	 * 프로그램명 : 사용자 사용자 상태 변경 내역 저장
+	 * @author 정영탁
+	 */
+    public int insertAdmUserStusChngTxn(AdmUserStusChngTxnDTO req) throws Exception;
+
+    /**
+	 * 프로그램명 : 사용자 설정정보 저장(이력)
+	 * @author 정영탁
+	 */
+    public int insertAdmUserBasHst(AdmUserBasDTO req) throws Exception;
+
+
+	/**
+	 * 사용자의 그룹 정보 조회
+	 */
+	public AdmGroupBasQryDTO getAdmUserMainGroup(AdmUserBasDTO req) throws Exception;
+	/**
+	 * 사용자 메뉴 권한
+	 */
+	public List<AdmScrenTranBasQryDTO> listUserAdmScrenTran(AdmUserBasDTO req) throws Exception;
+	
+	/**
+	 * 시스템관리자 전체 메뉴 권한
+	 */
+	public List<AdmScrenTranBasQryDTO> listSysAdmScrenTran(AdmUserBasDTO req) throws Exception;
+
+	/**
+	 * 즐겨찾기 정보 조회
+	 */
+	public AdmUserFvrtDtlDTO getAdmUserFvrtDtl(AdmUserFvrtDtlDTO req) throws Exception;
+
+
+	/**********************************************
+	 * 비밀번호 재설정
+	 **********************************************/
+
+    /**
+	 * 프로그램명 : 최근 5회 변경 비밀번호 중 동일 비밀번호 건수 가져오기
+	 */
+	int getAdmUserSamePwdCnt(AdmUserBasDTO req) throws Exception;
+	
+    /**
+	 * 프로그램명 : 비밀번호 재설정
+	 */
+	int updateAdmUserBasPwd(AdmUserBasDTO req) throws Exception;
+	
+    /**
+	 * 프로그램명 : 비밀번호 재설정 이력 생성
+	 */
+	int insertAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO req) throws Exception;
+
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/login/AdminLoginDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBlpsApndxTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민게시글첨부내역		
+ * 프로그램명 : 어드민게시글첨부내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmBlpsApndxTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmBlpsApndxTxnDAO")
+public interface AdmBlpsApndxTxnDAO {		
+		
+	/**	
+     * @desc 어드민게시글첨부내역 목록조회		
+     * @param AdmBlpsApndxTxnDTO		
+     */		
+	public List<AdmBlpsApndxTxnDTO> listAdmBlpsApndxTxn(AdmBlpsApndxTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글첨부내역 정보조회	
+	 * @param AdmBlpsApndxTxnDTO	
+	 */	
+	public AdmBlpsApndxTxnDTO selectAdmBlpsApndxTxn(AdmBlpsApndxTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글첨부내역 등록	
+	 * @param AdmBlpsApndxTxnDTO	
+	 */	
+	public int insertAdmBlpsApndxTxn(AdmBlpsApndxTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글첨부내역 수정	
+	 * @param AdmBlpsApndxTxnDTO	
+	 */	
+	public int updateAdmBlpsApndxTxn(AdmBlpsApndxTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글첨부내역 삭제	
+	 * @param AdmBlpsApndxTxnDTO	
+	 */	
+	public int deleteAdmBlpsApndxTxn(AdmBlpsApndxTxnDTO input) throws Exception;
+		
+}		
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBlpsApndxTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBlpsBlrpTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민게시글댓글내역		
+ * 프로그램명 : 어드민게시글댓글내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmBlpsBlrpTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmBlpsBlrpTxnDAO")
+public interface AdmBlpsBlrpTxnDAO {		
+		
+	/**	
+     * @desc 어드민게시글댓글내역 목록조회		
+     * @param AdmBlpsBlrpTxnDTO		
+     */		
+	public List<AdmBlpsBlrpTxnDTO> listAdmBlpsBlrpTxn(AdmBlpsBlrpTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글댓글내역 정보조회	
+	 * @param AdmBlpsBlrpTxnDTO	
+	 */	
+	public AdmBlpsBlrpTxnDTO selectAdmBlpsBlrpTxn(AdmBlpsBlrpTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글댓글내역 등록	
+	 * @param AdmBlpsBlrpTxnDTO	
+	 */	
+	public int insertAdmBlpsBlrpTxn(AdmBlpsBlrpTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글댓글내역 수정	
+	 * @param AdmBlpsBlrpTxnDTO	
+	 */	
+	public int updateAdmBlpsBlrpTxn(AdmBlpsBlrpTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시글댓글내역 삭제	
+	 * @param AdmBlpsBlrpTxnDTO	
+	 */	
+	public int deleteAdmBlpsBlrpTxn(AdmBlpsBlrpTxnDTO input) throws Exception;
+		
+}		
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBlpsBlrpTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBulbdBasDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmBulbdBasQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민게시판기본		
+ * 프로그램명 : 어드민게시판기본 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmBulbdBasDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmBulbdBasDAO")
+public interface AdmBulbdBasDAO {		
+		
+	/**	
+     * @desc 어드민게시판기본 목록조회		
+     * @param AdmBulbdBasDTO		
+     */		
+	public List<AdmBulbdBasQryDTO> selectListAdmBulbdBas(AdmBulbdBasQryDTO input) throws Exception;
+	
+	/**	
+     * @desc 어드민게시판기본 목록개수조회		
+     * @param AdmBulbdBasDTO		
+     */		
+	public int selectCountAdmBulbdBas(AdmBulbdBasQryDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판기본 정보조회	
+	 * @param AdmBulbdBasDTO	
+	 */	
+	public AdmBulbdBasDTO selectAdmBulbdBas(AdmBulbdBasDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판기본 등록	
+	 * @param AdmBulbdBasDTO	
+	 */	
+	public int insertAdmBulbdBas(AdmBulbdBasDTO input) throws Exception;
+	
+	/**	
+	 * @desc 어드민게시판기본 등록	
+	 * @param AdmBulbdBasDTO	
+	 */	
+	public int updateMergeAdmBulbdBas(AdmBulbdBasDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판기본 수정	
+	 * @param AdmBulbdBasDTO	
+	 */	
+	public int updateAdmBulbdBas(AdmBulbdBasDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판기본 삭제	
+	 * @param AdmBulbdBasDTO	
+	 */	
+	public int deleteAdmBulbdBas(AdmBulbdBasDTO input) throws Exception;
+		
+}		
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBulbdBasDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBulbdTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmBulbdTxnDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민게시판내역		
+ * 프로그램명 : 어드민게시판내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmBulbdTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmBulbdTxnDAO")
+public interface AdmBulbdTxnDAO {		
+		
+	/**	
+     * @desc 어드민게시판내역 목록조회		
+     * @param AdmBulbdTxnDTO		
+     */		
+	public List<AdmBulbdTxnDTO> listAdmBulbdTxn(AdmBulbdTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판내역 정보조회	
+	 * @param AdmBulbdTxnDTO	
+	 */	
+	public AdmBulbdTxnDTO selectAdmBulbdTxn(AdmBulbdTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판내역 등록	
+	 * @param AdmBulbdTxnDTO	
+	 */	
+	public int insertAdmBulbdTxn(AdmBulbdTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판내역 수정	
+	 * @param AdmBulbdTxnDTO	
+	 */	
+	public int updateAdmBulbdTxn(AdmBulbdTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민게시판내역 삭제	
+	 * @param AdmBulbdTxnDTO	
+	 */	
+	public int deleteAdmBulbdTxn(AdmBulbdTxnDTO input) throws Exception;
+		
+}		
+
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmBulbdTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupAthDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupAthDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민그룹권한		
+ * 프로그램명 : 어드민그룹권한 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmGroupAthDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmGroupAthDAO")
+public interface AdmGroupAthDAO {
+		
+	/**
+	 * @desc 어드민그룹권한 목록조회
+	 * @param AdmGroupAthDTO
+	 */
+	public List<AdmGroupAthDTO> listAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민그룹권한 정보조회	
+	 * @param AdmGroupAthDTO	
+	 */	
+	public AdmGroupAthDTO selectAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+		
+	/**
+	 * @desc 어드민그룹권한 등록
+	 * @param AdmGroupAthDTO
+	 */
+	public int insertAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+	
+	/**	
+	 * @desc 어드민그룹권한 수정	
+	 * @param AdmGroupAthDTO	
+	 */	
+	public int updateAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민그룹권한 삭제	
+	 * @param AdmGroupAthDTO	
+	 */	
+	public int deleteAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹권한 등록 및 수정
+	 * @param AdmGroupAthDTO
+	 */
+	public int mergeAdmGroupAth(AdmGroupAthDTO input) throws Exception;
+}		
+
+
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupAthDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupBasDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupBasDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmGroupBasQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민그룹기본		
+ * 프로그램명 : 어드민그룹기본 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmGroupBasDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmGroupBasDAO")
+public interface AdmGroupBasDAO {
+
+	/**	
+	 * @desc 어드민그룹기본 목록조회
+	 * @param AdmGroupBasDTO
+	 */
+	public List<AdmGroupBasQryDTO> selectListAdmGroupBas(AdmGroupBasQryDTO input) throws Exception;
+
+	/**
+	 * 어드민그룹기본 목록 개수 조회
+	 * @param AdmUserBasDTO
+	 */
+	public int selectCountAdmGroupBas(AdmGroupBasQryDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹기본 정보조회
+	 * @param AdmGroupBasDTO
+	 */
+	public AdmGroupBasDTO selectAdmGroupBas(AdmGroupBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹기본 등록
+	 * @param AdmGroupBasDTO
+	 */
+	public int insertAdmGroupBas(AdmGroupBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹기본 수정
+	 * @param AdmGroupBasDTO
+	 */
+	public int updateAdmGroupBas(AdmGroupBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹기본 삭제
+	 * @param AdmGroupBasDTO
+	 */
+	public int deleteAdmGroupBas(AdmGroupBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹 그룹아이디 중복 조회
+	 * @param AdmGroupBasDTO	
+	 */
+	public int selectOneCountGroupId(AdmGroupBasDTO input) throws Exception;
+	
+	/**
+	 * @desc 어드민그룹기본 등록 및 수정
+	 * @param AdmGroupBasDTO
+	 */
+	public int mergeAdmGroupBas(AdmGroupBasDTO input) throws Exception;
+	
+	/**	
+	 * @desc 어드민그룹정보 목록조회
+	 * @param AdmGroupBasDTO
+	 */
+	public List<AdmGroupBasDTO> listAdmGroupInfo(AdmGroupBasDTO input) throws Exception;
+
+}
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupBasDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupUserRelDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupUserRelDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민그룹사용자관계		
+ * 프로그램명 : 어드민그룹사용자관계 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmGroupUserRelDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmGroupUserRelDAO")
+public interface AdmGroupUserRelDAO {
+
+	/**	
+	 * @desc 어드민그룹사용자관계 목록조회
+	 * @param AdmGroupUserRelDTO
+	 */
+	public List<AdmGroupUserRelDTO> listAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민그룹사용자관계 정보조회
+	 * @param AdmGroupUserRelDTO
+	 */
+	public AdmGroupUserRelDTO selectAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민그룹사용자관계 등록
+	 * @param AdmGroupUserRelDTO
+	 */
+	public int insertAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민그룹사용자관계 이력 등록
+	 * @param AdmGroupUserRelDTO
+	 */
+	public int insertAdmGroupUserRelHst(AdmGroupUserRelDTO input) throws Exception;
+
+	/**
+	 * 프로그램명 : 사용자 그룹ROLE 목록 초기화
+	 * 작성자 : 남시현
+	 */
+    public int resetAdmGroupUserRel(AdmGroupUserRelDTO req) throws Exception;
+    
+	/**
+	 * 프로그램명 : 사용자 그룹ROLE 목록 저장
+	 * 작성자 : 남시현
+	 */
+    public int mergeBulkAdmGroupUserRel(Map<String, List<AdmGroupUserRelDTO>> req) throws Exception;
+
+	/**
+	 * @desc 어드민그룹사용자관계 수정
+	 * @param AdmGroupUserRelDTO
+	 */
+	public int updateAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민그룹사용자관계 삭제
+	 * @param AdmGroupUserRelDTO
+	 */
+	public int deleteAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+	
+	/**
+	 * @desc 어드민그룹사용자관계 수정
+	 * @param AdmGroupUserRelDTO
+	 */
+	public int mergeAdmGroupUserRel(AdmGroupUserRelDTO input) throws Exception;
+
+}
+
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmGroupUserRelDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmLginTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmLginTxnDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자로그인내역		
+ * 프로그램명 : 어드민사용자로그인내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmLginTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmLginTxnDAO")
+public interface AdmLginTxnDAO {		
+		
+	/**	
+     * @desc 어드민사용자로그인내역 목록조회		
+     * @param AdmLginTxnDTO		
+     */		
+	public List<AdmLginTxnDTO> listAdmLginTxn(AdmLginTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자로그인내역 정보조회	
+	 * @param AdmLginTxnDTO	
+	 */	
+	public AdmLginTxnDTO selectAdmLginTxn(AdmLginTxnDTO input) throws Exception;
+
+}		
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmLginTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmScrenTranBasDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmScrenTranBasDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmScrenGroupQryDTO;
+import kr.fasol.obix.admin.dto.biz.sy.UrlCompareDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민화면거래기본		
+ * 프로그램명 : 어드민화면거래기본 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmScrenTranBasDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmScrenTranBasDAO")
+public interface AdmScrenTranBasDAO {		
+
+	/**
+	 * @desc 어드민화면거래기본 목록조회
+	 * @param AdmScrenTranBasDTO
+	 */
+	public List<AdmScrenTranBasDTO> listAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민화면거래기본 계층별 목록조회
+	 * @param AdmScrenTranBasDTO
+	 */
+	public List<AdmScrenTranBasDTO> listAdmScrenTranBasByHierarchy(AdmScrenTranBasDTO input) throws Exception;
+
+	/**
+	 * @desc 어드민화면거래기본 정보조회
+	 * @param AdmScrenTranBasDTO
+	 */
+	public AdmScrenTranBasDTO selectAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+		
+	/**
+	 * @desc 어드민화면거래기본 등록
+	 * @param AdmScrenTranBasDTO
+	 */
+	public int insertAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+		
+	/**
+	 * @desc 어드민화면거래기본 수정
+	 * @param AdmScrenTranBasDTO
+	 */
+	public int updateAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+		
+	/**
+	 * @desc 어드민화면거래기본 삭제
+	 * @param AdmScrenTranBasDTO
+	 */
+	public int deleteAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+	
+	/**
+	 * @desc 어드민화면거래기본 수정
+	 * @param AdmScrenTranBasDTO
+	 */
+	public int updateMergeAdmScrenTranBas(AdmScrenTranBasDTO input) throws Exception;
+	
+	/**
+	 * @desc 어드민화면그룹 목록조회
+	 * @param AdmScrenTranBasDTO
+	 */
+	public List<AdmScrenGroupQryDTO> listAdmScrenGroup(AdmScrenGroupQryDTO input) throws Exception;
+	
+	/**
+	 * @desc 어드민화면그룹 목록조회
+	 * @param AdmScrenTranBasDTO
+	 */
+	public int selectCountAdmScrenGroup(AdmScrenGroupQryDTO input) throws Exception;
+
+	/**
+	 * ASYAU10101 미등록 URL 현황 조회 - 구분코드가 '메뉴 그룹'이 아닌 사용:Y 화면거래 전체 목록 조회
+	 */
+	public List<UrlCompareDTO> listValidAdmScrenTranBas() throws Exception;
+
+}
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmScrenTranBasDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmTranTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.admin.dto.biz.sy.AdmTranTxnQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자거래내역		
+ * 프로그램명 : 어드민사용자거래내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmUserBasDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmTranTxnDAO")
+public interface AdmTranTxnDAO {
+
+	/**
+	 * 어드민사용자거래내역 목록조회
+	 */
+	List<AdmTranTxnQryDTO> listAdmTranTxn(AdmTranTxnQryDTO input) throws Exception;
+	
+	/**
+	 * 어드민사용자거래내역 목록조회 엑셀
+	 */
+	List<AdmTranTxnQryDTO> listAllAdmTranTxn(AdmTranTxnQryDTO input) throws Exception;
+
+	/**
+	 * 어드민사용자거래내역 검색목록 개수 조회 
+	 */
+	int selectCountAdmTranTxn(AdmTranTxnQryDTO input) throws Exception;
+
+	/**
+	 * 어드민사용자거래내역 insert
+	 */
+	Integer insertAdmTranTxn(AdmTranTxnQryDTO input) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmTranTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserAthDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmUserAthDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmUserAthQryDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmUserAthTreeDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자권한		
+ * 프로그램명 : 어드민사용자권한 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmUserAthDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmUserAthDAO")
+public interface AdmUserAthDAO {		
+
+	/**
+	 * 프로그램명 : 사용자 권한 정보 조회
+	 */
+    List<AdmUserAthTreeDTO> listAllAdmUserAthTree(AdmUserAthTreeDTO req) throws Exception;
+    
+	/**
+	 * 프로그램명 : 사용자 권한 정보 초기화
+	 */
+    int resetAdmUserAth(AdmUserAthDTO req) throws Exception;
+
+    /**
+	 * 프로그램명 : 사용자 권한 정보 저장
+	 */
+    int mergeBulkAdmUserAth(Map<String, List<AdmUserAthDTO>> req) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자권한 정보조회	
+	 * @param AdmUserAthDTO	
+	 */	
+	public AdmUserAthDTO selectAdmUserAth(AdmUserAthDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자권한 등록	
+	 * @param AdmUserAthDTO	
+	 */	
+	public int insertAdmUserAth(AdmUserAthDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자권한 이력 저장	
+	 * @param AdmUserAthDTO	
+	 */	
+	public int insertAdmUserAthHst(AdmUserAthDTO input) throws Exception;
+	
+	/**	
+	 * @desc 어드민사용자권한 수정	
+	 * @param AdmUserAthDTO	
+	 */	
+	public int updateAdmUserAth(AdmUserAthDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자권한 삭제	
+	 * @param AdmUserAthDTO	
+	 */	
+	public int deleteAdmUserAth(AdmUserAthDTO input) throws Exception;
+
+
+    /**
+	 * 프로그램명 : 사용자 권한 목록 조회
+	 */
+	List<AdmUserAthQryDTO> listAdmUserAth(AdmUserAthQryDTO req) throws Exception;
+	
+	/**
+	 * 프로그램명 : 사용자 권한 목록 전체 조회
+	 */
+	List<AdmUserAthQryDTO> listAllAdmUserAth(AdmUserAthQryDTO req) throws Exception;
+	
+	/**
+	 * 프로그램명 : 사용자 권한 목록 전체 조회 (Total Count 가져오기)
+	 */
+	int getAllAdmUserAthTotalCnt(AdmUserAthQryDTO convertDTO) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserAthDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserBasDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmUserBasDTO;
+import kr.fasol.obix.admin.biz.admin.sy.dto.ASYAU10201DTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmGroupUserRelQryDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmUserBasQryDTO;
+import kr.fasol.obix.admin.dto.biz.sy.AdmUserGroupQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자기본		
+ * 프로그램명 : 어드민사용자기본 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmUserBasDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmUserBasDAO")
+public interface AdmUserBasDAO {		
+	/**
+	 * 관리자-사용자 목록 조회(paging포함)
+	 * @param AdmUserBasDTO
+	 */
+	public List<AdmUserBasDTO> selectListAdmUserBas(AdmUserBasDTO input) throws Exception;
+	
+	/**
+	 * 관리자-사용자 목록 개수 조회
+	 * @param AdmUserBasDTO
+	 */
+	public int selectCountAdmUserBas(AdmUserBasDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자기본 정보조회	
+	 * @param AdmUserBasDTO	
+	 */	
+	public AdmUserBasQryDTO selectAdmUserBas(AdmUserBasQryDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자기본 정보조회(전체)	
+	 * @param AdmUserBasDTO	
+	 */	
+	public AdmUserBasQryDTO selectAllAdmUserBas(AdmUserBasQryDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자기본 등록	
+	 * @param AdmUserBasDTO	
+	 */	
+	public int insertAdmUserBas(AdmUserBasDTO input) throws Exception;
+
+	/**	
+	 * @desc 어드민사용자기본 이력 등록	
+	 * @param AdmUserBasDTO	
+	 */	
+	public int insertAdmUserBasHst(AdmUserBasDTO input) throws Exception;
+	
+	/**	
+	 * @desc 어드민사용자기본 수정	
+	 * @param AdmUserBasDTO	
+	 */	
+	public int updateAdmUserBas(AdmUserBasDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자기본 삭제	
+	 * @param AdmUserBasDTO	
+	 */	
+	public int deleteAdmUserBas(AdmUserBasDTO input) throws Exception;
+
+	/**
+	 * 관리자-사용자 아이디 중복 조회
+	 * @param AdmUserBasDTO
+	 */
+	public ASYAU10201DTO selectOneCountUserId(AdmUserBasDTO input);
+	
+	/**
+	 * 어드민사용자그룹 목록 건수 조회
+	 * @param AdmUserGroupQryDTO
+	 */
+	public int selectCountAdmUserGroup(AdmUserGroupQryDTO input);
+
+	/**
+	 * 어드민사용자그룹 목록조회
+	 * @param AdmUserGroupQryDTO
+	 */
+	public List<AdmUserGroupQryDTO> listAdmUserGroup(AdmUserGroupQryDTO input);
+
+	/**
+	 * 어드민사용자그룹 목록조회 전체
+	 * @param AdmUserGroupQryDTO
+	 */
+	public List<AdmUserGroupQryDTO> listAllAdmUserGroup(AdmUserGroupQryDTO input);
+
+	/**
+	 * 프로그램명 : 사용자 그룹관계 조회
+	 */
+	List<AdmGroupUserRelQryDTO> listAllAdmGroupByUser(AdmGroupUserRelQryDTO req) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserBasDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserFvrtDtlDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자즐겨찾기상세		
+ * 프로그램명 : 어드민사용자즐겨찾기상세 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmUserFvrtDtlDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmUserFvrtDtlDAO")
+public interface AdmUserFvrtDtlDAO {		
+		
+	/**	
+     * @desc 어드민사용자즐겨찾기상세 목록조회		
+     * @param AdmUserFvrtDtlDTO		
+     */		
+	public List<AdmUserFvrtDtlDTO> listAdmUserFvrtDtl(AdmUserFvrtDtlDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자즐겨찾기상세 정보조회	
+	 * @param AdmUserFvrtDtlDTO	
+	 */	
+	public AdmUserFvrtDtlDTO selectAdmUserFvrtDtl(AdmUserFvrtDtlDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자즐겨찾기상세 등록	
+	 * @param AdmUserFvrtDtlDTO	
+	 */	
+	public int insertAdmUserFvrtDtl(AdmUserFvrtDtlDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자즐겨찾기상세 수정	
+	 * @param AdmUserFvrtDtlDTO	
+	 */	
+	public int updateAdmUserFvrtDtl(AdmUserFvrtDtlDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자즐겨찾기상세 삭제	
+	 * @param AdmUserFvrtDtlDTO	
+	 */	
+	public int deleteAdmUserFvrtDtl(AdmUserFvrtDtlDTO input) throws Exception;
+		
+}		
+
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserFvrtDtlDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserPwdChngTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.AdmUserPwdChngTxnDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 어드민사용자비밀번호변경내역		
+ * 프로그램명 : 어드민사용자비밀번호변경내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : AdmUserPwdChngTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("AdmUserPwdChngTxnDAO")
+public interface AdmUserPwdChngTxnDAO {		
+		
+	/**	
+     * @desc 어드민사용자비밀번호변경내역 목록조회		
+     * @param AdmUserPwdChngTxnDTO		
+     */		
+	public List<AdmUserPwdChngTxnDTO> listAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자비밀번호변경내역 정보조회	
+	 * @param AdmUserPwdChngTxnDTO	
+	 */	
+	public AdmUserPwdChngTxnDTO selectAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자비밀번호변경내역 등록	
+	 * @param AdmUserPwdChngTxnDTO	
+	 */	
+	public int insertAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자비밀번호변경내역 수정	
+	 * @param AdmUserPwdChngTxnDTO	
+	 */	
+	public int updateAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO input) throws Exception;
+		
+	/**	
+	 * @desc 어드민사용자비밀번호변경내역 삭제	
+	 * @param AdmUserPwdChngTxnDTO	
+	 */	
+	public int deleteAdmUserPwdChngTxn(AdmUserPwdChngTxnDTO input) throws Exception;
+		
+}		
+	
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/AdmUserPwdChngTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/BtchBasDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import kr.fasol.obix.common.dto.entity.BtchBasDTO;
+import kr.fasol.obix.admin.dto.biz.sy.BtchBasQryDTO;
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+/**
+ * 시스템명 :  
+ * 업무구분명 : Admin > 배치기본
+ * 프로그램명 : 배치기본 DAO
+ * 설명 : 
+ *
+ * 클래스 : BtchBasDAO.java
+ * 작성자 : 최정환
+ * 작성일 : 2023. 03. 13.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 03. 11.        최정환			  최초작성
+ */
+@Mapper
+@Repository("BtchBasDAO")
+public interface BtchBasDAO {
+
+	/**
+	 * @desc 배치기본 목록조회
+	 */
+	public List<BtchBasQryDTO> selectListBtchBas(BtchBasQryDTO input) throws Exception;
+
+	/**
+	 * 배치기본 목록 개수 조회
+	 */
+	public int selectCountBtchBas(BtchBasQryDTO input) throws Exception;
+
+	/**
+	 * @desc 배치기본 정보조회
+	 */
+	public BtchBasDTO selectBtchBas(BtchBasDTO input) throws Exception;
+
+	/**
+	 * @desc 배치기본 등록
+	 */
+	public int insertBtchBas(BtchBasDTO input) throws Exception;
+
+	/**
+	 * @desc 배치기본 수정
+	 */
+	public int updateBtchBas(BtchBasDTO input) throws Exception;
+
+	/**
+	 * @desc 배치기본 삭제
+	 */
+	public int deleteBtchBas(BtchBasDTO input) throws Exception;
+
+	/**
+	 * @desc 배치기본 수정
+	 */
+	public int updateMergeBtchBas(BtchBasDTO input) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/BtchBasDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/BtchExeTxnDAO.java =====
+package kr.fasol.obix.admin.dao.admin.sy;
+
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.BtchBasDTO;
+import kr.fasol.obix.common.dto.entity.BtchExeTxnDTO;
+import kr.fasol.obix.admin.dto.biz.sy.BtchExeTxnQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 배치실행내역		
+ * 프로그램명 : 배치실행내역 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : BtchExeTxnDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("BtchExeTxnDAO")
+public interface BtchExeTxnDAO {
+
+	/**
+	 * 배치기본 목록 조회
+	 */
+	List<BtchBasDTO> listBtchBas(BtchBasDTO req) throws SQLException;
+
+	/**
+	 * 배치기본 상세 조회
+	 */
+	BtchBasDTO selectBtchBas(BtchBasDTO req) throws SQLException;
+
+	/**
+	 * 배치실행내역 조회
+	 */
+	List<BtchExeTxnDTO> listBtchExeTxn(BtchExeTxnDTO req) throws SQLException;
+
+	/**
+	 * @desc 배치실행이력 목록조회
+	 */
+	public List<BtchExeTxnQryDTO> selectListBtchExeTxn(BtchExeTxnQryDTO input) throws Exception;
+
+	/**
+	 * @desc 배치실행이력 목록개수조회
+	 */
+	public int selectCountBtchExeTxn(BtchExeTxnQryDTO input) throws Exception;
+
+	/**
+	 * @desc 배치실행내역 정보조회
+	 */
+	public BtchExeTxnDTO selectBtchExeTxn(BtchExeTxnDTO input) throws Exception;
+
+	/**
+	 * @desc 배치실행내역 등록
+	 */
+	public int insertBtchExeTxn(BtchExeTxnDTO input) throws Exception;
+
+	/**
+	 * @desc 배치실행내역 수정
+	 */
+	public int updateBtchExeTxn(BtchExeTxnDTO input) throws Exception;
+
+	/**
+	 * @desc 배치실행내역 삭제
+	 */
+	public int deleteBtchExeTxn(BtchExeTxnDTO input) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/admin/sy/BtchExeTxnDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/BizDayDAO.java =====
+package kr.fasol.obix.admin.dao.comm;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.HoldyBasDTO;
+import kr.fasol.obix.admin.dto.comm.HoldyBasQryDTO;
+
+/**
+ * 업무구분명 :
+ * 세부업무구분명 : 공통 > 영업일조회
+ * 프로그램명 : 영업일조회 DAO
+ * 설명 :
+ *
+ * @Class BizDayDAO.class
+ * @since 2021/04/15
+ * @author 정영탁
+ * @version 1.0
+ *
+ * @Copyright (c) Finance All Solutions.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021/04/15        정영탁          최초생성
+ */
+@Mapper
+@Repository("BizDayDAO")
+public interface BizDayDAO {
+
+    /**
+     * 영업일 목록 조회(휴일조회)
+     */
+    public List<HoldyBasQryDTO> listHoldyBas(HoldyBasQryDTO req) throws Exception;
+
+    /**
+     * 영업일 등록
+     */
+    public Integer insertHoldyBas(HoldyBasDTO req) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/BizDayDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/CmnCdDAO.java =====
+package kr.fasol.obix.admin.dao.comm;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.CmnCdDTO;
+import kr.fasol.obix.common.dto.entity.CmnCdGroupDTO;
+import kr.fasol.obix.admin.dto.comm.CmnCdQryDTO;
+
+/**		
+ * 시스템명 :  		
+ * 업무구분명 : Admin > 공통코드	
+ * 프로그램명 : 공통코드 DAO		
+ * 설명 : 		
+ *		
+ * 클래스 : CmnCdDAO.java		
+ * 작성자 : 최정환		
+ * 작성일 : 2023. 03. 13.		
+ * --------------------------------------------------------------------		
+ * Modification Information		
+ * --------------------------------------------------------------------		
+ * 수정일               수정자            수정내용		
+ * --------------------------------------------------------------------		
+ * 2023. 03. 11.        최정환		
+ */
+@Mapper
+@Repository("CmnCdDAO")
+public interface CmnCdDAO {		
+
+	/*
+	 * 공통
+	 */
+	/**
+	 * 코드그룹 조회
+	 */
+	public List<CmnCdGroupDTO> listCmnCdGroup() throws Exception;
+
+	/**
+	 * 코드목록 조회
+	 * @param req 코드그룹값
+	 */
+	public List<CmnCdQryDTO> listCmnCdByCdGroupVal(CmnCdQryDTO req) throws Exception;
+
+	/**
+	 * 코드정보 조회
+	 * @param req 코드그룹값,코드값
+	 */
+	public CmnCdQryDTO selectCmnCdByCdVal(CmnCdQryDTO req) throws Exception;
+
+	/*
+	 * 공통코드그룹
+	 * - CMN_CD_GROUP
+	 */
+	/**
+	 * 코드그룹 조회
+	 */
+	public List<CmnCdGroupDTO> selectListCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+	
+	/**
+	 * 공통코드그룹 목록 개수 조회	
+	 */
+	public int selectCountCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+	/**
+	 * 공통코드그룹 정보조회
+	 */
+	public CmnCdGroupDTO selectCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+	/**
+	 * 공통코드그룹 등록
+	 */
+	public Integer insertCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+	/**
+	 * 공통코드그룹 수정
+	 */
+	public int updateCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+	/**
+	 * 공통코드그룹 삭제
+	 */
+	public int deleteCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+	/**
+	 * 공통코드그룹 등록
+	 */
+	public int updateMergeCmnCdGroup(CmnCdGroupDTO input) throws Exception;
+
+
+	/*
+	 * 공통 코드
+	 * - CMN_CD
+	 */
+	/**
+	 * 코드목록 조회
+	 * @param req 코드그룹값
+	 */
+	public List<CmnCdDTO> selectListCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 공통코드 목록 개수 조회	
+	 */
+	public int selectCountCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 코드정보 조회
+	 * @param req 코드그룹값,코드값
+	 */
+	public CmnCdDTO selectCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 공통코드 등록
+	 */
+	public Integer insertCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 공통코드 수정
+	 */
+	public int updateCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 공통코드 삭제
+	 */
+	public int deleteCmnCd(CmnCdDTO input) throws Exception;
+
+	/**
+	 * 공통코드 등록
+	 */
+	public int updateMergeCmnCd(CmnCdDTO input) throws Exception;
+	
+}		
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/CmnCdDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/SysStupDAO.java =====
+package kr.fasol.obix.admin.dao.comm;
+
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Repository;
+
+import kr.fasol.obix.common.dto.entity.SysStupVarTxnDTO;
+
+/**
+ * 시스템명 : 전체
+ * 업무구분명 : 공통 > 시스템 > 시스템설정
+ * 프로그램명 : 시스템설정변수내역
+ * 설명 :
+ *
+ * 클래스 : SysStupDAO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 11. 6.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 11. 6.         정영탁          최초생성
+ */
+@Mapper
+@Repository("SysStupDAO")
+public interface SysStupDAO {
+
+	/**
+	 * 시스템설정변수내역 목록 조회
+	 */
+	public List<SysStupVarTxnDTO> listSysStupVarTxn() throws Exception;
+
+	/**
+	 * 시스템설정변수내역 목록 조회
+	 */
+	public List<SysStupVarTxnDTO> selectListSysStupVarTxn(SysStupVarTxnDTO req) throws Exception;
+
+	/**
+	 * 시스템설정변수내역 목록 개수 조회
+	 */
+	public int selectCountSysStupVarTxn(SysStupVarTxnDTO req) throws Exception;
+
+	/**
+	 * 시스템설정변수내역 조회
+	 */
+	public SysStupVarTxnDTO selectSysStupVarTxn(SysStupVarTxnDTO req) throws Exception;
+
+	/**
+	 * 배치기본 등록 및 수정
+	 */
+	public int updateMergeSysStupVarTxn(SysStupVarTxnDTO req) throws Exception;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dao/comm/SysStupDAO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/cm/AdmScrenTranBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.cm;
+
+import java.nio.channels.IllegalSelectorException;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 로그인
+ * 프로그램명 : 사용자 권한 화면거래 Query DTO
+ * 설명 : 전체허용메뉴 + 사용자 그룹권한 메뉴 + 사용자 권한 메뉴 정보를 query로 취득하기 위한 DTO
+ * json properties 옵션은 lnb jstree용
+ *
+ * @Class  AdmScrenTranBasQryDTO.class
+ * @author  
+ * @since   2021-07-01
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2021-07-01		정영탁				최초생성
+ */
+@Data
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonIgnoreProperties({"screnTranDvCd", "menuRepstYn", "userId"})
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+public class AdmScrenTranBasQryDTO implements Cloneable {
+
+	// JSTREE 요소
+	@JsonProperty("id")
+	private String screnTranLnbId;		// 화면거래아이디 + _LNB
+	@JsonProperty("parent")
+	private String upScrenTranId;		//상위화면거래아이디
+	@JsonProperty("text")
+	private String screnTranNm;			//화면거래명
+	@JsonProperty("level")
+	private String screnTranLvel;		//화면거래레벨
+	@JsonProperty("type")
+	private String type;				// 트리 노드 타입 (folder, page)
+	@JsonProperty("data")
+	private TreeData treeData;			// 트리 노드 데이터 객체
+	
+	// 기타 정보
+	@EqualsAndHashCode.Include()
+	private String screnTranId;			// 화면거래아이디
+	@EqualsAndHashCode.Include()
+	private String urlAddr;				// URL주소
+	private String screnTranDvCd;		// 화면거래 구분코드
+	private String menuRepstYn;		 	// 메뉴표시여부	
+	private String sstvInfoYn;			//민감정보여부
+	
+	// in
+	private String userId;				// 사용자 아이디
+
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class TreeData {
+		@JsonProperty("serviceId")
+		private String screnTranId;		//화면거래아이디
+		@JsonProperty("serviceType")
+		private String screnTranType;	//화면거래 구분(folder, view, indv..)
+		@JsonProperty("urlAddr")
+		private String urlAddr;			//URL주소
+	}
+
+	public AdmScrenTranBasQryDTO() {
+		super();
+		this.treeData = new TreeData();
+	}
+
+	public AdmScrenTranBasQryDTO(String screnTranLnbId, String upScrenTranId, String screnTranNm, String screnTranLvel,
+			String type, TreeData treeData, String screnTranId, String screnTranDvCd, String urlAddr,
+			String menuRepstYn, String userId, String sstvInfoYn) {
+		super();
+		this.screnTranLnbId = screnTranLnbId;
+		this.upScrenTranId = upScrenTranId;
+		this.screnTranNm = screnTranNm;
+		this.screnTranLvel = screnTranLvel;
+		this.type = type;				// type=null이 들어올 것
+
+		this.screnTranId = screnTranId;
+		this.screnTranDvCd = screnTranDvCd;
+		this.urlAddr = urlAddr;
+		this.menuRepstYn = menuRepstYn;
+		this.userId = userId;
+		this.sstvInfoYn = sstvInfoYn;
+
+		if ("10".equals(this.screnTranDvCd)) {
+			this.treeData = new TreeData(this.screnTranId, "view", this.urlAddr);
+			setType("page");
+		} else if ("11".equals(this.screnTranDvCd) || "12".equals(this.screnTranDvCd)) {
+			this.treeData = new TreeData(this.screnTranId, "frag", this.urlAddr);
+			setType("page");
+		} else if ("13".equals(this.screnTranDvCd)) {
+			this.treeData = new TreeData(this.screnTranId, "indv", this.urlAddr);
+			setType("page");
+		} else {
+			this.treeData = new TreeData(this.screnTranId, "folder", this.urlAddr);
+			setType("folder");
+		}
+	}
+
+	public void setScrenTranId(String screnTranId) {
+		this.screnTranId = screnTranId;
+		this.treeData.screnTranId = screnTranId;
+	}
+
+	public void setScrenTranDvCd(String screnTranDvCd) {
+		this.screnTranDvCd = screnTranDvCd;
+		if ("10".equals(this.screnTranDvCd)) {
+			this.treeData.screnTranType = "view";
+			setType("page");
+		} else if ("11".equals(this.screnTranDvCd) || "12".equals(this.screnTranDvCd)) {
+			this.treeData.screnTranType = "frag";
+			setType("page");
+		} else if ("13".equals(this.screnTranDvCd)) {
+			this.treeData.screnTranType = "indv";
+			setType("page");
+		} else if ("00".equals(this.screnTranDvCd)) {
+			this.treeData.screnTranType = "menu";
+			setType("folder");
+		}
+	}
+
+	public void setUrlAddr(String urlAddr) {
+		this.urlAddr = urlAddr;
+		this.treeData.urlAddr = urlAddr;
+	}
+
+    public AdmScrenTranBasQryDTO clone() {
+        try {
+            return (AdmScrenTranBasQryDTO) super.clone();
+        } catch (CloneNotSupportedException e) {
+        	throw new IllegalSelectorException();
+        }
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/cm/AdmScrenTranBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/cm/AdmUserBasSesDTO.java =====
+package kr.fasol.obix.admin.dto.biz.cm;
+
+import java.math.BigDecimal;
+
+import kr.fasol.obix.common.dto.entity.AdmUserBasDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 :  
+ * 업무구분명 : Admin > 로그인
+ * 프로그램명 : Admin 로그인
+ * 설명 : 
+ *
+ * 클래스 : AdmUserBasSesDTO
+ * 작성자 : 정영탁
+ * 작성일 : 2022. 08. 19.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2022. 08. 19.        정영탁			  최초작성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
+@SuppressWarnings("serial")
+public class AdmUserBasSesDTO extends AdmUserBasDTO {
+
+	/*
+	 * ADM_USER_BAS (어드민사용자기본)
+	 */
+	private String userId;	// 사용자아이디
+	private String desigIp;	// 지정IP주소
+	private String userPwd;	// 사용자비밀번호
+	private String admUserStusCd;	// 어드민사용자상태코드
+	private String userNm;	// 사용자명
+	private String cpNo;	// 휴대전화번호
+	private String email;	// 이메일
+	private String brofcCd;	// 지점코드
+	private String lastPwdChngDt;	// 최종비밀번호변경일자
+	private BigDecimal pwdErrNotms;	// 비밀번호오류횟수
+	private String descCtnt;	// 설명내용
+
+	/*
+	 * Output
+	 */
+	private String returnUrl;
+	private String returnUrlParam;
+
+	private String admLginRsltCd;			//결과코드
+	private String admLginRsltMsg;			//결과메세지
+	private String connIp;					//접속IP주소
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/cm/AdmUserBasSesDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmBulbdBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupBasDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmGroupBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 29.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 29.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class AdmBulbdBasQryDTO extends AdmGroupBasDTO {
+
+	private String bulbdId;	// 게시판아이디
+	private String bulbdNm;	// 게시판명
+	private String admAthYn;	// 관리자권한여부
+	private String mainRepstYn;	// 메인표시여부
+	private BigDecimal repstOrdr;	// 표시순서
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+	private String blpsCount; //게시건수
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmBulbdBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmGroupBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupBasDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmGroupBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 29.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 29.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class AdmGroupBasQryDTO extends AdmGroupBasDTO {
+
+	//쿼리 속성
+	private String groupDvCdNm; 	// 구분코드명 - 공통코드
+	private String userCount; 		// 속한 유저 수 - 테이블 [ADM_GROUP_USER_REL] 에서 카운트
+	
+	//엑셀 쿼리 속성
+	private String empNm; 			// 사용자명
+	private String orgNm1; 			// 소속
+	private String posNm; 				// 직위
+	private String userStcdNm; 		// 사용자상태명
+	
+	//검색 파라미터
+	private String groupIdOrNm;		// 그룹 아이디 or 그룹명
+	private String userIdOrNm;	 	// 유저아이디 or 유저명
+	private String userId; 			// 유저아이디
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmGroupBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmGroupUserRelQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.*;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 : 
+ * 설명 : 
+ *
+ * 클래스 : AdmGroupUserRelQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 7.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 7.        정영탁			  최초작성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmGroupUserRelQryDTO extends AbstractBaseDTO {
+
+	private String userId; //사용자아이디
+	private String groupNm; //그룹 이름
+	private String groupId; //그룹ID
+	private String groupDvCd; //그룹구분
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmGroupUserRelQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmScrenGroupQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmScrenGroupQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 29.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 29.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class AdmScrenGroupQryDTO extends AbstractBaseDTO {
+
+	private String num;	// No
+	private String groupDvCd;	// 그룹구분
+	private String admBzwkLclsCd;	// 업무대분류
+	private String admBzwkMclsCd;	// 업무중분류
+	private String groupIdOrNm;	// 그룹명/그룹ID
+	private String screnIdOrNm;	// 화면거래명/화면거래ID
+	
+	private String groupId; // 그룹아이디
+	private String groupNm; // 그룹명
+	private String useYn;	// 사용여부
+	private String screnTranId;	// 화면거래ID
+	private String screnTranNm;	// 화면거래명
+	private String screnTranDvCd;	// 화면거래구분
+	private String sstvInfoYn;	// 민감정보포함
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmScrenGroupQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmTranTxnQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 시스템 > 권한관리 > 사용자목록
+ * 프로그램명 : 어드민 사용자 거래 내역
+ * 설명 :
+ *
+ * @Class  AdmTranTxnQryDTO.class
+ * @author  정영탁
+ * @since   2021-07-06
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2021-07-06        정영탁    최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
+public class AdmTranTxnQryDTO extends AbstractBaseDTO {
+
+	private String userId; // 사용자아이디
+	private String screnTranId; // 화면거래아이디
+	private String screnTranNm; // 화면거래명
+	private String inqryDt; // 조회일시
+	private String connIp; // 접속IP주소
+	private String urlAddr; // URL주소
+	private String sstvInfoYn; // 민감정보여부
+	private String inqryRsnCd; // 조회사유코드
+	private String inqryRsnCtnt; // 조회사유내용
+	private String inqryRsnCdNm; // 조회사유코드명
+
+	private String admBzwkMclsCd; // 어드민업무대분류코드
+	private String admBzwkMclsCdNm; // 어드민업무대분류
+
+	private String admBzwkLclsCd; // 어드민업무대분류코드
+	private String admBzwkLclsCdNm; // 어드민업무대분류
+
+	private String inqryCnt; // 조회건수
+
+	private String userNm; // 사용자명(임시)
+	private String dprmNm; // 부서(임시)
+	private String lastChngDtm; // 사유작성일시(임시)
+
+	// 화면에서 가져와서 쓸 변수
+	private String inqDtDv; // 조회조건
+	private String inqDtSt; // 시작일
+	private String inqDtEd; // 종료일
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmTranTxnQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserAthQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 시스템 > 권한관리 > 사용자목록
+ * 프로그램명 : 사용자 권한 정보 조회
+ * 설명 :
+ *
+ * @Class  AdmUserAthQryDTO.class
+ * @author  정영탁
+ * @since   2021-07-06
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2021-07-06        정영탁    최초생성
+ */
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
+public class AdmUserAthQryDTO extends AbstractBaseDTO {
+	
+    private String screnTranId; // 화면거래 ID
+	private String upScrenTranId;// 상위화면거래 ID
+	private String screnTranNm; // 화면거래이름
+	
+    private String screnTranLvel;
+    private String urlAddr;
+    private String wholAllowYn;
+    private String useYn;
+    private String menuAuthCd;
+    private String groupId;
+    private String userId;
+	private String userNm;
+	private String admUserStusNm;
+	private String admBzwkLclsCd;
+	private String admBzwkLclsNm;
+	private String admBzwkMclsCd;
+	private String admBzwkMclsNm;
+	private String screnTranDvCd;
+	private String screnTranDvNm;
+	private String sstvInfoYn;
+	private String includeTranYn;						// 거래포함
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserAthQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserAthTreeDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 업무구분명 : 
+ * 업무구분명 : 시스템 > 권한관리 > 사용자목록
+ * 프로그램명 : 사용자 권한 정보 조회
+ * 설명 :
+ *
+ * @Class  AdmUserAthQryDTO.class
+ * @author  정영탁
+ * @since   2021-07-06
+ * @version 1.0
+ *
+ *--------------------------------------------------------------------
+ * Modification Information
+ *--------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ *--------------------------------------------------------------------
+ * 2021-07-06        정영탁    최초생성
+ */
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
+public class AdmUserAthTreeDTO extends AbstractBaseDTO {
+	
+	@JsonProperty("id")
+    private String screnTranId; // 화면거래 ID
+	@JsonProperty("parent")
+	private String upScrenTranId;// 상위화면거래 ID
+	@JsonProperty("text")
+	private String screnTranNm; // 화면거래이름
+	
+    private String screnTranLvel;
+    private String urlAddr;
+    private String wholAllowYn;
+    private String useYn;
+    private String menuAuthCd;
+    private String groupId;
+    private String userId;
+	private String empNm;
+	private String orgCd;
+	private String orgNm1;
+	private String admUserStusNm;
+	private String admBzwkLclsCd;
+	private String admBzwkLclsCdNm;
+	private String admBzwkMclsCd;
+	private String admBzwkMclsCdNm;
+	private String screnTranDvCd;
+	private String screnTranDvCdNm;
+	private String sstvInfoYn;
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserAthTreeDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import java.util.List;
+
+import kr.fasol.obix.common.dto.entity.AdmGroupUserRelDTO;
+import kr.fasol.obix.common.dto.entity.AdmUserBasDTO;
+import lombok.*;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 : 
+ * 설명 : 
+ *
+ * 클래스 : AdmUserBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 7. 7.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 7. 7.        정영탁			  최초작성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class AdmUserBasQryDTO extends AdmUserBasDTO {
+
+	// ADMIN_USER_BAS
+	private String admUserStusCdNm; // 사용자상태명
+	private String prvtAthYn;//
+
+	// ADMIN_LGIN_TXN C
+	private String LastLginTmsp; // 로그인타임스탬프
+
+	// ADM_GROUP_BAS
+	private String groupNm; // 그룹 이름
+	private String groupDvCd; // 그룹구분코드
+	private String groupDvCdNm; // 그룹구분
+	private String repstOrdr; // 표시순서
+	private String useYn; // 사용여부
+	private List<AdmGroupUserRelDTO> relList;
+
+	// 쿼리
+	private String groupId;
+	private String scranTranId;
+	private String admBzwkLclsCd; // 업무대분류코드
+	private String admBzwkMclsCd; // 업무중분류코드
+	private String admRegYn;
+	private String groupIdOrNm; // 그룹 아이디 or 그룹명
+	private String userIdOrNm; // 유저아이디 or 유저명
+	private String pwdExptDt;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserGroupQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmUserGroupQryDTO.java
+ * 작성자 : 최정환
+ * 작성일 : 2023. 5. 15.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 5. 15.         최정환          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class AdmUserGroupQryDTO extends AbstractBaseDTO {
+
+	//OUT
+	private String num;	// No
+	private String userId;	// 사용자아이디
+	private String desigIp;	// 지정IP주소
+	private String userPwd;	// 사용자비밀번호
+	private String userNm;	// 사용자명
+	private String cpNo;	// 휴대전화번호
+	private String email;	// 이메일
+	private String brofcCd;	// 지점코드
+	private String lastPwdChngDt;	// 최종비밀번호변경일자
+	private BigDecimal pwdErrNotms;	// 비밀번호오류횟수
+	private String descCtnt;	// 설명내용
+	private String saltData;	// SALT데이터
+	private String groupId;	// 그룹아이디
+	private String groupDvCd;	// 그룹구분코드
+	private String groupNm;	// 그룹명
+	private Date lginTmsp; // 최종로그인일시
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+	
+	//검색 파라미터
+	private String admUserStusCd;		// 어드민사용자상태코드
+	private String groupIdNm;	 	// 그룹아이디/그룹명
+	private String userIdNm; 			// 사용자아이디/사용명
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/AdmUserGroupQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/BtchBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import java.util.Date;
+
+import kr.fasol.obix.common.dto.entity.BtchBasDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmGroupBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 29.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 29.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class BtchBasQryDTO extends BtchBasDTO {
+
+	private String btchJobId;	// 배치작업ID
+	private String btchJobNm;	// 배치작업명
+	private String btchCyclCd;	// 배치주기코드
+	private String btchExePgmNm;	// 배치실행프로그램명
+	private String btchExePrmt;	// 배치실행파라미터
+	private String reExePosblYn;	// 재실행가능여부
+	private String btchExeDesigDd;	// 배치실행지정일
+	private String btchJobTtm;	// 배치작업시간
+	private String cronExrs;	// CRON표현
+	private String autoExeYn;	// 자동실행여부
+	private String aplyStartDt;	// 적용시작일자
+	private String aplyEndDt;	// 적용종료일자
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+	private String frstRegiUserId;	// 최초등록사용자아이디
+	private Date frstRegiTmsp;	// 최초등록타임스탬프
+	private String lastChngUserId;	// 최종변경사용자아이디
+	private Date lastChngTmsp;	// 최종변경타임스탬프
+
+	private String btchCyclNm;	// 배치주기코드명
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/BtchBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/BtchExeTxnQryDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import java.math.BigDecimal;
+
+import kr.fasol.obix.common.dto.entity.BtchExeTxnDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 시스템
+ * 프로그램명 :
+ * 설명 :
+ *
+ * 클래스 : AdmGroupBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 6. 29.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 6. 29.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class BtchExeTxnQryDTO extends BtchExeTxnDTO {
+
+	private BigDecimal btchExeSeqno;	// 배치실행일련번호
+	private String btchJobId;	// 배치작업ID
+	private String btchPrmtVal;	// 배치파라미터값
+	private String userId;	// 사용자아이디
+	private BigDecimal tagetTrtCscnt;	// 대상처리건수
+	private String btchExeStusCd;	// 배치실행상태코드
+	private String btchStartDtm;	// 배치시작일시
+	private String btchFinDtm;	// 배치완료일시
+	private String sucssYn;	// 성공여부
+	private String btchErrCtnt;	// 배치오류내용
+	private String dateClassification; // 조회일자구분
+	
+	private String btchJobNm; //배치작업명
+	private String btchExeStusNm;	// 배치실행상태코드명
+
+	private String jobBaseDt;	// 작업기준일자(yyyyMMdd)
+	private String pgmName;
+	private boolean result;
+	private int totalCnt;
+	private int succCnt;
+	private int failCnt;
+	private String resultMesg;
+
+	private boolean success;
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/BtchExeTxnQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/UrlCompareDTO.java =====
+package kr.fasol.obix.admin.dto.biz.sy;
+
+import org.apache.commons.lang3.StringUtils;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 업무구분명 : 
+ * 세부업무구분명 : 시스템 > 권한관리 > 화면거래 관리
+ * 프로그램명 : 화면거래 미등록 URL 현황
+ * 설명 :
+ *
+ * 클래스 : CompareUrlDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 16.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 16.         정영탁          최초생성
+ */
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(exclude = {"controllerName", "screnTranId", "screnTranNm", "useYn"})
+public class UrlCompareDTO implements Comparable<UrlCompareDTO>{
+
+	private String urlPattern;
+	private String controllerName;
+	private String screnTranId;
+	private String screnTranNm;
+	private String useYn;
+	
+	@Override
+	public int compareTo(UrlCompareDTO o) {
+		return StringUtils.trim(urlPattern).compareToIgnoreCase(StringUtils.trim(o.urlPattern));
+	}
+	
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/biz/sy/UrlCompareDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/comm/CmnCdQryDTO.java =====
+package kr.fasol.obix.admin.dto.comm;
+
+import java.math.BigDecimal;
+
+import kr.fasol.obix.core.base.AbstractBaseDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : APP
+ * 업무구분명 : 공통 > DTO > 공통코드 DTO
+ * 프로그램명 : 공통코드 DTO
+ * 설명 :
+ *
+ * 클래스 : CmnCdQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 16.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 16.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class CmnCdQryDTO extends AbstractBaseDTO {
+
+	/*
+	 * 공통코드그룹 CMN_CD_GROUP
+	 */
+	private String cdGroupVal;	// 코드그룹값
+	private String cdGroupNm;	// 코드그룹명
+	private BigDecimal cdLenVal;	// 코드길이값
+	private String descCtnt;	// 설명내용
+	private String useYn;	// 사용여부
+
+	/*
+	 * 공통코드 CMN_CD
+	 */
+	private String cdVal;	// 코드값
+	private String cdNm;	// 코드명
+	private BigDecimal repstOrdr;	// 표시순서
+	private String cdRef1Val;	// 코드참조1값
+	private String cdRef2Val;	// 코드참조2값
+	private String cdRef3Val;	// 코드참조3값
+	private String upCdGroupVal;	// 상위코드그룹값
+	private String upCdVal;	// 상위코드값
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/comm/CmnCdQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/comm/HoldyBasQryDTO.java =====
+package kr.fasol.obix.admin.dto.comm;
+
+import kr.fasol.obix.common.dto.entity.HoldyBasDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > DTO > 휴일 조회 DTO
+ * 프로그램명 : 휴일 조회 DTO
+ * 설명 :
+ *
+ * 클래스 : HoldyBasQryDTO.java
+ * 작성자 : 정영탁
+ * 작성일 : 2021. 7. 27.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2021. 7. 27.         정영탁          최초생성
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@SuppressWarnings("serial")
+public class HoldyBasQryDTO extends HoldyBasDTO {
+
+	/*
+	 * INPUT
+	 */
+	private String startDt; // 시작일자
+	private String endDt; // 종료일자
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/dto/comm/HoldyBasQryDTO.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/util/BusinessTierHeaderInfoProviderImpl.java =====
+package kr.fasol.obix.admin.util;
+
+import jakarta.servlet.http.HttpServletRequest;
+import kr.fasol.obix.core.base.validation.ByteSize;
+import kr.fasol.obix.core.config.BusinessTierHeaderInfoProvider;
+import kr.fasol.obix.core.enums.AppHeader;
+import kr.fasol.obix.core.enums.LoggingConstant;
+import kr.fasol.obix.core.util.GuidContext;
+import kr.fasol.obix.core.util.GuidUtil;
+import kr.fasol.obix.core.util.WebUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.time.LocalDateTime;
+
+/**
+ * request별로 정보를 담아놓으려고 생성함
+ * 현재는 Guid만 담고 있는데 더 필요한 값이 생긴다면 클래스 명을 변경해야 함.
+ */
+@Slf4j
+@Component
+@Scope(scopeName = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.INTERFACES)
+@Getter
+public class BusinessTierHeaderInfoProviderImpl implements BusinessTierHeaderInfoProvider {
+
+    // Header
+    @ByteSize(max = 36)
+    private final String guid;                          // 전문의 Unique한 고유번호
+
+    @ByteSize(max = 39)
+    private final String frstTrnmIpad;                  // 최초 전송 IP 주소
+    @ByteSize(max = 3)
+    private final String frstTrnmSysCd;                 // 최초 전송 시스템 코드
+
+    // Common
+    @ByteSize(max = 4)
+    private final String txBrcd;                        // 거래부점코드
+    @ByteSize(max = 1)
+    private final String chnlTycd;                      // 채널유형코드
+    @ByteSize(max = 3)
+    private final String chnlDtlsClcd;                  // 채널세부분류코드
+    @ByteSize(max = 3)
+    private final String langDvcd;                      // 언어구분코드
+    // Bypass client app Header.
+    private final String deviceId;
+    private final String pid;
+    @ByteSize(max = 3)
+    private final String clphOsDvcd;                    // 휴대전화운영체계 구분코드
+
+    private final String userAgent;
+    private final GuidContext guidContext;
+    private final LocalDateTime requestDateTime;
+
+    @Autowired
+    public BusinessTierHeaderInfoProviderImpl(HttpServletRequest request, GuidContext guidContext) {
+        this.guidContext = guidContext;
+
+        // guidContext에 GUID가 없으면 생성하고 저장한다.
+        if (StringUtils.isEmpty(this.guidContext.getGuid())) {
+            this.guid = StringUtils.defaultIfBlank(MDC.get(LoggingConstant.REQUEST_GUID), GuidUtil.createGuid());
+            this.guidContext.setGuid(this.guid);
+        } else {
+            log.debug("guidContext.getGuid is not empty. guidContext.getGuid(): {}", this.guidContext.getGuid());
+            this.guid = this.guidContext.getGuid();
+        }
+        log.debug("guid: {}", guid);
+
+        // 헤더에서 X-OBIX-IP (L4에서 전달해 준 IP)가 있으면 사용. 없으면 X-Forward-For 사용. 그것도 없으면 RemoteAddr 을 사용한다. (없으면 계정계 통신시 오류 발생)
+        this.frstTrnmIpad = StringUtils.defaultIfBlank(getHeader(request, AppHeader.FRST_TRNM_IPAD), StringUtils.defaultIfBlank(getHeader(request, AppHeader.X_FORWARDED_FOR), WebUtil.getClientIp(request)));
+        this.frstTrnmSysCd = "OBIX";
+
+        this.txBrcd = "0000";
+        this.chnlTycd = "I";    // 채널유형코드(I:인터넷, M:모바일)
+        this.chnlDtlsClcd = "ADM";  // 채널세부분류코드(MPA: Front, ADM: 관리자)
+        this.langDvcd = StringUtils.defaultIfBlank(getHeader(request, AppHeader.LANG_DVCD),"KOR");;
+
+        this.deviceId = "";
+        this.pid = getHeader(request, AppHeader.PID);
+
+        // 휴대전화운영체계 구분코드(IOS, AOS, ETC)
+        this.clphOsDvcd = "ETC";
+
+        this.userAgent = getHeader(request, AppHeader.USER_AGENT);
+        this.requestDateTime = LocalDateTime.now();
+    }
+
+    private String getHeader(HttpServletRequest request, AppHeader appHeader) {
+        return request.getHeader(appHeader.getFieldName());
+    }
+
+    @Override
+    public String getSysOprtEnvDvcd() {
+        throw new UnsupportedOperationException("getSysOprtEnvDvcd() method is unsupported.");
+    }
+
+    @Override
+    public String getTxTypDvcd() {
+        throw new UnsupportedOperationException("getTxTypDvcd() method is unsupported.");
+    }
+
+    @Override
+    public void beforeSend() {
+        guidContext.createChildGuid();
+    }
+
+    @Override
+    public void setGuid(String guid) {
+        guidContext.setNextHop(guid);
+    }
+
+    @Override
+    public String getGuid() {
+        return guidContext.getGuid();
+    }
+
+    @Override
+    public String getChildGuid() {
+        return guidContext.getChildGuid();
+    }
+
+}
+
+===== END SOURCE FILE: obix-admin/src/main/java/kr/fasol/obix/admin/util/BusinessTierHeaderInfoProviderImpl.java =====
+
+
+===== SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/login/AdminLogin_SQL.xml =====
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : Admin 로그인
+-->
+<mapper namespace="kr.fasol.obix.admin.dao.admin.login.AdminLoginDAO">
+
+	<!--
+	*******************************************
+	* 로그인
+	*******************************************
+	-->
+
+    <!--
+    * Description : 로그인 사용자조회
+	* Create : 2023-03-17	정영탁	최초생성
+    -->
+    <select id="selectAdmUserBasByAuth"
+            parameterType="kr.fasol.obix.admin.dto.biz.cm.AdmUserBasSesDTO"
+            resultType="kr.fasol.obix.admin.dto.biz.cm.AdmUserBasSesDTO">
+		/*AdminLoginDAO.selectAdmUserBasByAuth 로그인 사용자조회 */
+		SELECT
+			   A.USER_ID
+			 , A.DESIG_IP
+			 , A.USER_PWD
+			 , A.ADM_USER_STUS_CD
+			 , A.USER_NM
+			 , A.CP_NO
+			 , A.EMAIL
+			 , A.BROFC_CD
+			 , A.LAST_PWD_CHNG_DT
+			 , A.PWD_ERR_NOTMS
+		  FROM ADM_USER_BAS A
+		 WHERE A.USER_ID = #{userId}
+    </select>
+
+
+	<!--
+	* Description : 로그인 이력 저장
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmLginTxn"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmLginTxnDTO">
+	   INSERT INTO ADM_LGIN_TXN
+			  (
+			  USER_ID
+			, LGIN_TMSP
+			, ADM_LGIN_RSLT_CD
+			, CONN_IP
+			  )
+	   VALUES (
+			  #{userId}
+			, CURRENT_TIMESTAMP()
+			, #{admLginRsltCd}
+			, #{connIp}
+			  )
+	</insert>
+	
+	<!--
+	* Description : 로그인 비밀번호 오류횟수 update
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<update id="updateAdmUserBasPwdErr"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		   SET PWD_ERR_NOTMS = (SELECT IFNULL(PWD_ERR_NOTMS, 0)+1
+		 					   FROM ADM_USER_BAS
+		 					   WHERE USER_ID = #{userId})		
+				,LAST_CHNG_USER_ID = 'SYSTEM'
+				,LAST_CHNG_TMSP = CURRENT_TIMESTAMP()
+		WHERE USER_ID = #{userId}  
+	</update>
+	<!-- 
+	* 비밀번호 오류횟수 0으로 초기화
+	* Create : 2023-03-17	정영탁	최초생성
+	 -->
+	<update id="updateAdmUserBasPwdInit"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		  SET PWD_ERR_NOTMS = 0
+				,LAST_CHNG_USER_ID = #{userId}
+				,LAST_CHNG_TMSP = CURRENT_TIMESTAMP()
+		WHERE USER_ID = #{userId}  
+	</update>
+	
+	<!-- 
+	* 어드민사용자상태코드 update
+	* Create : 2023-03-17	정영탁	최초생성
+	 -->
+	<update id="updateAdmUserBasStusCd"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+	   UPDATE ADM_USER_BAS
+		  SET ADM_USER_STUS_CD = #{admUserStusCd}
+				,LAST_CHNG_USER_ID = 'SYSTEM'
+				,LAST_CHNG_TMSP = CURRENT_TIMESTAMP()
+		WHERE USER_ID = #{userId}  
+	</update>
+
+	<!--
+	* Description : 사용자 사용자 상태 변경 내역 저장
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmUserStusChngTxn"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserStusChngTxnDTO">
+	    INSERT INTO ADM_USER_STUS_CHNG_TXN
+	        (
+	              USER_ID
+	            , BEF_USER_STUS_CD
+	            , ADM_USER_STUS_CD
+	            , CHNG_USER_ID
+	            , CHNG_TMSP
+	        )
+	    VALUES
+	        (
+	              #{userId}
+	            , #{befUserStusCd}
+	            , #{admUserStusCd}
+	            , #{chngUserId}
+	            , CURRENT_TIMESTAMP()
+	        )
+	</insert>
+
+	<!--
+	* Description : 사용자 설정정보 저장(이력)
+	* Create : 2023-03-17	정영탁	최초생성
+	-->
+	<insert id="insertAdmUserBasHst"
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+		INSERT INTO ADM_USER_BAS_HST
+	    SELECT
+	    		*
+	    FROM ADM_USER_BAS
+	    WHERE USER_ID = #{userId}
+	</insert>
+
+	<!--
+	* Description : 사용자 소속 메인그룹 정보 조회
+	* Create : 2021-10-06 정영탁	최초생성
+	-->
+	<select id="getAdmUserMainGroup" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.sy.AdmGroupBasQryDTO">
+		SELECT A.GROUP_ID
+		  FROM ADM_GROUP_USER_REL A
+		       INNER JOIN ADM_GROUP_BAS B ON B.GROUP_ID = A.GROUP_ID
+		WHERE A.USE_YN = 'Y'
+			AND B.USE_YN = 'Y'
+			AND B.GROUP_DV_CD = '10' /* 메인그룹 */
+			AND A.USER_ID = #{userId}
+	</select>
+
+	<!--
+	* Description : 로그인 사용자 메뉴 권한
+	* Create : 2021-07-01	정영탁	최초생성
+	-->
+	<select id="listUserAdmScrenTran" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO">
+		SELECT T.SCREN_TRAN_ID
+			 , CONCAT(T.SCREN_TRAN_ID, '_LNB') AS SCREN_TRAN_LNB_ID
+			 , (CASE WHEN T.UP_SCREN_TRAN_ID IS NULL THEN '#'
+					 ELSE CONCAT(T.UP_SCREN_TRAN_ID, '_LNB') END) AS UP_SCREN_TRAN_ID
+			 , T.SCREN_TRAN_DV_CD
+			 , T.URL_ADDR
+			 , T.SCREN_TRAN_NM
+			 , T.SCREN_TRAN_LVEL
+			 , T.REPST_ORDR
+			 , T.MENU_REPST_YN
+			 , T.SSTV_INFO_YN
+		FROM (
+			WITH RECURSIVE CTR AS
+				(
+				SELECT A.*, 1 AS MENU_LEVEL, CONCAT(LPAD(1, 5, '0'), '.', A.REPST_ORDR) AS HIERARCHY
+				FROM (
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+						 WHERE A.USE_YN = 'Y'
+						   AND A.WHOL_ALLOW_YN = 'Y'
+
+						 UNION
+
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+								  INNER JOIN ADM_GROUP_ATH B
+											 ON B.GROUP_ID IN (SELECT GROUP_ID FROM ADM_GROUP_USER_REL WHERE USER_ID = #{userId} AND USE_YN = 'Y')
+												 AND B.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						 WHERE A.USE_YN = 'Y'
+						   AND B.USE_YN = 'Y'
+
+						 UNION
+
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+								  INNER JOIN ADM_USER_ATH C
+											 ON C.USER_ID = #{userId}
+												 AND C.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						 WHERE A.USE_YN = 'Y'
+						   AND C.USE_YN = 'Y'
+					 ) A
+				WHERE A.SCREN_TRAN_LVEL = 0
+				UNION ALL
+				SELECT B.*, C.MENU_LEVEL + 1 AS MENU_LEVEL, CONCAT(LPAD(C.MENU_LEVEL + 1, 5, '0'), '.', B.REPST_ORDR) AS HIERARCHY
+				FROM (
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+						 WHERE A.USE_YN = 'Y'
+						   AND A.WHOL_ALLOW_YN = 'Y'
+
+						 UNION
+
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+								  INNER JOIN ADM_GROUP_ATH B
+											 ON B.GROUP_ID IN (SELECT GROUP_ID FROM ADM_GROUP_USER_REL WHERE USER_ID = #{userId} AND USE_YN = 'Y')
+												 AND B.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						 WHERE A.USE_YN = 'Y'
+						   AND B.USE_YN = 'Y'
+
+						 UNION
+
+						 SELECT A.*
+						 FROM ADM_SCREN_TRAN_BAS A
+								  INNER JOIN ADM_USER_ATH C
+											 ON C.USER_ID = #{userId}
+												 AND C.SCREN_TRAN_ID = A.SCREN_TRAN_ID
+						 WHERE A.USE_YN = 'Y'
+						   AND C.USE_YN = 'Y'
+					 ) B
+						 INNER JOIN CTR C ON B.UP_SCREN_TRAN_ID = C.SCREN_TRAN_ID
+				)
+			SELECT *
+			FROM CTR
+		) T
+		ORDER BY HIERARCHY
+	</select>
+
+	<!--
+	* Description : 시스템 관리자 전체 메뉴 권한
+	* Create : 2021-10-06	정영탁	최초생성
+	-->
+	<select id="listSysAdmScrenTran" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO"
+			resultType="kr.fasol.obix.admin.dto.biz.cm.AdmScrenTranBasQryDTO">
+		SELECT T.SCREN_TRAN_ID
+			 , CONCAT(T.SCREN_TRAN_ID, '_LNB') AS SCREN_TRAN_LNB_ID
+			 , (CASE WHEN T.UP_SCREN_TRAN_ID IS NULL THEN '#'
+					 ELSE CONCAT(T.UP_SCREN_TRAN_ID, '_LNB') END) AS UP_SCREN_TRAN_ID
+			 , T.SCREN_TRAN_DV_CD
+			 , T.URL_ADDR
+			 , T.SCREN_TRAN_NM
+			 , T.SCREN_TRAN_LVEL
+			 , T.REPST_ORDR
+			 , T.MENU_REPST_YN
+			 , T.SSTV_INFO_YN
+		FROM (
+				 WITH RECURSIVE CTR AS
+									(
+										SELECT A.*, 1 AS MENU_LEVEL, CONCAT(LPAD(1, 5, '0'), '.', A.REPST_ORDR) AS HIERARCHY
+										FROM ADM_SCREN_TRAN_BAS A
+										WHERE A.USE_YN = 'Y'
+										  AND A.SCREN_TRAN_LVEL = 0
+										UNION ALL
+										SELECT B.*, C.MENU_LEVEL + 1 AS MENU_LEVEL, CONCAT(LPAD(C.MENU_LEVEL + 1, 5, '0'), '.', B.REPST_ORDR) AS HIERARCHY
+										FROM ADM_SCREN_TRAN_BAS B
+												 INNER JOIN CTR C ON B.UP_SCREN_TRAN_ID = C.SCREN_TRAN_ID
+										WHERE B.USE_YN = 'Y'
+									)
+				 SELECT *
+				 FROM CTR
+			 ) T
+		ORDER BY HIERARCHY
+	</select>
+
+	<!--
+	* Description : 즐겨찾기 정보 조회
+	* Create : 2021-10-06	정영탁	최초생성
+	-->
+	<select id="getAdmUserFvrtDtl" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO"
+			resultType="kr.fasol.obix.common.dto.entity.AdmUserFvrtDtlDTO">
+		SELECT USER_ID
+			 , FVRT_CTNT
+		  FROM ADM_USER_FVRT_DTL
+		WHERE USER_ID = #{userId}
+	</select>
+
+
+	<!--
+	*******************************************
+	* 비밀번호 재설정
+	*******************************************
+	-->
+
+	<!--
+	* Description : 최근 5회 변경 비밀번호 중 동일 비밀번호 건수 가져오기
+	-->
+	<select id="getAdmUserSamePwdCnt" 
+			parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO" resultType="int">
+		SELECT IFNULL(SUM(CASE WHEN USER_PWD = #{userPwd} THEN 1 ELSE 0 END), 0) AS CNT
+		FROM (
+				 SELECT USER_PWD
+				 FROM (
+						  SELECT USER_PWD
+							   , CHNG_TMSP
+						  FROM ADM_USER_PWD_CHNG_TXN
+						  WHERE USER_ID = #{userId}
+
+						  UNION ALL
+
+						  SELECT USER_PWD
+							   , IFNULL(LAST_CHNG_TMSP, FRST_REGI_TMSP) AS FRST_REGI_TMSP
+						  FROM ADM_USER_BAS
+						  WHERE USER_ID = #{userId}
+							AND IFNULL(ADM_USER_STUS_CD,'') != #{admUserStusCd}   /* 비밀번호 초기화의 경우, 체크 대상에서 제외 */
+					  ) S
+				 ORDER BY CHNG_TMSP DESC
+			 ) T
+			LIMIT 0, 5
+	</select>
+
+	<!--
+	* Description : 비밀번호 재설정
+	-->
+	<update id="updateAdmUserBasPwd" parameterType="kr.fasol.obix.common.dto.entity.AdmUserBasDTO">
+		UPDATE ADM_USER_BAS
+		SET  USER_PWD = #{userPwd}
+			  , PWD_ERR_NOTMS = 0
+			  , LAST_PWD_CHNG_DT = DATE_FORMAT(NOW(), '%Y%m%d')
+			  , ADM_USER_STUS_CD = #{admUserStusCd}
+			  , LAST_CHNG_USER_ID = #{userId}
+			  , LAST_CHNG_TMSP = CURRENT_TIMESTAMP()
+		WHERE USER_ID = #{userId}
+	</update>
+
+	<!--
+	* Description : 비밀번호 재설정 이력 생성
+	-->
+	<insert id="insertAdmUserPwdChngTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmUserPwdChngTxnDTO">
+	   INSERT INTO ADM_USER_PWD_CHNG_TXN
+				(
+					  USER_ID
+					, USER_PWD
+					, CHNG_TMSP
+				)
+	   VALUES
+				(
+					  #{userId}
+					, #{userPwd}
+					, CURRENT_TIMESTAMP()
+				)
+	</insert>
+
+</mapper>
+
+===== END SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/login/AdminLogin_SQL.xml =====
+
+
+===== SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBlpsApndxTxn_SQL.xml =====
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민게시글첨부내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmBlpsApndxTxnDAO">
+
+    <!--			
+    * Description : 어드민게시글첨부내역 목록조회			
+    -->			
+    <select id="listAdmBlpsApndxTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.listAdmBlpsApndxTxn 어드민게시글첨부내역 목록 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , APNDX_SEQNO	/* 첨부일련번호 */
+		     , STORG_PATH_NM	/* 저장경로명 */
+		     , FILE_NM	/* 파일명 */
+		     , ORCPY_FILE_NM	/* 원본파일명 */
+		     , FILE_SIZE	/* 파일사이즈 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_APNDX_TXN
+		 WHERE 1=1	
+			
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글첨부내역 정보조회			
+    -->			
+    <select id="selectAdmBlpsApndxTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.selectAdmBlpsApndxTxn 어드민게시글첨부내역 정보 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , APNDX_SEQNO	/* 첨부일련번호 */
+		     , STORG_PATH_NM	/* 저장경로명 */
+		     , FILE_NM	/* 파일명 */
+		     , ORCPY_FILE_NM	/* 원본파일명 */
+		     , FILE_SIZE	/* 파일사이즈 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_APNDX_TXN
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+		   AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글첨부내역 등록			
+    -->			
+	<insert id="insertAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.insertAdmBlpsApndxTxn 어드민게시글첨부내역 등록*/	
+		INSERT INTO ADM_BLPS_APNDX_TXN	
+	       ( BULBD_ID ,	/* 게시판아이디 */
+	         BLPS_SEQNO ,	/* 게시글일련번호 */
+	         APNDX_SEQNO ,	/* 첨부일련번호 */
+	         STORG_PATH_NM ,	/* 저장경로명 */
+	         FILE_NM ,	/* 파일명 */
+	         ORCPY_FILE_NM ,	/* 원본파일명 */
+	         FILE_SIZE ,	/* 파일사이즈 */
+	         USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */	
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */	
+	       )		
+	VALUES ( #{bulbdId} ,	/* 게시판아이디 */
+	         #{blpsSeqno} ,	/* 게시글일련번호 */
+	         #{apndxSeqno} ,	/* 첨부일련번호 */
+	         #{storgPathNm} ,	/* 저장경로명 */
+	         #{fileNm} ,	/* 파일명 */
+	         #{orcpyFileNm} ,	/* 원본파일명 */
+	         #{fileSize} ,	/* 파일사이즈 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+	      )		
+	</insert>		
+			
+	<!--		
+    * Description : 어드민게시글첨부내역 수정			
+    -->			
+	<update id="updateAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.updateAdmBlpsApndxTxn 어드민게시글첨부내역 수정*/	
+		UPDATE ADM_BLPS_APNDX_TXN 	
+		   SET 
+		   <if test='bulbdId != "" and bulbdId != null'> 
+		       BULBD_ID = #{bulbdId} ,	/* 게시판아이디 */
+		   </if>
+		   <if test='blpsSeqno != "" and blpsSeqno != null'> 
+		       BLPS_SEQNO = #{blpsSeqno} ,	/* 게시글일련번호 */
+		   </if>
+		   <if test='apndxSeqno != "" and apndxSeqno != null'> 
+		       APNDX_SEQNO = #{apndxSeqno} ,	/* 첨부일련번호 */
+		   </if>
+		   <if test='storgPathNm != "" and storgPathNm != null'> 
+		       STORG_PATH_NM = #{storgPathNm} ,	/* 저장경로명 */
+		   </if>
+		   <if test='fileNm != "" and fileNm != null'> 
+		       FILE_NM = #{fileNm} ,	/* 파일명 */
+		   </if>
+		   <if test='orcpyFileNm != "" and orcpyFileNm != null'> 
+		       ORCPY_FILE_NM = #{orcpyFileNm} ,	/* 원본파일명 */
+		   </if>
+		   <if test='fileSize != "" and fileSize != null'> 
+		       FILE_SIZE = #{fileSize} ,	/* 파일사이즈 */
+		   </if>
+		   <if test='useYn != "" and useYn != null'> 
+		       USE_YN = #{useYn} ,	/* 사용여부 */
+	       </if>
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,
+		       LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()
+		 WHERE 1=1
+		 	AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+			AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+			AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+			
+	</update>		
+			
+	<!--		
+    * Description : 어드민게시글첨부내역 삭제			
+    -->			
+	<delete id="deleteAdmBlpsApndxTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsApndxTxnDTO">
+		/*AdmBlpsApndxTxnDAO.deleteAdmBlpsApndxTxn 어드민게시글첨부내역 삭제*/	
+		DELETE 	
+		  FROM ADM_BLPS_APNDX_TXN 	
+		 WHERE 1=1
+		 	AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+			AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+			AND APNDX_SEQNO = #{apndxSeqno}	/* 첨부일련번호 */
+	</delete>		
+			
+</mapper>			
+
+
+===== END SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBlpsApndxTxn_SQL.xml =====
+
+
+===== SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBlpsBlrpTxn_SQL.xml =====
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민게시글댓글내역			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmBlpsBlrpTxnDAO">
+			
+    <!--			
+    * Description : 어드민게시글댓글내역 목록조회			
+    -->			
+    <select id="listAdmBlpsBlrpTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO">
+		/*AdmBlpsBlrpTxnDAO.listAdmBlpsBlrpTxn 어드민게시글댓글내역 목록 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , BLRP_SEQNO	/* 댓글일련번호 */
+		     , BLRP_CTNT	/* 댓글내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_BLRP_TXN
+		 WHERE 1=1	
+			
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글댓글내역 정보조회			
+    -->			
+    <select id="selectAdmBlpsBlrpTxn"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO">
+		/*AdmBlpsBlrpTxnDAO.selectAdmBlpsBlrpTxn 어드민게시글댓글내역 정보 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BLPS_SEQNO	/* 게시글일련번호 */
+		     , BLRP_SEQNO	/* 댓글일련번호 */
+		     , BLRP_CTNT	/* 댓글내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BLPS_BLRP_TXN
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+		   AND BLRP_SEQNO = #{blrpSeqno}	/* 댓글일련번호 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시글댓글내역 등록			
+    -->			
+	<insert id="insertAdmBlpsBlrpTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO">
+		/*AdmBlpsBlrpTxnDAO.insertAdmBlpsBlrpTxn 어드민게시글댓글내역 등록*/	
+		INSERT INTO ADM_BLPS_BLRP_TXN	
+	       ( BULBD_ID ,	/* 게시판아이디 */
+		     BLPS_SEQNO ,	/* 게시글일련번호 */
+		     BLRP_SEQNO ,	/* 댓글일련번호 */
+		     BLRP_CTNT ,	/* 댓글내용 */
+		     USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */	
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */	
+	       )		
+		VALUES ( #{bulbdId} ,	/* 게시판아이디 */
+	         #{blpsSeqno} ,	/* 게시글일련번호 */
+	         #{blrpSeqno} ,	/* 댓글일련번호 */
+	         #{blrpCtnt} ,	/* 댓글내용 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+	      )		
+	</insert>		
+
+	<!--		
+    * Description : 어드민게시글댓글내역 수정			
+    -->			
+	<update id="updateAdmBlpsBlrpTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO">
+		/*AdmBlpsBlrpTxnDAO.updateAdmBlpsBlrpTxn 어드민게시글댓글내역 수정*/	
+		UPDATE ADM_BLPS_BLRP_TXN 	
+		   SET	
+		   <if test='bulbdId != "" and bulbdId != null'>
+		  	   BULBD_ID = #{bulbdId} ,	/* 게시판아이디 */
+		   </if>
+		   <if test='blpsSeqno != "" and blpsSeqno != null'>
+		       BLPS_SEQNO = #{blpsSeqno} ,	/* 게시글일련번호 */
+		   </if>
+		   <if test='blrpSeqno != "" and blrpSeqno != null'>
+		       BLRP_SEQNO = #{blrpSeqno} ,	/* 댓글일련번호 */
+		   </if>
+		   <if test='blrpCtnt != "" and blrpCtnt != null'>
+		       BLRP_CTNT = #{blrpCtnt} ,	/* 댓글내용 */
+		   </if>
+		   <if test='useYn != "" and useYn != null'>
+		       USE_YN = #{useYn} ,	/* 사용여부 */
+		   </if>
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,	/* 최종변경사용자아이디 */
+		       LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()	/* 최종변경타임스탬프 */
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+		   AND BLRP_SEQNO = #{blrpSeqno}	/* 댓글일련번호 */
+			
+	</update>		
+
+	<!--		
+    * Description : 어드민게시글댓글내역 삭제			
+    -->			
+	<delete id="deleteAdmBlpsBlrpTxn" parameterType="kr.fasol.obix.common.dto.entity.AdmBlpsBlrpTxnDTO">
+		/*AdmBlpsBlrpTxnDAO.deleteAdmBlpsBlrpTxn 어드민게시글댓글내역 삭제*/	
+		DELETE 	
+		  FROM ADM_BLPS_BLRP_TXN 	
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+		   AND BLPS_SEQNO = #{blpsSeqno}	/* 게시글일련번호 */
+		   AND BLRP_SEQNO = #{blrpSeqno}	/* 댓글일련번호 */
+	</delete>		
+
+</mapper>
+
+===== END SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBlpsBlrpTxn_SQL.xml =====
+
+
+===== SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBulbdBas_SQL.xml =====
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--			
+* Description : 어드민게시판기본			
+-->			
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.AdmBulbdBasDAO">
+
+    <!--			
+    * Description : 어드민게시판기본 목록조회			
+    -->
+    <sql id="listAdmBulbdBas">			
+		/*AdmBulbdBasDAO.listAdmBulbdBas 어드민게시판기본 목록 조회 */	
+		SELECT A.BULBD_ID	/* 게시판아이디 */
+		     , A.BULBD_NM	/* 게시판명 */
+		     , A.ADM_ATH_YN	/* 관리자권한여부 */
+		     , A.MAIN_REPST_YN	/* 메인표시여부 */
+		     , A.REPST_ORDR	/* 표시순서 */
+		     , A.DESC_CTNT	/* 설명내용 */
+		     , A.USE_YN	/* 사용여부 */
+		     , A.FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , A.FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , A.LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , A.LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		     , (SELECT COUNT(BLPS_SEQNO) FROM ADM_BULBD_TXN WHERE BULBD_ID = A.BULBD_ID) AS BLPS_COUNT /*게시건수*/
+		  FROM ADM_BULBD_BAS A
+		 <if test='admAthYn != null and admAthYn != ""'>
+		 	AND ADM_ATH_YN = #{admAthYn}
+		 </if>
+		 <if test='bulbdNm != null and bulbdNm != ""'>
+			 AND BULBD_NM LIKE CONCAT('%', #{bulbdNm}, '%')
+		 </if>
+    </sql>			
+    <select id="selectListAdmBulbdBas"			
+            parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmBulbdBasQryDTO"
+            resultType="kr.fasol.obix.admin.dto.biz.sy.AdmBulbdBasQryDTO">
+            
+            <include refid="COMMON.pagingPreSQL" />
+            <include refid="listAdmBulbdBas" />
+            <include refid="COMMON.pagingPostSQL" />
+            
+    </select>	
+    
+    <!--			
+    * Description : 어드민게시판기본 목록 개수 조회			
+    -->
+    
+    <select id="selectCountAdmBulbdBas" parameterType="kr.fasol.obix.admin.dto.biz.sy.AdmBulbdBasQryDTO" resultType="Integer">
+    	SELECT COUNT(*) AS totalCount
+    	FROM ADM_BULBD_BAS
+    	WHERE 1=1
+    		<if test='admAthYn != null and admAthYn != ""'>
+		 	AND ADM_ATH_YN = #{admAthYn}
+		 </if>
+		 <if test='bulbdNm != null and bulbdNm != ""'>
+			 AND BULBD_NM LIKE CONCAT('%', #{bulbdNm}, '%')
+		 </if>
+    </select>				
+    
+    <!--			
+    * Description : 어드민게시판기본 정보조회			
+    -->			
+    <select id="selectAdmBulbdBas"			
+            parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO">
+		/*AdmBulbdBasDAO.selectAdmBulbdBas 어드민게시판기본 정보 조회 */	
+		SELECT BULBD_ID	/* 게시판아이디 */
+		     , BULBD_NM	/* 게시판명 */
+		     , ADM_ATH_YN	/* 관리자권한여부 */
+		     , MAIN_REPST_YN	/* 메인표시여부 */
+		     , REPST_ORDR	/* 표시순서 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM ADM_BULBD_BAS	
+		 WHERE 1=1	
+		   AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+    </select>			
+    			
+    <!--			
+    * Description : 어드민게시판기본 등록			
+    -->			
+	<insert id="insertAdmBulbdBas" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO">
+		/*AdmBulbdBasDAO.insertAdmBulbdBas 어드민게시판기본 등록*/	
+		INSERT INTO ADM_BULBD_BAS	
+	       ( BULBD_ID ,	/* 게시판아이디 */
+		     BULBD_NM ,	/* 게시판명 */
+		     ADM_ATH_YN ,	/* 관리자권한여부 */
+		     MAIN_REPST_YN ,	/* 메인표시여부 */
+		     REPST_ORDR ,	/* 표시순서 */
+		     DESC_CTNT ,	/* 설명내용 */
+		     USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */	
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */	
+	       )		
+	VALUES ( #{bulbdId} ,	/* 게시판아이디 */
+	         #{bulbdNm} ,	/* 게시판명 */
+	         #{admAthYn} ,	/* 관리자권한여부 */
+	         #{mainRepstYn} ,	/* 메인표시여부 */
+	         #{repstOrdr} ,	/* 표시순서 */
+	         #{descCtnt} ,	/* 설명내용 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */	
+	         CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+	      )		
+	</insert>		
+			
+	<!--		
+    * Description : 어드민게시판기본 수정			
+    -->			
+	<update id="updateAdmBulbdBas" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO">
+		/*AdmBulbdBasDAO.updateAdmBulbdBas 어드민게시판기본 수정*/	
+		UPDATE ADM_BULBD_BAS 	
+		   SET	
+		   <if test='bulbdId != "" and bulbdId != null'> 	
+		       BULBD_ID = #{bulbdId} ,
+	       </if>
+	       <if test='bulbdNm != "" and bulbdNm != null'>
+		       BULBD_NM = #{bulbdNm} ,
+	       </if>		
+	       <if test='admAthYn != "" and admAthYn != null'>
+		       ADM_ATH_YN = #{admAthYn} ,
+	       </if>		
+	       <if test='mainRepstYn != "" and mainRepstYn != null'>
+		       MAIN_REPST_YN = #{mainRepstYn} ,
+	       </if>		
+	       <if test='repstOrdr != "" and repstOrdr != null'>
+		       REPST_ORDR = #{repstOrdr} ,
+	       </if>		
+	       <if test='descCtnt != "" and descCtnt != null'>
+		       DESC_CTNT = #{descCtnt} ,
+	       </if>		
+	       <if test='useYn != "" and useYn != null'>
+		       USE_YN = #{useYn} ,
+	       </if>		
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,
+		       LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()
+		 WHERE 1=1	
+		  AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+			
+	</update>		
+			
+	<!--		
+    * Description : 어드민게시판기본 삭제			
+    -->			
+	<delete id="deleteAdmBulbdBas" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO">
+		/*AdmBulbdBasDAO.deleteAdmBulbdBas 어드민게시판기본 삭제*/	
+		DELETE 	
+		  FROM ADM_BULBD_BAS 	
+		 WHERE 1=1
+		  AND BULBD_ID = #{bulbdId}	/* 게시판아이디 */
+	</delete>
+	
+	<!--		
+    * Description : 어드민게시판기본 등록 Merge			
+    -->	
+    <update id="updateMergeAdmBulbdBas" parameterType="kr.fasol.obix.common.dto.entity.AdmBulbdBasDTO">
+		/*AdmBulbdBasDAO.updateMergeAdmBulbdBas 어드민게시판기본 등록 Merge*/
+		INSERT INTO ADM_BULBD_BAS (
+					BULBD_ID
+				  , BULBD_NM
+				  , ADM_ATH_YN
+				  , MAIN_REPST_YN
+				  , REPST_ORDR
+				  , DESC_CTNT
+				  , USE_YN
+				  , FRST_REGI_USER_ID
+				  , FRST_REGI_TMSP
+		)
+		VALUES (
+				   #{bulbdId} ,	/* 게시판아이디 */
+				   #{bulbdNm} ,	/* 게시판명 */
+				   #{admAthYn} ,	/* 관리자권한여부 */
+				   #{mainRepstYn} ,	/* 메인표시여부 */
+				   #{repstOrdr} ,	/* 표시순서 */
+				   #{descCtnt} ,	/* 설명내용 */
+				   #{useYn} ,	/* 사용여부 */
+				   #{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+				   CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+			   )
+			ON DUPLICATE KEY UPDATE
+									 BULBD_NM = #{bulbdNm} , 		/* 게시판명 */
+									 ADM_ATH_YN = #{admAthYn} ,		/* 관리자권한여부 */
+									 MAIN_REPST_YN = #{mainRepstYn} ,/* 메인표시여부 */
+									 REPST_ORDR = #{repstOrdr} ,		/* 표시순서 */
+									 DESC_CTNT = #{descCtnt} ,		/* 설명내용 */
+									 USE_YN = #{useYn} ,				/* 사용여부 */
+									 LAST_CHNG_USER_ID	= #{lastChngUserId} ,	/* 최종등록사용자아이디 */
+									 LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()				/* 최종등록타임스탬프 */
+	</update>
+
+</mapper>
+
+
+
+===== END SOURCE FILE: obix-admin/src/main/resources/META-INF/sqlmap/mysql/admin/sy/AdmBulbdBas_SQL.xml =====

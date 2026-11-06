@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : 공통코드
+* Create : 2021-09-07    정영탁    최초생성
+-->
+<mapper namespace="kr.fasol.obix.batch.dao.comm.BtchExeTxnDAO">
+
+    <!--
+    * Description : 배치기본 목록 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="listBtchBas"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchExeTxnDAO.listBtchBas 배치기본 조회 */
+		SELECT 
+		    BTCH_JOB_ID     /* 배치작업ID */
+		    ,BTCH_JOB_NM     /* 배치작업명 */
+		    ,BTCH_CYCL_CD     /* 배치주기코드 */
+		    ,BTCH_EXE_PGM_NM     /* 배치실행프로그램명 */
+		    ,BTCH_EXE_PRMT     /* 배치실행파라미터 */
+		    ,RE_EXE_POSBL_YN     /* 재실행가능여부 */
+		    ,BTCH_EXE_DESIG_DD     /* 배치실행지정일 */
+		    ,BTCH_JOB_TTM     /* 배치작업시간 */
+		    ,CRON_EXRS     /* CRON표현 */
+		    ,AUTO_EXE_YN     /* 자동실행여부 */
+		    ,DESC_CTNT     /* 설명내용 */
+		FROM BTCH_BAS
+		WHERE USE_YN = 'Y'
+        AND NVL(APLY_START_DT, TO_CHAR(SYSDATE,'YYYYMMDD')) <![CDATA[ <= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+        AND NVL(APLY_END_DT, TO_CHAR(SYSDATE,'YYYYMMDD')) <![CDATA[ >= ]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+    </select>
+
+    <!--
+    * Description : 배치기본 상세 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="selectBtchBas"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchExeTxnDAO.selectBtchBas 배치기본 상세 조회 */
+		SELECT 
+		    BTCH_JOB_ID     /* 배치작업ID */
+		    ,BTCH_JOB_NM     /* 배치작업명 */
+		    ,BTCH_CYCL_CD     /* 배치주기코드 */
+		    ,BTCH_EXE_PGM_NM     /* 배치실행프로그램명 */
+		    ,BTCH_EXE_PRMT     /* 배치실행파라미터 */
+		    ,RE_EXE_POSBL_YN     /* 재실행가능여부 */
+		    ,BTCH_JOB_TTM     /* 배치작업시간 */
+		    ,CRON_EXRS     /* CRON표현 */
+		    ,AUTO_EXE_YN     /* 자동실행여부 */
+		    ,DESC_CTNT     /* 설명내용 */
+		FROM BTCH_BAS
+		WHERE USE_YN = 'Y'
+		AND BTCH_JOB_ID = #{btchJobId}
+    </select>
+
+    <!--
+    * Description : 배치실행내역 조회
+    * Create : 2021-10-21    정영탁    최초생성
+    -->
+    <select id="listBtchExeTxn"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchExeTxnDTO">
+		/*BtchExeTxnDAO.listBtchExeTxn 배치실행내역 조회 */
+		SELECT 
+	         BTCH_EXE_SEQNO     /*배치실행일련번호*/
+	        ,BTCH_JOB_ID     /*배치작업ID*/
+	        ,BTCH_PRMT_VAL     /*배치파라미터값*/
+	        ,USER_ID     /*사용자아이디*/
+	        ,TAGET_TRT_CSCNT     /*대상처리건수*/
+	        ,BTCH_EXE_STUS_CD     /*배치실행상태코드*/
+	        ,BTCH_START_DTM     /*배치시작일시*/
+	        ,BTCH_FIN_DTM     /*배치완료일시*/
+	        ,SUCSS_YN     /*성공여부*/
+	        ,BTCH_ERR_CTNT     /*배치오류내용*/
+		FROM BTCH_EXE_TXN
+		WHERE 1=1
+		AND BTCH_JOB_ID = #{btchJobId}
+		AND BTCH_START_DTM BETWEEN (SUBSTR(#{btchStartDtm},1,8)||'000000') AND (SUBSTR(#{btchStartDtm},1,8)|| '240000')
+		AND BTCH_START_DTM <![CDATA[ >= ]]> #{btchStartDtm}
+    </select>
+    
+	<!--
+    * Description : 배치실행내역 -  저장
+    * Create : 2021-08-26    정영탁    최초생성
+    -->
+	<insert id="insertBtchExeTxn"
+			useGeneratedKeys="true" keyColumn="BTCH_EXE_SEQNO" keyProperty="btchExeSeqno"
+			parameterType="kr.fasol.obix.batch.dto.comm.BtchExeTxnQryDTO">
+
+		<selectKey resultType="BigDecimal" keyProperty="btchExeSeqno" order="BEFORE">
+			SELECT SQ_BTCH_EXE_TSN_01.NEXTVAL FROM DUAL
+		</selectKey>
+
+	    /*BtchExeTxnDAO.insertBtchExeTxn 배치실행내역 저장 */
+	    INSERT INTO BTCH_EXE_TXN
+	    (	 BTCH_EXE_SEQNO     /*배치실행일련번호*/
+	        ,BTCH_JOB_ID     /*배치작업ID*/
+	        ,BTCH_PRMT_VAL     /*배치파라미터값*/
+	        ,USER_ID     /*사용자아이디*/
+	        ,TAGET_TRT_CSCNT     /*대상처리건수*/
+	        ,BTCH_EXE_STUS_CD     /*배치실행상태코드*/
+	        ,BTCH_START_DTM     /*배치시작일시*/
+	        ,SUCSS_YN     /*성공여부*/
+	        ,BTCH_ERR_CTNT     /*배치오류내용*/
+	    )
+	    VALUES
+	    (	 #{btchExeSeqno}     /*배치실행일련번호*/
+	        ,#{btchJobId}     /*배치작업ID*/
+	        ,#{btchPrmtVal}     /*배치파라미터값*/
+	        ,#{userId}     /*사용자아이디*/
+	        ,#{tagetTrtCscnt}     /*대상처리건수*/
+	        ,#{btchExeStusCd}     /*배치실행상태코드*/
+	        ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')     /*배치시작일시*/
+	        ,#{sucssYn}     /*성공여부*/
+	        ,#{btchErrCtnt}     /*배치오류내용*/
+	    )
+	</insert>		
+
+	<!--
+    * Description : 배치실행내역 - 수정
+    * Create : 2021-08-26    정영탁    최초생성
+    -->
+	<update id="updateBtchExeTxn"
+			parameterType="kr.fasol.obix.batch.dto.comm.BtchExeTxnQryDTO">
+	    /*BtchExeTxnDAO.updateBtchExeTxn 배치실행내역 수정 */
+	    UPDATE BTCH_EXE_TXN
+	    SET
+	         BTCH_PRMT_VAL = #{btchPrmtVal}     /*배치파라미터값*/
+	        ,TAGET_TRT_CSCNT = #{tagetTrtCscnt}     /*대상처리건수*/
+	        ,BTCH_EXE_STUS_CD = #{btchExeStusCd}     /*배치실행상태코드*/
+	        ,BTCH_FIN_DTM = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')     /*배치완료일시*/
+	        ,SUCSS_YN = #{sucssYn}     /*성공여부*/
+	        ,BTCH_ERR_CTNT = #{btchErrCtnt}     /*배치오류내용*/
+	    WHERE
+	         BTCH_EXE_SEQNO = #{btchExeSeqno}     /*배치실행일련번호*/
+	     AND BTCH_JOB_ID = #{btchJobId}     /*배치작업ID*/
+	</update>
+
+</mapper>

@@ -1,0 +1,18 @@
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'java-library'
+
+
+sourceSets {
+    main {
+        // XML파일과 interface 하나의 폴더에서 관리하기
+        resources {
+            srcDir "${project.projectDir}/src/main/java"
+            exclude "**/*.java"
+        }
+    }
+}
+
+dependencies {
+	api project(':obix-core')
+
+}

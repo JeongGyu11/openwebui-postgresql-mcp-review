@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<!--
+* Description : 배치기본
+-->
+<mapper namespace="kr.fasol.obix.admin.dao.admin.sy.BtchBasDAO">
+
+    <sql id="listBtchBas">
+			  FROM BTCH_BAS A
+              WHERE 1=1
+			 	<if test='btchJobNm !=null  and btchJobNm !=""'>
+					AND (BTCH_JOB_NM LIKE CONCAT('%', #{btchJobNm}, '%')
+					OR BTCH_JOB_ID LIKE CONCAT('%', #{btchJobNm}, '%'))
+		 		</if>
+		 		<if test='btchCyclCd !=null  and btchCyclCd !=""'>
+		 			AND BTCH_CYCL_CD = #{btchCyclCd}
+		 		</if>
+    </sql>
+    <!--
+    * Description : 배치기본 목록 조회
+    -->
+    <select id="selectListBtchBas"
+            parameterType="kr.fasol.obix.admin.dto.biz.sy.BtchBasQryDTO"
+            resultType="kr.fasol.obix.admin.dto.biz.sy.BtchBasQryDTO">
+            
+	    /*BtchBasDAO.selectListBtchBas 배치기본 목록 조회 */
+		<include refid="COMMON.pagingPreSQL" />
+			SELECT A.BTCH_JOB_ID	/* 배치작업코드 */
+			     , A.BTCH_JOB_NM	/* 배치작업명 */
+			     , A.BTCH_CYCL_CD	/* 배치주기코드 */
+			     , A.BTCH_EXE_PGM_NM	/* 배치실행프로그램명 */
+			     , A.RE_EXE_POSBL_YN	/* 재실행가능여부 */
+			     , A.BTCH_EXE_DESIG_DD	/* 배치실행지정일 */
+			     , A.BTCH_JOB_TTM	/* 배치작업시간 */
+			     , A.CRON_EXRS	/* CRON표현 */
+			     , A.AUTO_EXE_YN	/* 자동실행여부 */
+			     , A.APLY_START_DT	/* 적용시작일자 */
+			     , A.APLY_END_DT	/* 적용종료일자 */
+			     , A.DESC_CTNT	/* 설명내용 */
+			     , A.USE_YN	/* 사용여부 */
+			     , A.FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+			     , A.FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+			     , A.LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+			     , A.LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+			     , (SELECT CD_NM FROM CMN_CD WHERE CD_GROUP_VAL = 'BTCH_CYCL_CD' AND CD_VAL = A.BTCH_CYCL_CD AND USE_YN = 'Y') BTCH_CYCL_NM
+    	<include refid="listBtchBas" />
+    	ORDER BY A.BTCH_JOB_ID
+    	<include refid="COMMON.pagingPostSQL" />
+    </select>
+    
+    <!--			
+    * Description : 배치기본 목록 개수 조회		
+    -->		
+	<select id="selectCountBtchBas" parameterType="kr.fasol.obix.admin.dto.biz.sy.BtchBasQryDTO" resultType="Integer">
+		SELECT COUNT(*) AS totalCount
+    	<include refid="listBtchBas" />
+	</select>
+	
+    <!--
+    * Description : 배치기본 정보 조회
+    -->
+    <select id="selectBtchBas"
+            parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO"
+            resultType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchBasDAO.selectBtchBas 배치기본 정보 조회 */
+		SELECT BTCH_JOB_ID	/* 배치작업코드 */
+		     , BTCH_JOB_NM	/* 배치작업명 */
+		     , BTCH_CYCL_CD	/* 배치주기코드 */
+		     , BTCH_EXE_PGM_NM	/* 배치실행프로그램명 */
+		     , RE_EXE_POSBL_YN	/* 재실행가능여부 */
+		     , BTCH_EXE_DESIG_DD	/* 배치실행지정일 */
+		     , BTCH_JOB_TTM	/* 배치작업시간 */
+		     , CRON_EXRS	/* CRON표현 */
+		     , AUTO_EXE_YN	/* 자동실행여부 */
+		     , APLY_START_DT	/* 적용시작일자 */
+		     , APLY_END_DT	/* 적용종료일자 */
+		     , DESC_CTNT	/* 설명내용 */
+		     , USE_YN	/* 사용여부 */
+		     , FRST_REGI_USER_ID	/* 최초등록사용자아이디 */
+		     , FRST_REGI_TMSP	/* 최초등록타임스탬프 */
+		     , LAST_CHNG_USER_ID	/* 최종변경사용자아이디 */
+		     , LAST_CHNG_TMSP	/* 최종변경타임스탬프 */
+		  FROM BTCH_BAS
+		 WHERE 1=1
+		   AND BTCH_JOB_ID = #{btchJobId}	/* 배치작업코드 */
+    </select>
+    
+    <!--
+    * Description : 배치기본 등록
+    -->
+	<insert id="insertBtchBas" parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchBasDAO.insertBtchBas 배치기본 등록*/
+		INSERT INTO BTCH_BAS
+	       ( BTCH_JOB_ID ,	/* 배치작업코드 */
+	         BTCH_JOB_NM ,	/* 배치작업명 */
+	         BTCH_CYCL_CD ,	/* 배치주기코드 */
+	         BTCH_EXE_PGM_NM ,	/* 배치실행프로그램명 */
+	         RE_EXE_POSBL_YN ,	/* 재실행가능여부 */
+	         BTCH_EXE_DESIG_DD ,	/* 배치실행지정일 */
+	         BTCH_JOB_TTM ,	/* 배치작업시간 */
+	         CRON_EXRS ,	/* CRON표현 */
+	         AUTO_EXE_YN ,	/* 자동실행여부 */
+	         APLY_START_DT ,	/* 적용시작일자 */
+	         APLY_END_DT ,	/* 적용종료일자 */
+	         DESC_CTNT ,	/* 설명내용 */
+	         USE_YN ,	/* 사용여부 */
+	         FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */
+	         FRST_REGI_TMSP  	/* 최초등록타임스탬프 */
+	       )
+		VALUES ( #{btchJobId} ,	/* 배치작업코드 */
+	         #{btchJobNm} ,	/* 배치작업명 */
+	         #{btchCyclCd} ,	/* 배치주기코드 */
+	         #{btchExePgmNm} ,	/* 배치실행프로그램명 */
+	         #{reExePosblYn} ,	/* 재실행가능여부 */
+	         #{btchExeDesigDd} ,	/* 배치실행지정일 */
+	         #{btchJobTtm} ,	/* 배치작업시간 */
+	         #{cronExrs} ,	/* CRON표현 */
+	         #{autoExeYn} ,	/* 자동실행여부 */
+	         #{aplyStartDt} ,	/* 적용시작일자 */
+	         #{aplyEndDt} ,	/* 적용종료일자 */
+	         #{descCtnt} ,	/* 설명내용 */
+	         #{useYn} ,	/* 사용여부 */
+	         #{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+	         CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+	      )
+	</insert>
+	
+	<!--
+    * Description : 배치기본 수정
+    -->
+	<update id="updateBtchBas" parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchBasDAO.updateBtchBas 배치기본 수정*/
+		UPDATE BTCH_BAS 
+		   SET
+		   <if test='btchJobId != "" and btchJobId != null'> 
+		       BTCH_JOB_ID	 = #{btchJobId} ,	/* 배치작업코드 */
+	       </if>
+		   <if test='btchJobNm != "" and btchJobNm != null'> 
+		       BTCH_JOB_NM	 = #{btchJobNm} ,	/* 배치작업명 */
+	       </if>
+		   <if test='btchCyclCd != "" and btchCyclCd != null'> 
+		       BTCH_CYCL_CD	 = #{btchCyclCd} ,	/* 배치주기코드 */
+	       </if>
+		   <if test='btchExePgmNm != "" and btchExePgmNm != null'> 
+		       BTCH_EXE_PGM_NM	 = #{btchExePgmNm} ,	/* 배치실행프로그램명 */
+	       </if>
+		   <if test='reExePosblYn != "" and reExePosblYn != null'> 
+		       RE_EXE_POSBL_YN	 = #{reExePosblYn} ,	/* 재실행가능여부 */
+	       </if>
+		   <if test='btchExeDesigDd != "" and btchExeDesigDd != null'> 
+		       BTCH_EXE_DESIG_DD	 = #{btchExeDesigDd} ,	/* 배치실행지정일 */
+	       </if>
+		   <if test='btchJobTtm != "" and btchJobTtm != null'> 
+		       BTCH_JOB_TTM	 = #{btchJobTtm} ,	/* 배치작업시간 */
+	       </if>
+		   <if test='cronExrs != "" and cronExrs != null'> 
+		       CRON_EXRS	 = #{cronExrs} ,	/* CRON표현 */
+	       </if>
+		   <if test='autoExeYn != "" and autoExeYn != null'> 
+		       AUTO_EXE_YN	 = #{autoExeYn} ,	/* 자동실행여부 */
+	       </if>
+		   <if test='aplyStartDt != "" and aplyStartDt != null'> 
+		       APLY_START_DT	 = #{aplyStartDt} ,	/* 적용시작일자 */
+	       </if>
+		   <if test='aplyEndDt != "" and aplyEndDt != null'> 
+		       APLY_END_DT	 = #{aplyEndDt} ,	/* 적용종료일자 */
+	       </if>
+		   <if test='descCtnt != "" and descCtnt != null'> 
+		       DESC_CTNT	 = #{descCtnt} ,	/* 설명내용 */
+	       </if>
+		   <if test='useYn != "" and useYn != null'> 
+		       USE_YN	 = #{useYn} ,	/* 사용여부 */
+	       </if>
+		       LAST_CHNG_USER_ID	= #{lastChngUserId} ,	/* 최종변경사용자아이디 */
+		       LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()	/* 최종변경타임스탬프 */
+		 WHERE 1=1
+		   AND BTCH_JOB_ID = #{btchJobId}
+
+	</update>
+	
+	<!--
+    * Description : 배치기본 삭제
+    -->
+	<delete id="deleteBtchBas" parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchBasDAO.deleteBtchBas 배치기본 삭제*/
+		DELETE 
+		  FROM BTCH_BAS 
+		 WHERE 1=1
+		   AND BTCH_JOB_ID = #{btchJobId}	/* 배치작업코드 */
+		   
+	</delete>
+
+	<!--		
+    * Description : 배치기본 등록 Merge			
+    -->	
+    <update id="updateMergeBtchBas" parameterType="kr.fasol.obix.common.dto.entity.BtchBasDTO">
+		/*BtchBasDTO.updateMergeBtchBas 배치기본 등록 Merge	*/
+		INSERT INTO BTCH_BAS (
+			BTCH_JOB_ID ,	/* 배치작업코드 */
+			BTCH_JOB_NM ,	/* 배치작업명 */
+			BTCH_CYCL_CD ,	/* 배치주기코드 */
+			BTCH_EXE_PGM_NM ,	/* 배치실행프로그램명 */
+			RE_EXE_POSBL_YN ,	/* 재실행가능여부 */
+			BTCH_EXE_DESIG_DD ,	/* 배치실행지정일 */
+			BTCH_JOB_TTM ,	/* 배치작업시간 */
+			CRON_EXRS ,	/* CRON표현 */
+			AUTO_EXE_YN ,	/* 자동실행여부 */
+			APLY_START_DT ,	/* 적용시작일자 */
+			APLY_END_DT ,	/* 적용종료일자 */
+			DESC_CTNT ,	/* 설명내용 */
+			USE_YN ,	/* 사용여부 */
+			FRST_REGI_USER_ID ,	/* 최초등록사용자아이디 */
+			FRST_REGI_TMSP  	/* 최초등록타임스탬프 */
+		)
+		VALUES (
+		   #{btchJobId} ,	/* 배치작업코드 */
+		   #{btchJobNm} ,	/* 배치작업명 */
+		   #{btchCyclCd} ,	/* 배치주기코드 */
+		   #{btchExePgmNm} ,	/* 배치실행프로그램명 */
+		   #{reExePosblYn} ,	/* 재실행가능여부 */
+		   #{btchExeDesigDd} ,	/* 배치실행지정일 */
+		   #{btchJobTtm} ,	/* 배치작업시간 */
+		   #{cronExrs} ,	/* CRON표현 */
+		   #{autoExeYn} ,	/* 자동실행여부 */
+		   #{aplyStartDt} ,	/* 적용시작일자 */
+		   #{aplyEndDt} ,	/* 적용종료일자 */
+		   #{descCtnt} ,	/* 설명내용 */
+		   #{useYn} ,	/* 사용여부 */
+		   #{frstRegiUserId} ,	/* 최초등록사용자아이디 */
+		   CURRENT_TIMESTAMP()	/* 최초등록타임스탬프 */
+		)
+		ON DUPLICATE KEY UPDATE
+							 BTCH_JOB_NM	 = #{btchJobNm} ,	/* 배치작업명 */
+							 BTCH_CYCL_CD	 = #{btchCyclCd} ,	/* 배치주기코드 */
+							 BTCH_EXE_PGM_NM	 = #{btchExePgmNm} ,	/* 배치실행프로그램명 */
+							 RE_EXE_POSBL_YN	 = #{reExePosblYn} ,	/* 재실행가능여부 */
+							 BTCH_EXE_DESIG_DD	 = #{btchExeDesigDd} ,	/* 배치실행지정일 */
+							 BTCH_JOB_TTM	 = #{btchJobTtm} ,	/* 배치작업시간 */
+							 CRON_EXRS	= #{cronExrs} ,	/* CRON표현 */
+							 AUTO_EXE_YN	 = #{autoExeYn} ,	/* 자동실행여부 */
+							 APLY_START_DT	 = #{aplyStartDt} ,	/* 적용시작일자 */
+							 APLY_END_DT	 = #{aplyEndDt} ,	/* 적용종료일자 */
+							 DESC_CTNT	 = #{descCtnt} ,	/* 설명내용 */
+							 USE_YN	 = #{useYn} ,	/* 사용여부 */
+							 LAST_CHNG_USER_ID	= #{lastChngUserId} ,	/* 최종변경사용자아이디 */
+							 LAST_CHNG_TMSP	 = CURRENT_TIMESTAMP()	/* 최종변경타임스탬프 */
+	</update>
+
+</mapper>

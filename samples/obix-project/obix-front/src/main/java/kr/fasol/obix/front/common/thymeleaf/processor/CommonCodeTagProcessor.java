@@ -1,0 +1,98 @@
+package kr.fasol.obix.front.common.thymeleaf.processor;
+
+import kr.fasol.obix.front.common.util.CommonCodeHelper;
+import kr.fasol.obix.front.dto.comm.CmnCdQryDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.thymeleaf.IEngineConfiguration;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.exceptions.TemplateProcessingException;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
+import org.thymeleaf.standard.expression.IStandardExpressionParser;
+import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.templatemode.TemplateMode;
+
+/**
+ * 시스템명 : 
+ * 업무구분명 : 공통 > Thymeleaf Custom Tag > 공통코드 정보
+ * 프로그램명 : 공통코드 정보
+ * 설명 : 
+ * <pre>
+ * <html xmlns:obix="http://obix.fasol.co.kr/thymeleaf/layout">
+ *
+ * <span obix:commonCode="10" th:attr="cdGroupVal='ADM_USER_STUS_CD', upCdVal=''"></span>
+ * </pre>
+ *
+ * 클래스 : CommonCodeTagProcessor.java
+ * 작성자 : 정영탁
+ * 작성일 : 2023. 8. 4.
+ * --------------------------------------------------------------------
+ * Modification Information
+ * --------------------------------------------------------------------
+ * 수정일               수정자            수정내용
+ * --------------------------------------------------------------------
+ * 2023. 8. 4.        정영탁			  최초작성
+ */
+@Slf4j
+public final class CommonCodeTagProcessor extends AbstractAttributeTagProcessor {
+
+	private static final String ATTR_NAME = "commonCode";
+	private static final int PRECEDENCE = 10000;
+
+    public CommonCodeTagProcessor(final String dialectPrefix) {
+		super(TemplateMode.HTML		// HTML 모드로 설정
+				, dialectPrefix		// 접두사
+				, null				// 태그명 미설정. 적용가능 태그명에 제약이 없다.
+				, false				// 태그명에 접두사를 적용하지 않는다.
+				, ATTR_NAME			// 적용될 속성명
+				, true				// 속성명에 dialect 접두사를 사용한다.
+				, PRECEDENCE		// dialect 들 내에서 적용 우선권.
+				, true				// 적용한 속성명은 처리 후 삭제한다.
+		);
+    }
+
+	@Override
+	protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName, String attributeValue, IElementTagStructureHandler structureHandler) {
+		// 속성값을 타임리프 표준 표현식으로 파싱한 후 표현식을 처리한다.
+		Object attrVal;
+		try {
+			final IEngineConfiguration configuration = context.getConfiguration();
+			final IStandardExpressionParser parser = StandardExpressions.getExpressionParser(configuration);
+			final IStandardExpression expression = parser.parseExpression(context, attributeValue);
+			attrVal = expression.execute(context);
+		} catch (TemplateProcessingException e) {
+			log.error(e.getMessage());
+			attrVal = attributeValue;
+		}
+
+		final String cdGroupVal = tag.getAttributeValue("cdGroupVal");
+		final String upCdVal = tag.getAttributeValue("upCdVal");
+
+		String result = StringUtils.EMPTY;
+		try {
+			if(StringUtils.isNotBlank(cdGroupVal) && StringUtils.isNotBlank(attrVal.toString())) {
+				// 공통코드
+				CmnCdQryDTO cmnCdQryDTO;
+				if (StringUtils.isNotBlank(upCdVal)) {
+					cmnCdQryDTO = CommonCodeHelper.getCmnCd(cdGroupVal, upCdVal, attrVal.toString());
+				} else {
+					cmnCdQryDTO = CommonCodeHelper.getCmnCd(cdGroupVal, attrVal.toString());
+				}
+				if (cmnCdQryDTO != null) {
+					result = cmnCdQryDTO.getCdNm();
+				}
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+        // 현재 요소에 본문 설정
+		structureHandler.setBody(result, false);
+
+	}
+
+}

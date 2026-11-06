@@ -165,12 +165,15 @@
 			: null;
 	// Simple CSV parser that handles quoted fields
 	const parseCsv = (text: string, delimiter: string): string[][] => {
+		text = text.replace(/^\uFEFF/, '');
 		const rows: string[][] = [];
 		let row: string[] = [];
 		let field = '';
 		let inQuotes = false;
+		let hasRecord = false;
 		for (let i = 0; i < text.length; i++) {
 			const ch = text[i];
+			if (ch !== '\n' && ch !== '\r') hasRecord = true;
 			if (inQuotes) {
 				if (ch === '"') {
 					if (text[i + 1] === '"') {
@@ -191,14 +194,15 @@
 				if (ch === '\r') i++;
 				row.push(field);
 				field = '';
-				if (row.some((c) => c !== '')) rows.push(row);
+				if (hasRecord) rows.push(row);
 				row = [];
+				hasRecord = false;
 			} else {
 				field += ch;
 			}
 		}
 		row.push(field);
-		if (row.some((c) => c !== '')) rows.push(row);
+		if (hasRecord) rows.push(row);
 		return rows;
 	};
 

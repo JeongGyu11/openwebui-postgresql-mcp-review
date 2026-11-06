@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+* Description : 페이징을 위한 쿼리
+* Creeate : 2017-08-02    정영탁    최초생성
+-->
+<mapper namespace="COMMON">
+
+    <sql id="pagingPreSQL">
+        SELECT * FROM (
+            SELECT
+                    ROWNUM AS ROW_NUM,
+                    CEIL(ROWNUM / #{pageInfo.pageSize}) AS PAGE_NO,
+                    #{pageInfo.pageSize} AS PAGE_SIZE,
+                    CEIL(COUNT(*) OVER()) AS TOTAL_COUNT,
+                    AA.*
+            FROM (
+    </sql>
+
+    <sql id="pagingPostSQL">
+            ) AA
+        ) AA
+        <where>
+            <if test="pageInfo.pageNo != null and pageInfo.pageNo != ''">
+                PAGE_NO = #{pageInfo.pageNo}
+            </if>
+        </where>
+    </sql>
+
+</mapper>
